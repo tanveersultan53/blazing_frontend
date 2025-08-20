@@ -1,134 +1,46 @@
-# Blazing Social Frontend
+# Getting Started with Create React App
 
-A modern React social media application built with TypeScript, Tailwind CSS, and Shadcn UI components.
-
-## Features
-
-- 🎨 **Modern UI/UX**: Beautiful and responsive design using Tailwind CSS
-- 🔐 **Authentication**: Login and signup pages with form validation
-- 📱 **Responsive Design**: Works perfectly on desktop, tablet, and mobile
-- 🧩 **Component Library**: Built with Shadcn UI for consistent design
-- 🚀 **TypeScript**: Full type safety and better developer experience
-- 📊 **Dashboard**: Interactive dashboard with statistics and quick actions
-- 🧭 **Navigation**: Collapsible sidebar with smooth animations
-
-## Tech Stack
-
-- **React 18** with TypeScript
-- **Tailwind CSS** for styling
-- **Shadcn UI** for component library
-- **React Router** for navigation
-- **Lucide React** for icons
-- **Radix UI** for accessible components
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js (version 16 or higher)
-- npm or yarn
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd blazingsocial_frontend
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Start the development server:
-```bash
-npm start
-```
-
-4. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-## Project Structure
-
-```
-src/
-├── components/
-│   ├── ui/           # Shadcn UI components
-│   ├── Sidebar.tsx   # Navigation sidebar
-│   └── DashboardLayout.tsx # Main layout component
-├── pages/
-│   ├── Login.tsx     # Login page
-│   ├── Signup.tsx    # Signup page
-│   └── Dashboard.tsx # Dashboard page
-├── lib/
-│   └── utils.ts      # Utility functions
-└── App.tsx           # Main app component
-```
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
 
-- `npm start` - Runs the app in development mode
-- `npm test` - Launches the test runner
-- `npm run build` - Builds the app for production
-- `npm run eject` - Ejects from Create React App
+In the project directory, you can run:
 
-## Pages
+### `npm start`
 
-### Authentication
-- **Login** (`/login`): User authentication with email and password
-- **Signup** (`/signup`): User registration with form validation
+Runs the app in the development mode.\
+Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-### Dashboard
-- **Dashboard** (`/dashboard`): Main dashboard with statistics and quick actions
-- **Friends** (`/dashboard/friends`): Friends management
-- **Messages** (`/dashboard/messages`): Messaging interface
-- **Notifications** (`/dashboard/notifications`): Notification center
-- **Analytics** (`/dashboard/analytics`): User analytics
-- **Events** (`/dashboard/events`): Event management
-- **Saved** (`/dashboard/saved`): Saved content
-- **Discover** (`/dashboard/discover`): Content discovery
-- **Settings** (`/dashboard/settings`): User settings
-- **Help** (`/dashboard/help`): Help and support
+The page will reload if you make edits.\
+You will also see any lint errors in the console.
 
-## Design System
+### `npm test`
 
-The application uses a consistent design system with:
+Launches the test runner in the interactive watch mode.\
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-- **Colors**: Orange and gray theme matching the Blazing Social brand
-- **Typography**: Clean, readable fonts with proper hierarchy
-- **Spacing**: Consistent spacing using Tailwind's spacing scale
-- **Components**: Reusable UI components from Shadcn UI
-- **Icons**: Lucide React icons for consistency
+### `npm run build`
 
-## Responsive Design
+Builds the app for production to the `build` folder.\
+It correctly bundles React in production mode and optimizes the build for the best performance.
 
-- **Mobile**: Collapsible sidebar with overlay
-- **Tablet**: Adaptive layout with optimized spacing
-- **Desktop**: Full sidebar with additional features
+The build is minified and the filenames include the hashes.\
+Your app is ready to be deployed!
 
-## Future Enhancements
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-- [ ] Dark mode support
-- [ ] Real-time messaging
-- [ ] File upload functionality
-- [ ] Advanced search features
-- [ ] User profile management
-- [ ] Social media integration
-- [ ] Push notifications
-- [ ] Progressive Web App (PWA) features
+### `npm run eject`
 
-## Contributing
+**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-## License
+Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
 
-This project is licensed under the MIT License.
+You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
 
-## Support
+## Learn More
 
-For support, please open an issue in the repository or contact the development team.
+You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+
+To learn React, check out the [React documentation](https://reactjs.org/).
