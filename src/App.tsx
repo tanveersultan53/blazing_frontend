@@ -15,6 +15,8 @@ import { User, Settings as SettingsIcon, LogOut } from 'lucide-react';
 import Login from './pages/Login/index';
 import Dashboard from './pages/Dashboard/index';
 import Users from './pages/Users/index';
+import UserDetail from './pages/UserDetail/index';
+import AddUser from './pages/AddUser/index';
 import Settings from './pages/Settings/index';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
@@ -31,11 +33,15 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 // Layout Component with Sidebar
 const DashboardLayout: React.FC<{ children: React.ReactNode; title: string }> = ({ children, title }) => {
-  const { userEmail, logout } = useAuth();
+  const { user, logout } = useAuth();
   
   return (
     <SidebarProvider defaultOpen={true}>
-      <AppSidebar collapsible="icon" userEmail={userEmail || "john.doe@example.com"} />
+      <AppSidebar 
+        collapsible="icon" 
+        userEmail={user?.email || "john.doe@example.com"}
+        isSuperuser={user?.is_superuser || false}
+      />
       <main className="flex-1">
         <div className="flex items-center justify-between p-4 border-b bg-background">
           <div className="flex items-center space-x-4">
@@ -72,12 +78,22 @@ const DashboardLayout: React.FC<{ children: React.ReactNode; title: string }> = 
                   <Avatar className="h-8 w-8">
                     <AvatarImage src="/placeholder-avatar.jpg" alt="User" />
                     <AvatarFallback>
-                      {userEmail === "admin@blazing.com" ? "A" : "JD"}
+                      {user?.is_superuser ? "A" : user?.name?.charAt(0) || user?.email?.charAt(0) || "U"}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
+                {/* User Info */}
+                <div className="px-3 py-2 border-b">
+                  <p className="text-sm font-medium">
+                    {user?.name || user?.email}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {user?.is_superuser ? 'Superuser' : 'User'}
+                  </p>
+                </div>
+                
                 <DropdownMenuItem>
                   <User className="mr-2 h-4 w-4" />
                   <span>Profile</span>
@@ -126,6 +142,22 @@ function App() {
                   element={
                     <DashboardLayout title="Users">
                       <Users />
+                    </DashboardLayout>
+                  } 
+                />
+                <Route 
+                  path="/users/:userId" 
+                  element={
+                    <DashboardLayout title="User Details">
+                      <UserDetail />
+                    </DashboardLayout>
+                  } 
+                />
+                <Route 
+                  path="/users/add" 
+                  element={
+                    <DashboardLayout title="Add New User">
+                      <AddUser />
                     </DashboardLayout>
                   } 
                 />

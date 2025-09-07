@@ -83,11 +83,12 @@ const adminItems = [
 interface AppSidebarProps {
   collapsible?: "offcanvas" | "icon" | "none"
   userEmail?: string
+  isSuperuser?: boolean
 }
 
-export function AppSidebar({ collapsible = "icon", userEmail = "john.doe@example.com" }: AppSidebarProps) {
+export function AppSidebar({ collapsible = "icon", userEmail = "john.doe@example.com", isSuperuser = false }: AppSidebarProps) {
   const location = useLocation();
-  const isAdmin = userEmail === "admin@blazing.com";
+  const isAdmin = isSuperuser || userEmail === "admin@blazing.com";
 
   return (
     <Sidebar collapsible={collapsible}>

@@ -4,7 +4,6 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Label } from '../../components/ui/label';
-import { Checkbox } from '../../components/ui/checkbox';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import Logo from '../../components/Logo';
 import { useAuth } from '../../contexts/AuthContext';
@@ -35,44 +34,87 @@ const Login: React.FC = () => {
   };
 
   const validateForm = () => {
+    console.log('Validating form with data:', { email: formData.email, passwordLength: formData.password.length });
     const newErrors: { email?: string; password?: string } = {};
     
     if (!formData.email) {
       newErrors.email = 'Email is required';
+      console.log('Email validation failed: empty');
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
+      console.log('Email validation failed: invalid format');
+    } else {
+      console.log('Email validation passed');
     }
     
     if (!formData.password) {
       newErrors.password = 'Password is required';
+      console.log('Password validation failed: empty');
     } else if (formData.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
+      console.log('Password validation failed: too short');
+    } else {
+      console.log('Password validation passed');
     }
     
+    console.log('Validation errors:', newErrors);
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const isValid = Object.keys(newErrors).length === 0;
+    console.log('Form is valid:', isValid);
+    return isValid;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submitted with data:', { email: formData.email, password: '***' });
     
     if (!validateForm()) {
+      console.log('Form validation failed');
       return;
     }
     
+    console.log('Form validation passed, starting login...');
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Login attempt:', formData);
+    try {
+      console.log('Calling login function...');
+      // Use the auth context to login with credentials
+      await login({
+        email: formData.email,
+        password: formData.password
+      });
       
-      // Use the auth context to login with the email
-      login(formData.email);
-      
-      setIsLoading(false);
+      console.log('Login successful, navigating to dashboard...');
       // Navigate to dashboard after successful login
       navigate('/dashboard');
-    }, 1500);
+    } catch (error) {
+      // Provide more specific error messages
+      let errorMessage = 'Login failed. Please try again.';
+      
+      if (error instanceof Error) {
+        console.log('Error message:', error.message);
+        
+        if (error.message.includes('Network error') || error.message.includes('ECONNREFUSED')) {
+          errorMessage = 'Unable to connect to server. Please check if the backend is running on http://127.0.0.1:8000';
+        } else if (error.message.includes('401') || error.message.includes('Invalid')) {
+          errorMessage = 'Invalid email or password';
+        } else if (error.message.includes('404')) {
+          errorMessage = 'Login endpoint not found. Please check the API configuration.';
+        } else if (error.message.includes('No access token')) {
+          errorMessage = 'Server did not return access token. Please check your credentials.';
+        } else if (error.message.includes('timeout')) {
+          errorMessage = 'Request timed out. Please try again.';
+        }
+      }
+      
+      console.log('Setting error message:', errorMessage);
+      setErrors({
+        email: errorMessage,
+        password: errorMessage
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -156,19 +198,6 @@ const Login: React.FC = () => {
 
               {/* Remember Me & Forgot Password */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="rememberMe"
-                    name="rememberMe"
-                    checked={formData.rememberMe}
-                    onCheckedChange={(checked) => 
-                      setFormData(prev => ({ ...prev, rememberMe: checked as boolean }))
-                    }
-                  />
-                  <Label htmlFor="rememberMe" className="text-sm text-gray-700">
-                    Remember me
-                  </Label>
-                </div>
                 <Button variant="link" className="text-sm p-0 h-auto">
                   Forgot password?
                 </Button>
