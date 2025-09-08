@@ -3,6 +3,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/components/data-table';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import PageHeader from '@/components/PageHeader';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 
 const UsersPage: React.FC = () => {
   // Set the page title for breadcrumb
@@ -22,7 +23,9 @@ const UsersPage: React.FC = () => {
     },
     {
       accessorKey: "email",
-      header: "Email",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Email" />
+      ),
     },
     {
       accessorKey: "amount",
