@@ -1,7 +1,7 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 export interface User {
-  id:               number;
+  id:               number | string;
   socials:          { [key: string]: number | null };
   messaging:        Messaging;
   compliance:       { [key: string]: number | null };
@@ -16,7 +16,7 @@ export interface User {
   rep_id:           string;
   rep_name:         string;
   company:          string;
-  company_id:       number;
+  company_id:       number | string;
   address:          string;
   address2:         string;
   city:             string;
@@ -38,7 +38,7 @@ export interface User {
 }
 
 export interface Messaging {
-  id:                     number;
+  id:                     number | string;
   use_first_name:         null;
   change_phone_label:     null;
   no_emal_report:         null;

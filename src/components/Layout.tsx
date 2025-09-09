@@ -1,3 +1,4 @@
+import React from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import {
   SidebarInset,
@@ -19,7 +20,7 @@ import { BreadcrumbProvider, useBreadcrumb } from "@/contexts/BreadcrumbContext"
 
 function LayoutContent() {
   const dispatch = useDispatch();
-  const { pageTitle } = useBreadcrumb();
+  const { pageTitle, breadcrumbs } = useBreadcrumb();
 
   const getUserProfileQuery = useQuery({
     queryKey: [queryKeys.userProfile],
@@ -55,9 +56,28 @@ function LayoutContent() {
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>{pageTitle}</BreadcrumbPage>
-                </BreadcrumbItem>
+                {breadcrumbs.length > 0 ? (
+                  breadcrumbs.map((breadcrumb, index) => (
+                    <React.Fragment key={index}>
+                      <BreadcrumbItem>
+                        {breadcrumb.path ? (
+                          <BreadcrumbLink href={breadcrumb.path}>
+                            {breadcrumb.label}
+                          </BreadcrumbLink>
+                        ) : (
+                          <BreadcrumbPage>{breadcrumb.label}</BreadcrumbPage>
+                        )}
+                      </BreadcrumbItem>
+                      {index < breadcrumbs.length - 1 && (
+                        <BreadcrumbSeparator />
+                      )}
+                    </React.Fragment>
+                  ))
+                ) : (
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>{pageTitle || 'Dashboard'}</BreadcrumbPage>
+                  </BreadcrumbItem>
+                )}
               </BreadcrumbList>
             </Breadcrumb>
           </div>

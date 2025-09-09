@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader } from '../components/ui/card';
-import { Checkbox } from '../components/ui/checkbox';
-import logoImage from '../assets/blazing-social-logo.png';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import logoImage from '@/assets/blazing-social-logo.png';
 import { useMutation } from '@tanstack/react-query';
 import { loginUser, userProfile } from '@/services/authService';
 import { setCurrentUser } from '@/redux/features/userSlice';
@@ -162,7 +162,7 @@ const LoginPage: React.FC = () => {
                   <Checkbox
                     id="remember"
                     checked={rememberMe}
-                    onCheckedChange={(checked) => setRememberMe(checked === true)}
+                    onCheckedChange={(checked: boolean) => setRememberMe(checked === true)}
                   />
                   <label htmlFor="remember" className="text-sm text-gray-600 cursor-pointer">
                     Remember me
