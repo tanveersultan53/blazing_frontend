@@ -49,7 +49,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, description, children, a
             )}
           </div>
           {children && (
-            <div className="mt-4">
+            <div className="mt-2">
               {children}
             </div>
           )}
