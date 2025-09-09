@@ -24,7 +24,7 @@ export function NavMain({
 }: {
   items: {
     title: string
-    url: string
+    url: string[]
     icon?: LucideIcon
     isActive?: boolean
     items?: {
@@ -42,8 +42,8 @@ export function NavMain({
       <SidebarGroupLabel>Menu</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
-          const isActive = location.pathname === item.url
-          const hasActiveSubItem = item.items?.some(subItem => location.pathname === subItem.url)
+          const isActive = item.url.includes(location.pathname);
+          const hasActiveSubItem = item.items?.some(subItem => subItem.url.includes(location.pathname))
           
           return (
             <Collapsible
@@ -59,7 +59,7 @@ export function NavMain({
                     asChild
                     isActive={isActive}
                   >
-                    <Link to={item.url}>
+                    <Link to={item.url[0]}>
                       {item.icon && <item.icon />}
                       <span>{item.title}</span>
                       {item.items && item.items.length > 0 && (
@@ -72,14 +72,14 @@ export function NavMain({
                   <CollapsibleContent>
                     <SidebarMenuSub>
                       {item.items?.map((subItem) => {
-                        const isSubItemActive = location.pathname === subItem.url
+                        const isSubItemActive = subItem.url.includes(location.pathname)
                         return (
                           <SidebarMenuSubItem key={subItem.title}>
                             <SidebarMenuSubButton 
                               asChild
                               isActive={isSubItemActive}
                             >
-                              <Link to={subItem.url}>
+                              <Link to={subItem.url[0]}>
                                 {subItem.icon && (
                                   <subItem.icon size={55} className={`${subItem.color || ""}`} />
                                 )}

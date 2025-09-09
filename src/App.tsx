@@ -6,6 +6,7 @@ import './index.css';
 import Layout from './components/layout';
 import WithoutAuth from './components/PublicRoute';
 import WithAuth from './components/ProtectedRoute';
+import UserDetails from './pages/UserDetails';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/" element={<WithAuth><Layout /></WithAuth>} >
           <Route index element={<Users  />} />
           <Route path="users/create" element={<CreateUser />} />
+          <Route path="users/:id" element={<UserDetails />} />
         </Route>
 
 

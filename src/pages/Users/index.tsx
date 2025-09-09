@@ -52,18 +52,13 @@ const Users = () => {
                     data={data}
                     searchColumns={["name", "email", "company", "title", "location", "status", "role"]}
                     showActionsColumn
-                    onViewDetails={(row: IUserList) => console.log("View Details", row.id)}
+                    onViewDetails={(row: IUserList) => navigate(`/users/${row.rep_id}`)}
                     actionItems={[
-                        {
-                            label: "Edit user",
-                            icon: Edit,
-                            onClick: (row: IUserList) => console.log("Edit", row.id),
-                        },
                         {
                             label: "Delete user",
                             icon: Trash2,
                             className: "text-red-600",
-                            onClick: (row: IUserList) => console.log("Delete", row.id),
+                            onClick: (row: IUserList) => console.log("Delete", row.rep_id),
                         },
                     ]}
                 />

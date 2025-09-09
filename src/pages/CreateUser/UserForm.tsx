@@ -2,6 +2,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { PasswordInput } from '@/components/ui/password-input';
 import useCreateUser from './useCreateUser';
 import { useNavigate } from 'react-router-dom';
 
@@ -81,15 +82,14 @@ const UserForm = () => {
             <label htmlFor="password" className="text-sm font-medium">
               Password *
             </label>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               placeholder="Enter password (min 8 characters)"
               {...register('password', { 
                 required: 'Password is required',
                 minLength: { value: 8, message: 'Password must be at least 8 characters' }
               })}
-              className={errors.password ? 'border-red-500' : ''}
+              error={!!errors.password}
             />
             {errors.password && (
               <p className="text-sm text-red-500">{errors.password.message}</p>

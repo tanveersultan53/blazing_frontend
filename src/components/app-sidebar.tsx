@@ -40,7 +40,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     navMain: [
       {
         title: "Users",
-        url: "/",
+        url: ["/", "/users"],
         icon: Users,
         items: [],
       },
@@ -48,17 +48,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     navSecondary: [
       {
         title: "Settings",
-        url: "#",
+        url: ["/settings"],
         icon: IconSettings,
       },
       {
         title: "Get Help",
-        url: "#",
+        url: [ "/help"],
         icon: IconHelp,
       },
       {
         title: "Search",
-        url: "#",
+        url: [ "/search"],
         icon: IconSearch,
       },
     ],
