@@ -33,7 +33,7 @@ export interface IUserDetails {
     branch_id: string
     groups: any[]
     user_permissions: any[]
-    personal_licence?: string
+    personal_license?: string
   }
   
   export interface Socials {
