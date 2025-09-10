@@ -7,16 +7,16 @@ import type { AxiosResponse } from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { getNewsletter } from "@/services/userManagementService";
 import { queryKeys } from "@/helpers/constants";
-import type { INewsletterInfo } from "./interface";
+import type { INewsletterInfo, IUserDetails } from "./interface";
 import Loading from "@/components/Loading";
 
-const NewsLetterInformation = () => {
+const NewsLetterInformation = ({ user }: { user: IUserDetails | undefined, }) => {
     const { id } = useParams();
 
     const [isEditMode, setIsEditMode] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const { data, isLoading, refetch } = useQuery<AxiosResponse<INewsletterInfo>>({
+    const { data, isLoading } = useQuery<AxiosResponse<INewsletterInfo>>({
         queryKey: [queryKeys.getNewsletter, id],
         queryFn: () => getNewsletter(id as string | number),
     });
@@ -56,13 +56,53 @@ const NewsLetterInformation = () => {
                         <div className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="space-y-2">
-                                    <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">BBB</label>
-                                    <p className="text-sm font-semibold">{data?.data?.bbb}</p>
+                                    <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">Company</label>
+                                    <p className="text-sm font-semibold">{user?.company || '-'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">Discloure</label>
+                                    <p className="text-sm font-semibold">{'-'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">EHL</label>
+                                    <p className="text-sm font-semibold">{data?.data?.EHL ? 'Yes' : 'No'}</p>
                                 </div>
 
                                 <div className="space-y-2">
+                                    <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">MFDIC</label>
+                                    <p className="text-sm font-semibold">{data?.data?.fdic ? 'Yes' : 'No'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">EHO</label>
+                                    <p className="text-sm font-semibold">{data?.data?.EHO ? 'Yes' : 'No'}</p>
+                                </div>
+                                <div className="space-y-2">
                                     <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">BBB</label>
-                                    <p className="text-sm font-semibold">{data?.data?.bbb}</p>
+                                    <p className="text-sm font-semibold">{data?.data?.bbb ? 'Yes' : 'No'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">HUD</label>
+                                    <p className="text-sm font-semibold">{data?.data?.hud ? 'Yes' : 'No'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">NCUA</label>
+                                    <p className="text-sm font-semibold">{data?.data?.ncua ? 'Yes' : 'No'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">FDIC</label>
+                                    <p className="text-sm font-semibold">{data?.data?.fdic ? 'Yes' : 'No'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">BBB-A</label>
+                                    <p className="text-sm font-semibold">{data?.data?.bbba ? 'Yes' : 'No'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">Relator Symbol</label>
+                                    <p className="text-sm font-semibold">{data?.data?.no_rate_post ? 'Yes' : 'No'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">Custom Symbol</label>
+                                    <p className="text-sm font-semibold">{data?.data?.custom ? 'Yes' : 'No'}</p>
                                 </div>
                             </div>
                         </div>

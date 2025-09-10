@@ -49,7 +49,7 @@ const UserDetails = () => {
                         <TabsTrigger value="call">Call to Action</TabsTrigger>
                     </TabsList>
                     <TabsContent value="personal"><PersonalInformation user={user} refetch={refetch} /></TabsContent>
-                    <TabsContent value="social"><SocialLinksInformation /></TabsContent>
+                    <TabsContent value="social"><SocialLinksInformation user={user}/></TabsContent>
                     <TabsContent value="settings">Settings</TabsContent>
                     <TabsContent value="services">Services</TabsContent>
                     <TabsContent value="newsletters"><NewsLetterInformation /></TabsContent>
