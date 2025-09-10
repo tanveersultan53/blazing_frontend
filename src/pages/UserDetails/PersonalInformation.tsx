@@ -138,6 +138,10 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                     <p className="text-sm font-semibold">{user?.first_name}</p>
                                 </div>
                                 <div className="space-y-2">
+                                    <label htmlFor="mid" className="text-xs font-medium text-muted-foreground">Middle Name</label>
+                                    <p className="text-sm font-semibold">{user?.mid}</p>
+                                </div>
+                                <div className="space-y-2">
                                     <label htmlFor="last_name" className="text-xs font-medium text-muted-foreground">Last Name</label>
                                     <p className="text-sm font-semibold">{user?.last_name}</p>
                                 </div>
@@ -204,10 +208,6 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                 </div>
 
                                 {/* System Information */}
-                                <div className="space-y-2">
-                                    <label htmlFor="mid" className="text-xs font-medium text-muted-foreground">MID</label>
-                                    <p className="text-sm font-semibold">{user?.mid}</p>
-                                </div>
                                 <div className="space-y-2">
                                     <label htmlFor="company_id" className="text-xs font-medium text-muted-foreground">Company ID</label>
                                     <p className="text-sm font-semibold">{user?.company_id}</p>
