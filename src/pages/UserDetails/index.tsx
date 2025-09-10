@@ -12,6 +12,7 @@ import NewsLetterInformation from "./NewsLetterInformation";
 import CallToAction from "./CallToAction";
 import Settings from "./Settings";
 import Services from "./Services";
+import EmailSettings from "./EmailSettings";
 
 const UserDetails = () => {
     const { user, isLoading, activeTab, setActiveTab, refetch } = useUserDetails();
@@ -56,7 +57,7 @@ const UserDetails = () => {
                     <TabsContent value="settings"><Settings /></TabsContent>
                     <TabsContent value="services"><Services /></TabsContent>
                     <TabsContent value="newsletters"><NewsLetterInformation user={user}/></TabsContent>
-                    <TabsContent value="email">Email Settings</TabsContent>
+                    <TabsContent value="email"><EmailSettings /></TabsContent>
                     <TabsContent value="call"><CallToAction /></TabsContent>
                 </Tabs>
             </div>
