@@ -17,7 +17,7 @@ export interface CreateUserFormData {
     city: string;
     state: string;
     zip_code: string;
-    email: string;
+    email?: string;
     work_phone: string;
     work_ext: string;
     cellphone: string;

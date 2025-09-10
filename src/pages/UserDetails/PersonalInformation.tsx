@@ -39,7 +39,6 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
         company_id: user?.company_id.toString() || '',
         branch_id: user?.branch_id || '',
         is_active: user?.is_active || false,
-        password: user?.password || '',
     }
 
     const [isEditMode, setIsEditMode] = useState(false);
@@ -92,7 +91,11 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
 
     const onSubmit = (data: CreateUserFormData) => {
         setIsSubmitting(true);
-        updateUserMutation({ id: id as string | number, user: data });
+        const postData = {
+            ...data,
+        }
+        delete postData.email;
+        updateUserMutation({ id: id as string | number, user: postData });
     };
 
     const handleCancel = () => {
@@ -142,10 +145,6 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                 <div className="space-y-2">
                                     <label htmlFor="email" className="text-xs font-medium text-muted-foreground">Email</label>
                                     <p className="text-sm font-semibold">{user?.email}</p>
-                                </div>
-                                <div className="space-y-2">
-                                    <label htmlFor="password" className="text-xs font-medium text-muted-foreground">Password</label>
-                                    <p className="text-sm font-semibold">{user?.password}</p>
                                 </div>
 
                                 {/* Contact Information */}
@@ -306,6 +305,7 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                         id="email"
                                         type="email"
                                         placeholder="Enter email address"
+                                        disabled={true}
                                         {...register('email', {
                                             required: 'Email is required',
                                             pattern: {
@@ -317,24 +317,6 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                     />
                                     {errors.email && (
                                         <p className="text-sm text-red-500">{errors.email.message}</p>
-                                    )}
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label htmlFor="password" className="text-sm font-medium">
-                                        Password *
-                                    </label>
-                                    <PasswordInput
-                                        id="password"
-                                        placeholder="Enter password (min 8 characters)"
-                                        {...register('password', {
-                                            required: 'Password is required',
-                                            minLength: { value: 8, message: 'Password must be at least 8 characters' }
-                                        })}
-                                        error={!!errors.password}
-                                    />
-                                    {errors.password && (
-                                        <p className="text-sm text-red-500">{errors.password.message}</p>
                                     )}
                                 </div>
 
