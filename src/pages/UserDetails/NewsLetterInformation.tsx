@@ -14,7 +14,7 @@ const NewsLetterInformation = ({ user }: { user: IUserDetails | undefined, }) =>
     const { id } = useParams();
 
     const [isEditMode, setIsEditMode] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const isSubmitting:boolean = false;
 
     const { data, isLoading } = useQuery<AxiosResponse<INewsletterInfo>>({
         queryKey: [queryKeys.getNewsletter, id],

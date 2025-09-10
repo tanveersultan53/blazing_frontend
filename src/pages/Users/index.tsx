@@ -5,7 +5,7 @@ import Loading from "@/components/Loading";
 import { useBreadcrumbs } from "@/hooks/usePageTitle";
 import { UserPlus } from "lucide-react";
 import { FileDown } from "lucide-react";
-import { Edit, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import type { IUserList } from "./interface";
 import { useNavigate } from "react-router-dom";
 import { useMemo } from "react";
