@@ -166,3 +166,13 @@ export interface IUserDetails {
     company?:      string;
     discloure?:    string;
 }
+
+export interface ICallToAction {
+    cta_label1:    string;
+    cta_url1:      string;
+    cta_label2:    string;
+    cta_url2:      string;
+    reverse_label: string;
+    cta_url3:      string;
+    hashtags:      string;
+}

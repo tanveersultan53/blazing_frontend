@@ -27,6 +27,7 @@ export interface CreateUserFormData {
     mid: string;
     website: string;
     branch_id: string;
+    personal_lisence: string;
 }
 
 const useCreateUser = () => {
@@ -53,7 +54,8 @@ const useCreateUser = () => {
             title: '',
             mid: '',
             website: '',
-            branch_id: ''
+            branch_id: '',
+            personal_lisence: ''
         },
         mode: 'onChange'
     });

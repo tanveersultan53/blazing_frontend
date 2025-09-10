@@ -2,7 +2,7 @@ import { type AxiosResponse } from "axios";
 import type { IUserList } from "@/pages/Users/interface";
 import api from "./axiosInterceptor";
 import type { CreateUserFormData } from "@/pages/CreateUser/useCreateUser";
-import type { INewsletterInfo, IUserDetails } from "@/pages/UserDetails/interface";
+import type { ICallToAction, INewsletterInfo, IUserDetails } from "@/pages/UserDetails/interface";
 import type { ISocials } from "@/pages/UserDetails/interface";
 
 export const getUsers = (): Promise<AxiosResponse<{ results: IUserList[] }>> =>
@@ -28,3 +28,9 @@ export const getNewsletter = (id: string | number): Promise<AxiosResponse<INewsl
 
 export const updateNewsletter = ({ id, newsletter }: { id: string | number, newsletter: INewsletterInfo }): Promise<AxiosResponse<INewsletterInfo>> =>
     api.put(`/accounts/admin/users/${id}/newsletter-info`, newsletter);
+
+export const getCallToAction = (id: string | number): Promise<AxiosResponse<ICallToAction>> =>
+    api.get(`/accounts/admin/users/${id}/call-to-action`);
+
+export const updateCallToAction = ({ id, callToAction }: { id: string | number, callToAction: ICallToAction }): Promise<AxiosResponse<ICallToAction>> =>
+    api.put(`/accounts/admin/users/${id}/call-to-action`, callToAction);

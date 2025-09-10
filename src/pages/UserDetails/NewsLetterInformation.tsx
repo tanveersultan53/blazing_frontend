@@ -138,16 +138,16 @@ const NewsLetterInformation = ({ user }: { user: IUserDetails | undefined, }) =>
                                     <p className="text-sm font-semibold">{data?.data?.ncua ? 'Yes' : 'No'}</p>
                                 </div>
                                 <div className="space-y-2">
-                                    <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">FDIC</label>
-                                    <p className="text-sm font-semibold">{data?.data?.fdic ? 'Yes' : 'No'}</p>
-                                </div>
-                                <div className="space-y-2">
                                     <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">BBB-A</label>
                                     <p className="text-sm font-semibold">{data?.data?.bbba ? 'Yes' : 'No'}</p>
                                 </div>
                                 <div className="space-y-2">
-                                    <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">Relator Symbol</label>
+                                    <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">No Rate Post</label>
                                     <p className="text-sm font-semibold">{data?.data?.no_rate_post ? 'Yes' : 'No'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">Realtor Symbol</label>
+                                    <p className="text-sm font-semibold">{data?.data?.realtor ? 'Yes' : 'No'}</p>
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">Custom Symbol</label>
