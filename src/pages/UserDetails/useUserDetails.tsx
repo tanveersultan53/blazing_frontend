@@ -6,7 +6,7 @@ import { useState } from "react";
 
 const useUserDetails = () => {
     const { id } = useParams();
-    const [activeTab, setActiveTab] = useState<'personal' | 'socials' | 'messaging' | 'compliance' | 'branding' | 'preferences' | 'autooptions'>('personal');
+    const [activeTab, setActiveTab] = useState<'personal' | 'social' | 'settings' | 'services' | 'newsletters' | 'email' | 'call'>('personal');
 
     const { data, isLoading, error, refetch } = useQuery({
         queryKey: [queryKeys.getUserDetails, id],

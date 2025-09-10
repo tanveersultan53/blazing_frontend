@@ -108,7 +108,7 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <div>
                         <CardTitle>Personal Information</CardTitle>
-                        <CardDescription>You can also update personal information here by clicking the edit button. </CardDescription>
+                        <CardDescription>You can also update personal information here by clicking the update button. </CardDescription>
                     </div>
                     {!isEditMode &&
                         <Button variant="outline" size="sm" className="flex items-center gap-2" onClick={() => setIsEditMode(!isEditMode)}>

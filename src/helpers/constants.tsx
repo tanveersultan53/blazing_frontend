@@ -3,5 +3,6 @@ export const queryKeys = Object.freeze({
     usersList: 'usersList',
     getUserDetails: 'getUserDetails',
     getSocials: 'getSocials',
+    getNewsletter: 'getNewsletter',
 });
 

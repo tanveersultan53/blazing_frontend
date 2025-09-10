@@ -150,3 +150,17 @@ export interface IUserDetails {
     customapp: any
   }
   
+  export interface INewsletterInfo {
+    id:           number;
+    bbb:          boolean;
+    bbba:         boolean;
+    EHL:          boolean;
+    EHO:          boolean;
+    fdic:         boolean;
+    ncua:         boolean;
+    realtor:      boolean;
+    hud:          boolean;
+    industry:     number;
+    no_rate_post: boolean;
+    custom:       boolean;
+}

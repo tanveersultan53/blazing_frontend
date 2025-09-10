@@ -92,7 +92,7 @@ const SocialLinksInformation = () => {
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <div>
                         <CardTitle>Social Accounts Information</CardTitle>
-                        <CardDescription>You can also update social links information here by clicking the edit button. </CardDescription>
+                        <CardDescription>You can also update social links information here by clicking the update button. </CardDescription>
                     </div>
                     {!isEditMode &&
                         <Button variant="outline" size="sm" className="flex items-center gap-2" onClick={() => setIsEditMode(!isEditMode)}>

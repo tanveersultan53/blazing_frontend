@@ -8,6 +8,7 @@ import PersonalInformation from "./PersonalInformation";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import SocialLinksInformation from "./SocialLinksInformation";
+import NewsLetterInformation from "./NewsLetterInformation";
 
 const UserDetails = () => {
     const { user, isLoading, activeTab, setActiveTab, refetch } = useUserDetails();
@@ -37,23 +38,23 @@ const UserDetails = () => {
 
         >
             <div className="flex w-full flex-col gap-6">
-                <Tabs defaultValue={activeTab} onValueChange={(value) => setActiveTab(value as 'personal' | 'socials' | 'messaging' | 'compliance' | 'branding' | 'preferences' | 'autooptions')}>
+                <Tabs defaultValue={activeTab} onValueChange={(value) => setActiveTab(value as 'personal' | 'social' | 'settings' | 'services' | 'newsletters' | 'email' | 'call')}>
                     <TabsList>
                         <TabsTrigger value="personal">Personal Information</TabsTrigger>
-                        <TabsTrigger value="socials">Social Accounts</TabsTrigger>
-                        <TabsTrigger value="messaging">Messaging</TabsTrigger>
-                        <TabsTrigger value="compliance">Compliance</TabsTrigger>
-                        <TabsTrigger value="branding">Branding</TabsTrigger>
-                        <TabsTrigger value="preferences">Preferences</TabsTrigger>
-                        <TabsTrigger value="autooptions">Auto Options</TabsTrigger>
+                        <TabsTrigger value="social">Social Media</TabsTrigger>
+                        <TabsTrigger value="settings">Settings</TabsTrigger>
+                        <TabsTrigger value="services">Services</TabsTrigger>
+                        <TabsTrigger value="newsletters">Newsletters Information</TabsTrigger>
+                        <TabsTrigger value="email">Email Settings</TabsTrigger>
+                        <TabsTrigger value="call">Call to Action</TabsTrigger>
                     </TabsList>
                     <TabsContent value="personal"><PersonalInformation user={user} refetch={refetch} /></TabsContent>
-                    <TabsContent value="socials"><SocialLinksInformation /></TabsContent>
-                    <TabsContent value="messaging">Messaging</TabsContent>
-                    <TabsContent value="compliance">Compliance</TabsContent>
-                    <TabsContent value="branding">Branding</TabsContent>
-                    <TabsContent value="preferences">Preferences</TabsContent>
-                    <TabsContent value="autooptions">Auto Options</TabsContent>
+                    <TabsContent value="social"><SocialLinksInformation /></TabsContent>
+                    <TabsContent value="settings">Settings</TabsContent>
+                    <TabsContent value="services">Services</TabsContent>
+                    <TabsContent value="newsletters"><NewsLetterInformation /></TabsContent>
+                    <TabsContent value="email">Email Settings</TabsContent>
+                    <TabsContent value="call">Call to Action</TabsContent>
                 </Tabs>
             </div>
         </PageHeader>
