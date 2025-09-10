@@ -212,13 +212,13 @@ const UserForm = () => {
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="personal_lisence" className="text-sm font-medium">
+              <label htmlFor="personal_licence" className="text-sm font-medium">
                 Personal Lisence
               </label>
               <Input
-                id="personal_lisence"
+                id="personal_licence"
                 placeholder="Enter personal lisence"
-                {...register('personal_lisence')}
+                {...register('personal_licence')}
               />
             </div>
           </div>
