@@ -25,3 +25,6 @@ export const updateSocials = ({ id, socials }: { id: string | number, socials: I
 
 export const getNewsletter = (id: string | number): Promise<AxiosResponse<INewsletterInfo>> =>
     api.get(`/accounts/admin/users/${id}/newsletter-info`);
+
+export const updateNewsletter = ({ id, newsletter }: { id: string | number, newsletter: INewsletterInfo }): Promise<AxiosResponse<INewsletterInfo>> =>
+    api.put(`/accounts/admin/users/${id}/newsletter-info`, newsletter);

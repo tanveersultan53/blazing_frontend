@@ -163,4 +163,6 @@ export interface IUserDetails {
     industry:     number;
     no_rate_post: boolean;
     custom:       boolean;
+    company?:      string;
+    discloure?:    string;
 }
