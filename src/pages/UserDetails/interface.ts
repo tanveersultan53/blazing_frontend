@@ -134,3 +134,19 @@ export interface IUserDetails {
     usedeargreeting: boolean
   }
   
+  export interface ISocials {
+    id: number
+    facebook: any
+    linkedin: any
+    twitter: any
+    instagram: any
+    youtube: any
+    blogr: any
+    google: any
+    yelp: any
+    vimeo: any
+    moneyapp: any
+    socialapp: any
+    customapp: any
+  }
+  

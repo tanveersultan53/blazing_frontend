@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import PersonalInformation from "./PersonalInformation";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import SocialLinksInformation from "./SocialLinksInformation";
 
 const UserDetails = () => {
     const { user, isLoading, activeTab, setActiveTab, refetch } = useUserDetails();
@@ -39,7 +40,7 @@ const UserDetails = () => {
                 <Tabs defaultValue={activeTab} onValueChange={(value) => setActiveTab(value as 'personal' | 'socials' | 'messaging' | 'compliance' | 'branding' | 'preferences' | 'autooptions')}>
                     <TabsList>
                         <TabsTrigger value="personal">Personal Information</TabsTrigger>
-                        <TabsTrigger value="socials">Social Media</TabsTrigger>
+                        <TabsTrigger value="socials">Social Accounts</TabsTrigger>
                         <TabsTrigger value="messaging">Messaging</TabsTrigger>
                         <TabsTrigger value="compliance">Compliance</TabsTrigger>
                         <TabsTrigger value="branding">Branding</TabsTrigger>
@@ -47,7 +48,7 @@ const UserDetails = () => {
                         <TabsTrigger value="autooptions">Auto Options</TabsTrigger>
                     </TabsList>
                     <TabsContent value="personal"><PersonalInformation user={user} refetch={refetch} /></TabsContent>
-                    <TabsContent value="socials">Social Media</TabsContent>
+                    <TabsContent value="socials"><SocialLinksInformation /></TabsContent>
                     <TabsContent value="messaging">Messaging</TabsContent>
                     <TabsContent value="compliance">Compliance</TabsContent>
                     <TabsContent value="branding">Branding</TabsContent>

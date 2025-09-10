@@ -3,6 +3,7 @@ import type { IUserList } from "@/pages/Users/interface";
 import api from "./axiosInterceptor";
 import type { CreateUserFormData } from "@/pages/CreateUser/useCreateUser";
 import type { IUserDetails } from "@/pages/UserDetails/interface";
+import type { ISocials } from "@/pages/UserDetails/interface";
 
 export const getUsers = (): Promise<AxiosResponse<{ results: IUserList[] }>> =>
     api.get("/accounts/auth/users");
@@ -15,3 +16,9 @@ export const getUserDetails = (id: string | number): Promise<AxiosResponse<IUser
 
 export const updateUser = ({ id, user }: { id: string | number, user: CreateUserFormData }): Promise<AxiosResponse<CreateUserFormData>> =>
     api.put(`/accounts/auth/users/${id}`, user);
+
+export const getSocials = (id: string | number): Promise<AxiosResponse<ISocials>> =>
+    api.get(`/accounts/admin/users/${id}/socials`);
+
+export const updateSocials = ({ id, socials }: { id: string | number, socials: ISocials }): Promise<AxiosResponse<ISocials>> =>
+    api.put(`/accounts/admin/users/${id}/socials`, socials);

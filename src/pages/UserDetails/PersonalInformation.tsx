@@ -13,7 +13,6 @@ import { useMutation } from "@tanstack/react-query";
 import { updateUser } from "@/services/userManagementService";
 import { toast } from "sonner";
 import { useParams } from "react-router-dom";
-import { PasswordInput } from "@/components/ui/password-input";
 import type { AxiosResponse } from "axios";
 
 const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined, refetch: () => void }) => {
@@ -221,7 +220,7 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                 {/* Account & Permissions */}
                                 <div className="space-y-2">
                                     <label htmlFor="account_folder" className="text-xs font-medium text-muted-foreground">Account Folder</label>
-                                    <p className="text-sm font-semibold">{user?.account_folder}</p>
+                                    <p className="text-sm font-semibold">{user?.account_folder ?? '-'}</p>
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="date_joined" className="text-xs font-medium text-muted-foreground">Date Joined</label>
