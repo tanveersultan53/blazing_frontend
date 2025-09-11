@@ -5,5 +5,6 @@ export const queryKeys = Object.freeze({
     getSocials: 'getSocials',
     getNewsletter: 'getNewsletter',
     getCallToAction: 'getCallToAction',
+    getEmailSettings: 'getEmailSettings',
 });
 
