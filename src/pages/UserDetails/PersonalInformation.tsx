@@ -38,6 +38,7 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
         company_id: user?.company_id.toString() || '',
         branch_id: user?.branch_id || '',
         is_active: user?.is_active || false,
+        personal_license: user?.personal_license || '',
     }
 
     const [isEditMode, setIsEditMode] = useState(false);
@@ -138,6 +139,10 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                     <p className="text-sm font-semibold">{user?.first_name}</p>
                                 </div>
                                 <div className="space-y-2">
+                                    <label htmlFor="mid" className="text-xs font-medium text-muted-foreground">Middle Name</label>
+                                    <p className="text-sm font-semibold">{user?.mid}</p>
+                                </div>
+                                <div className="space-y-2">
                                     <label htmlFor="last_name" className="text-xs font-medium text-muted-foreground">Last Name</label>
                                     <p className="text-sm font-semibold">{user?.last_name}</p>
                                 </div>
@@ -205,16 +210,16 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
 
                                 {/* System Information */}
                                 <div className="space-y-2">
-                                    <label htmlFor="mid" className="text-xs font-medium text-muted-foreground">MID</label>
-                                    <p className="text-sm font-semibold">{user?.mid}</p>
-                                </div>
-                                <div className="space-y-2">
                                     <label htmlFor="company_id" className="text-xs font-medium text-muted-foreground">Company ID</label>
                                     <p className="text-sm font-semibold">{user?.company_id}</p>
                                 </div>
                                 <div className="space-y-2">
-                                    <label htmlFor="branch_id" className="text-xs font-medium text-muted-foreground">Branch ID</label>
+                                    <label htmlFor="branch_id" className="text-xs font-medium text-muted-foreground">Branch License</label>
                                     <p className="text-sm font-semibold">{user?.branch_id}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="personal_license" className="text-xs font-medium text-muted-foreground">Personal License</label>
+                                    <p className="text-sm font-semibold">{user?.personal_license ?? '-'}</p>
                                 </div>
 
                                 {/* Account & Permissions */}

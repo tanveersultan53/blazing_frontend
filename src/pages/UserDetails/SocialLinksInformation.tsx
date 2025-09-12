@@ -12,6 +12,7 @@ import type { AxiosResponse } from "axios";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { urlValidation } from "@/lib/utils";
 
 const SocialLinksInformation = () => {
     const { id } = useParams();
@@ -54,14 +55,6 @@ const SocialLinksInformation = () => {
     }, [data?.data]);
 
     const { register, formState: { errors } } = form;
-
-    // Reusable URL validation pattern for optional fields
-    const urlValidation = {
-        pattern: {
-            value: /^https?:\/\/.+/,
-            message: 'Please enter a valid URL (starting with http:// or https://)'
-        }
-    };
 
     const handleCancel = () => {
         setIsEditMode(false);

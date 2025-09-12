@@ -9,6 +9,10 @@ import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import SocialLinksInformation from "./SocialLinksInformation";
 import NewsLetterInformation from "./NewsLetterInformation";
+import CallToAction from "./CallToAction";
+import Settings from "./Settings";
+import Services from "./Services";
+import EmailSettings from "./EmailSettings";
 
 const UserDetails = () => {
     const { user, isLoading, activeTab, setActiveTab, refetch } = useUserDetails();
@@ -50,11 +54,11 @@ const UserDetails = () => {
                     </TabsList>
                     <TabsContent value="personal"><PersonalInformation user={user} refetch={refetch} /></TabsContent>
                     <TabsContent value="social"><SocialLinksInformation /></TabsContent>
-                    <TabsContent value="settings">Settings</TabsContent>
-                    <TabsContent value="services">Services</TabsContent>
+                    <TabsContent value="settings"><Settings /></TabsContent>
+                    <TabsContent value="services"><Services /></TabsContent>
                     <TabsContent value="newsletters"><NewsLetterInformation user={user}/></TabsContent>
-                    <TabsContent value="email">Email Settings</TabsContent>
-                    <TabsContent value="call">Call to Action</TabsContent>
+                    <TabsContent value="email"><EmailSettings /></TabsContent>
+                    <TabsContent value="call"><CallToAction /></TabsContent>
                 </Tabs>
             </div>
         </PageHeader>

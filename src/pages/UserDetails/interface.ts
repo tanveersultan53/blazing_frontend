@@ -4,7 +4,7 @@ export interface IUserDetails {
     messaging: Messaging
     compliance: Compliance
     branding: Branding
-    autooptions: Autooptions
+    autooptions: IEmailSettings
     preferences: Preferences
     password: any
     is_superuser: boolean
@@ -33,6 +33,7 @@ export interface IUserDetails {
     branch_id: string
     groups: any[]
     user_permissions: any[]
+    personal_license?: string
   }
   
   export interface Socials {
@@ -89,13 +90,13 @@ export interface IUserDetails {
     custom: any
   }
   
-  export interface Autooptions {
+export interface IEmailSettings {
     birthday: boolean
     spouse_birthday: boolean
-    birthday_status: any
-    whobday: any
-    ecard_status: any
-    whoecards: any
+    birthday_status: 'send' | 'dont_send' | null
+    whobday: 'contact' | 'parent' | 'both' | null
+    ecard_status: 'send' | 'dont_send' | null
+    whoecards: 'contact' | 'parent' | 'both' | null
     newyears: boolean
     stpatrick: boolean
     july4: boolean
@@ -109,16 +110,17 @@ export interface IUserDetails {
     fall: boolean
     valentine: boolean
     memorialday: boolean
-    newsletter_status: any
-    newsletter_default: any
-    frequency: any
-    newsletter_date: any
-    newsletter_status2: any
-    newsletter_default2: any
-    frequency2: any
-    newsletter_date2: any
+    newsletter_status: 'send' | 'dont_send' | null
+    newsletter_default: 'long_version' | 'short_version' | 'none' | null
+    frequency: 'weekly' | 'every_2_weeks' | 'monthly' | 'quarterly' | 'none' | null
+    newsletter_date: string | null
+    newsletter_status2: 'send' | 'dont_send' | null
+    newsletter_default2: 'long_version' | 'short_version' | 'none' | null
+    frequency2: 'weekly' | 'every_2_weeks' | 'monthly' | 'quarterly' | 'none' | null
+    newsletter_date2: string | null
     autooptionscol: any
-  }
+    active_deactive_all_settings?: boolean
+}
   
   export interface Preferences {
     authentication: boolean
@@ -163,4 +165,16 @@ export interface IUserDetails {
     industry:     number;
     no_rate_post: boolean;
     custom:       boolean;
+    company?:      string;
+    discloure?:    string;
+}
+
+export interface ICallToAction {
+    cta_label1:    string;
+    cta_url1:      string;
+    cta_label2:    string;
+    cta_url2:      string;
+    reverse_label: string;
+    cta_url3:      string;
+    hashtags:      string;
 }
