@@ -3,7 +3,7 @@ import Login from './pages/Login';
 import Users from './pages/Users';
 import CreateUser from './pages/CreateUser';
 import './index.css';
-import Layout from './components/layout';
+import Layout from './components/Layout.tsx';
 import WithoutAuth from './components/PublicRoute';
 import WithAuth from './components/ProtectedRoute';
 import UserDetails from './pages/UserDetails';
