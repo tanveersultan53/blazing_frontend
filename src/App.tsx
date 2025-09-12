@@ -17,8 +17,6 @@ function App() {
           <Route path="users/create" element={<CreateUser />} />
           <Route path="users/:id" element={<UserDetails />} />
         </Route>
-
-
         <Route path="/login" element={<WithoutAuth><Login /></WithoutAuth>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
