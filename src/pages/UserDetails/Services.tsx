@@ -1,19 +1,390 @@
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CheckIcon, PencilIcon, XIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import type { IServiceSettings, ISettings } from "./interface";
+import { useForm } from "react-hook-form";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { queryKeys } from "@/helpers/constants";
+import { getServiceSettings } from "@/services/userManagementService";
+import type { AxiosResponse } from "axios";
+import { useQuery } from "@tanstack/react-query";
+import { useParams } from "react-router-dom";
+import Loading from "@/components/Loading";
 
 const Services = () => {
-    return (
-        <> <Card className="mb-12">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <div>
-                    <CardTitle>Services</CardTitle>
-                    <CardDescription>Comming Soon...</CardDescription>
-                </div>
+    const { id } = useParams();
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-            </CardHeader>
-            <CardContent>
-            </CardContent>
-        </Card>
-        </>
+    const { data, isLoading } = useQuery<AxiosResponse<IServiceSettings>>({
+        queryKey: [queryKeys.getServiceSettings, id],
+        queryFn: () => getServiceSettings(id as string | number),
+    });
+
+    const handleCancel = () => {
+        setIsEditMode(false);
+    };
+
+    const initialValues = {
+        email_service: false,
+        email_service_charge: '',
+        email_service_royality: '',
+        bs_service: false, // Example: This will show enabled fields on load
+        bs_service_charge: '',
+        bs_service_royality: '',
+        send_post_service: false,
+        send_post_service_charge: '',
+        send_post_service_royality: '',
+        send_weekly_newsletter: false,
+        send_weekly_newsletter_charge: '',
+        send_weekly_newsletter_royality: '',
+        send_coming_home_service: false,
+        send_coming_home_service_charge: '',
+        send_coming_home_service_royality: '',
+        has_coming: false,
+        no_branding: false,
+    }
+
+    const form = useForm<IServiceSettings>({
+        defaultValues: initialValues,
+        mode: 'onChange'
+    });
+
+    const { register, watch, setValue } = form;
+
+    // Helper function to handle checkbox change and clear related fields
+    const handleServiceCheckboxChange = (serviceName: keyof IServiceSettings, checked: boolean) => {
+        setValue(serviceName, checked);
+
+        if (!checked) {
+            // Clear the charge and royalty fields when unchecked
+            const chargeField = `${serviceName}_charge` as keyof IServiceSettings;
+            const royaltyField = `${serviceName}_royality` as keyof IServiceSettings;
+            setValue(chargeField, '');
+            setValue(royaltyField, '');
+        }
+    };
+
+    const onSubmit = (data: IServiceSettings) => {
+        console.log(data);
+        setIsSubmitting(true);
+    };
+
+    useEffect(() => {
+        if (data?.data) {
+            form.reset(data.data);
+        }
+    }, [data?.data]);
+
+    return isLoading ? <Loading /> : (
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+            <Card className="mb-12">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <div>
+                        <CardTitle>Service Setting for **Customer Name**</CardTitle>
+                        <CardDescription>You can also update services information here by clicking the update button. </CardDescription>
+                    </div>
+                    {!isEditMode &&
+                        <Button variant="outline" size="sm" className="flex items-center gap-2" onClick={() => setIsEditMode(!isEditMode)}>
+                            <PencilIcon className="w-4 h-4" />
+                            Update Services
+                        </Button>
+                    }
+                    {isEditMode &&
+                        <div className="flex items-center gap-2">
+                            <Button variant="secondary" size="sm" className="flex items-center gap-2" onClick={handleCancel} disabled={isSubmitting}>
+                                <XIcon className="w-4 h-4" />
+                                Cancel
+                            </Button>
+                            <Button variant="default" size="sm" className="flex items-center gap-2" disabled={isSubmitting} type="submit"><CheckIcon className="w-4 h-4" />
+                                {isSubmitting ? 'Saving...' : 'Save Changes'}
+                            </Button>
+                        </div>
+                    }
+                </CardHeader>
+                <CardContent>
+
+                    {!isEditMode &&
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <label htmlFor="email_service" className="text-xs font-medium text-muted-foreground">Email Service</label>
+                                    <p className="text-sm font-medium">{data?.data?.email_service ? 'Enabled' : 'Disabled'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="email_service_charge" className="text-xs font-medium text-muted-foreground">Service Charges ($)</label>
+                                    <p className="text-sm font-medium">{data?.data?.email_service_charge || '-'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="email_service_royality" className="text-xs font-medium text-muted-foreground">Service Royality (%)</label>
+                                    <p className="text-sm font-medium">{data?.data?.email_service_royality || '-'}</p>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <label htmlFor="bs_service" className="text-xs font-medium text-muted-foreground">BS Service</label>
+                                    <p className="text-sm font-medium">{data?.data?.bs_service ? 'Enabled' : 'Disabled'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="bs_service_charge" className="text-xs font-medium text-muted-foreground">Service Charges ($)</label>
+                                    <p className="text-sm font-medium">{data?.data?.bs_service_charge || '-'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="bs_service_royality" className="text-xs font-medium text-muted-foreground">Service Royality (%)</label>
+                                    <p className="text-sm font-medium">{data?.data?.bs_service_royality || '-'}</p>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <label htmlFor="send_post_service" className="text-xs font-medium text-muted-foreground">Send Post Service</label>
+                                    <p className="text-sm font-medium">{data?.data?.send_post_service ? 'Enabled' : 'Disabled'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="send_post_service_charge" className="text-xs font-medium text-muted-foreground">Service Charges ($)</label>
+                                    <p className="text-sm font-medium">{data?.data?.send_post_service_charge || '-'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="send_post_service_royality" className="text-xs font-medium text-muted-foreground">Service Royality (%)</label>
+                                    <p className="text-sm font-medium">{data?.data?.send_post_service_royality || '-'}</p>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <label htmlFor="send_weekly_newsletter" className="text-xs font-medium text-muted-foreground">Send Weekly Newsletter</label>
+                                    <p className="text-sm font-medium">{data?.data?.send_weekly_newsletter ? 'Enabled' : 'Disabled'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="send_weekly_newsletter_charge" className="text-xs font-medium text-muted-foreground">Service Charges ($)</label>
+                                    <p className="text-sm font-medium">{data?.data?.send_weekly_newsletter_charge || '-'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="send_weekly_newsletter_royality" className="text-xs font-medium text-muted-foreground">Service Royality (%)</label>
+                                    <p className="text-sm font-medium">{data?.data?.send_weekly_newsletter_royality || '-'}</p>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <label htmlFor="send_coming_home_service" className="text-xs font-medium text-muted-foreground">Send Coming Home File</label>
+                                    <p className="text-sm font-medium">{data?.data?.send_coming_home_service ? 'Enabled' : 'Disabled'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="send_coming_home_service_charge" className="text-xs font-medium text-muted-foreground">Service Charges ($)</label>
+                                    <p className="text-sm font-medium">{data?.data?.send_coming_home_service_charge || '-'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="send_coming_home_service_royality" className="text-xs font-medium text-muted-foreground">Service Royality (%)</label>
+                                    <p className="text-sm font-medium">{data?.data?.send_coming_home_service_royality || '-'}</p>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+                                <div className="space-y-2">
+                                    <label htmlFor="has_coming" className="text-xs font-medium text-muted-foreground">Has Coming</label>
+                                    <p className="text-sm font-medium">{data?.data?.has_coming ? 'Enabled' : 'Disabled'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="no_branding" className="text-xs font-medium text-muted-foreground">No Branding</label>
+                                    <p className="text-sm font-medium">{data?.data?.no_branding ? 'Enabled' : 'Disabled'}</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+
+
+
+
+
+                    {isEditMode && <div className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                                <div className="flex items-center space-x-2 h-full">
+                                    <Checkbox
+                                        id="email_service"
+                                        checked={watch('email_service')}
+                                        onCheckedChange={(checked) => handleServiceCheckboxChange('email_service', checked as boolean)}
+                                    />
+                                    <label htmlFor="email_service" className="text-sm font-medium">Email Service</label>
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="email_service_charge" className="text-xs font-medium text-muted-foreground">Service Charges ($)</label>
+                                <Input
+                                    id="email_service_charge"
+                                    type="text"
+                                    placeholder="Enter Service Charge"
+                                    disabled={!watch('email_service')}
+                                    {...register('email_service_charge')}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="email_service_royality" className="text-xs font-medium text-muted-foreground">Service Royality (%)</label>
+                                <Input
+                                    id="email_service_royality"
+                                    type="text"
+                                    placeholder="Enter Service Royality"
+                                    disabled={!watch('email_service')}
+                                    {...register('email_service_royality')}
+                                />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                                <div className="flex items-center space-x-2 h-full">
+                                    <Checkbox
+                                        id="bs_service"
+                                        checked={watch('bs_service')}
+                                        onCheckedChange={(checked) => handleServiceCheckboxChange('bs_service', checked as boolean)}
+                                    />
+                                    <label htmlFor="bs_service" className="text-sm font-medium">BS Service</label>
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="bs_service_charge" className="text-xs font-medium text-muted-foreground">Service Charges ($)</label>
+                                <Input
+                                    id="bs_service_charge"
+                                    type="text"
+                                    placeholder="Enter Service Charge"
+                                    disabled={!watch('bs_service')}
+                                    {...register('bs_service_charge')}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="bs_service_royality" className="text-xs font-medium text-muted-foreground">Service Royality (%)</label>
+                                <Input
+                                    id="bs_service_royality"
+                                    type="text"
+                                    placeholder="Enter Service Royality"
+                                    disabled={!watch('bs_service')}
+                                    {...register('bs_service_royality')}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                                <div className="flex items-center space-x-2 h-full">
+                                    <Checkbox
+                                        id="send_post_service"
+                                        checked={watch('send_post_service')}
+                                        onCheckedChange={(checked) => handleServiceCheckboxChange('send_post_service', checked as boolean)}
+                                    />
+                                    <label htmlFor="send_post_service" className="text-sm font-medium">Send Post Service</label>
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="send_post_service_charge" className="text-xs font-medium text-muted-foreground">Service Charges ($)</label>
+                                <Input
+                                    id="send_post_service_charge"
+                                    type="text"
+                                    placeholder="Enter Service Charge"
+                                    disabled={!watch('send_post_service')}
+                                    {...register('send_post_service_charge')}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="send_post_service_royality" className="text-xs font-medium text-muted-foreground">Service Royality (%)</label>
+                                <Input
+                                    id="send_post_service_royality"
+                                    type="text"
+                                    placeholder="Enter Service Royality"
+                                    disabled={!watch('send_post_service')}
+                                    {...register('send_post_service_royality')}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                                <div className="flex items-center space-x-2 h-full">
+                                    <Checkbox
+                                        id="send_weekly_newsletter"
+                                        checked={watch('send_weekly_newsletter')}
+                                        onCheckedChange={(checked) => handleServiceCheckboxChange('send_weekly_newsletter', checked as boolean)}
+                                    />
+                                    <label htmlFor="send_weekly_newsletter" className="text-sm font-medium">Send Weekly Newsletter</label>
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="send_weekly_newsletter_charge" className="text-xs font-medium text-muted-foreground">Service Charges ($)</label>
+                                <Input
+                                    id="send_weekly_newsletter_charge"
+                                    type="text"
+                                    placeholder="Enter Service Charge"
+                                    disabled={!watch('send_weekly_newsletter')}
+                                    {...register('send_weekly_newsletter_charge')}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="send_weekly_newsletter_royality" className="text-xs font-medium text-muted-foreground">Service Royality (%)</label>
+                                <Input
+                                    id="send_weekly_newsletter_royality"
+                                    type="text"
+                                    placeholder="Enter Service Royality"
+                                    disabled={!watch('send_weekly_newsletter')}
+                                    {...register('send_weekly_newsletter_royality')}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                                <div className="flex items-center space-x-2 h-full">
+                                    <Checkbox
+                                        id="send_coming_home_service"
+                                        checked={watch('send_coming_home_service')}
+                                        onCheckedChange={(checked) => handleServiceCheckboxChange('send_coming_home_service', checked as boolean)}
+                                    />
+                                    <label htmlFor="send_coming_home_service" className="text-sm font-medium">Send Coming Home File</label>
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="send_coming_home_service_charge" className="text-xs font-medium text-muted-foreground">Service Charges ($)</label>
+                                <Input
+                                    id="send_coming_home_service_charge"
+                                    type="text"
+                                    placeholder="Enter Service Charge"
+                                    disabled={!watch('send_coming_home_service')}
+                                    {...register('send_coming_home_service_charge')}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="send_coming_home_service_royality" className="text-xs font-medium text-muted-foreground">Service Royality (%)</label>
+                                <Input
+                                    id="send_coming_home_service_royality"
+                                    type="text"
+                                    placeholder="Enter Service Royality"
+                                    disabled={!watch('send_coming_home_service')}
+                                    {...register('send_coming_home_service_royality')}
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <div className="flex items-center space-x-2">
+                                <Checkbox
+                                    id="has_coming"
+                                    checked={watch('has_coming')}
+                                    onCheckedChange={(checked) => setValue('has_coming', checked as boolean)}
+                                />
+                                <label htmlFor="has_coming" className="text-sm font-medium">Has Coming</label>
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <div className="flex items-center space-x-2">
+                                <Checkbox
+                                    id="no_branding"
+                                    checked={watch('no_branding')}
+                                    onCheckedChange={(checked) => setValue('no_branding', checked as boolean)}
+                                />
+                                <label htmlFor="no_branding" className="text-sm font-medium">No Branding</label>
+                            </div>
+                        </div>
+                    </div>
+                    }
+                </CardContent>
+            </Card>
+        </form >
     )
 }
 

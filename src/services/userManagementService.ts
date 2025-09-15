@@ -2,7 +2,7 @@ import { type AxiosResponse } from "axios";
 import type { IUserList } from "@/pages/Users/interface";
 import api from "./axiosInterceptor";
 import type { CreateUserFormData } from "@/pages/CreateUser/useCreateUser";
-import type { ICallToAction, IEmailSettings, INewsletterInfo, IUserDetails } from "@/pages/UserDetails/interface";
+import type { ICallToAction, IEmailSettings, INewsletterInfo, IServiceSettings, ISettings, IUserDetails } from "@/pages/UserDetails/interface";
 import type { ISocials } from "@/pages/UserDetails/interface";
 
 export const getUsers = (): Promise<AxiosResponse<{ results: IUserList[] }>> =>
@@ -40,3 +40,10 @@ export const getEmailSettings = (id: string | number): Promise<AxiosResponse<IEm
 
 export const updateEmailSettings = ({ id, emailSettings }: { id: string | number, emailSettings: IEmailSettings }): Promise<AxiosResponse<IEmailSettings>> =>
     api.put(`/accounts/admin/users/${id}/email-settings`, emailSettings);
+
+export const getSettings = (id: string | number): Promise<AxiosResponse<ISettings>> =>
+    api.get(`/accounts/admin/users/${id}/settings`);
+
+
+export const getServiceSettings = (id: string | number): Promise<AxiosResponse<IServiceSettings>> =>
+    api.get(`/accounts/admin/users/${id}/service-settings`);
