@@ -8,6 +8,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { Button } from "./ui/button";
+import { Sparkles } from "lucide-react";
+import { useSelector } from "react-redux";
+import type { User } from "@/redux/features/userSlice";
 
 export function NavSecondary({
   items,
@@ -19,6 +23,8 @@ export function NavSecondary({
     icon: Icon
   }[]
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
+  const currentUser = useSelector((state: { user: { currentUser: User } }) => state.user.currentUser);
+
   return (
     <SidebarGroup {...props}>
       <SidebarGroupContent>
@@ -33,6 +39,10 @@ export function NavSecondary({
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
+          {!currentUser?.is_superuser && <Button size="default">
+            <Sparkles />
+            Upgrade
+          </Button>}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

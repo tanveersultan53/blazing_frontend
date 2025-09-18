@@ -19,9 +19,7 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
 
-export function NavMain({
-  items,
-}: {
+export interface NavMainProps {
   items: {
     title: string
     url: string[]
@@ -34,6 +32,12 @@ export function NavMain({
       color?: string
     }[]
   }[]
+}
+
+export function NavMain({
+  items,
+}: {
+  items: NavMainProps['items']
 }) {
   const location = useLocation()
 

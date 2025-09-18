@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader } from '@/components/ui/card';
@@ -20,7 +20,6 @@ const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const navigate = useNavigate();
   const dispatch = useDispatch();
 
 
@@ -28,7 +27,6 @@ const LoginPage: React.FC = () => {
     mutationFn: userProfile,
     onSuccess: ({ data }) => {
       dispatch(setCurrentUser(data)); // set the user in the redux store
-      navigate('/')
     },
   });
 

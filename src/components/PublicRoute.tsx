@@ -22,9 +22,9 @@ const WithoutAuth = (props: { children: React.ReactNode }) => {
   useEffect(() => {
     if (isAuthenticated()) {
       if (currentUser?.is_superuser) {
-        navigate("/dashboard");
+        navigate("/");
       } else {
-        navigate("/dashboard");
+        navigate("/user-dashboard?tab=contact");
       }
     }
   }, [navigate, currentUser]);

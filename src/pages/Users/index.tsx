@@ -9,21 +9,30 @@ import { Trash2 } from "lucide-react";
 import type { IUserList } from "./interface";
 import { useNavigate } from "react-router-dom";
 import { useMemo } from "react";
+import { useSelector } from "react-redux";
+import type { User } from "@/redux/features/userSlice";
 
 const Users = () => {
     const { columns, data, isLoading } = useUsers();
     const navigate = useNavigate();
-    
+    const currentUser = useSelector((state: { user: { currentUser: User } }) => state.user.currentUser);
+
+
     // Memoize breadcrumbs to prevent infinite loops
     const breadcrumbs = useMemo(() => [
         { label: 'Users' }
     ], []);
-    
+
     useBreadcrumbs(breadcrumbs);
 
     const handleCreateUser = () => {
         navigate('/users/create');
     };
+
+    if (!currentUser?.is_superuser) {
+        navigate('/user-dashboard?tab=contact');
+        return <></>;
+    }
 
     return isLoading ? (
         <Loading />

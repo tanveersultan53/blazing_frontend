@@ -7,6 +7,7 @@ import Layout from './components/Layout.tsx';
 import WithoutAuth from './components/PublicRoute';
 import WithAuth from './components/ProtectedRoute';
 import UserDetails from './pages/UserDetails';
+import UserDashboard from './pages/UserDashboard';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route index element={<Users  />} />
           <Route path="users/create" element={<CreateUser />} />
           <Route path="users/:id" element={<UserDetails />} />
+          <Route path="user-dashboard" element={<UserDashboard />} />
         </Route>
         <Route path="/login" element={<WithoutAuth><Login /></WithoutAuth>} />
         <Route path="*" element={<Navigate to="/" replace />} />
