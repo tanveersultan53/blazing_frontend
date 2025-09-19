@@ -8,6 +8,7 @@ import WithoutAuth from './components/PublicRoute';
 import WithAuth from './components/ProtectedRoute';
 import UserDetails from './pages/UserDetails';
 import UserDashboard from './pages/UserDashboard';
+import AddPerson from './pages/AddPerson/index.tsx';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="users/create" element={<CreateUser />} />
           <Route path="users/:id" element={<UserDetails />} />
           <Route path="user-dashboard" element={<UserDashboard />} />
+          <Route path="add-person" element={<AddPerson />} />
         </Route>
         <Route path="/login" element={<WithoutAuth><Login /></WithoutAuth>} />
         <Route path="*" element={<Navigate to="/" replace />} />

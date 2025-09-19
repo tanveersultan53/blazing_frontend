@@ -3,10 +3,14 @@ import { useBreadcrumbs } from "@/hooks/usePageTitle";
 import PageHeader from "@/components/PageHeader";
 import { FileDown, UserPlus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { DataTable } from "@/components/data-table";
+import { useUserDashboard } from "./useUserDashboard";
 
 const UserDashboard = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const tab = searchParams.get('tab');
     // Memoize breadcrumbs to prevent infinite loops
     const breadcrumbs = useMemo(() => [
         { label: 'Dashboard' }
@@ -14,7 +18,10 @@ const UserDashboard = () => {
 
     useBreadcrumbs(breadcrumbs);
 
-    const [activeTab, setActiveTab] = useState<'contact' | 'referal_partner' | 'all'>('contact');
+    const [activeTab, setActiveTab] = useState<'contact' | 'referal_partner' | 'all'>(tab as 'contact' | 'referal_partner' | 'all' || 'contact');
+
+    // Use the dashboard hook
+    const { data, columns, actionItems, handleViewDetails } = useUserDashboard(activeTab);
 
     const handleTabChange = (value: string) => {
         setActiveTab(value as 'contact' | 'referal_partner' | 'all');
@@ -36,7 +43,7 @@ const UserDashboard = () => {
         actions={[
             ...(getButtonName() ? [{
                 label: getButtonName() as string,
-                onClick: () => { },
+                onClick: () => navigate('/add-person?type=' + activeTab),
                 variant: "default" as const,
                 icon: UserPlus,
             }] : []),
@@ -55,11 +62,18 @@ const UserDashboard = () => {
                     <TabsTrigger value="referal_partner">Referal Partner</TabsTrigger>
                     <TabsTrigger value="all">All</TabsTrigger>
                 </TabsList>
-                <TabsContent value="contact"><></></TabsContent>
-                <TabsContent value="referal_partner"><></></TabsContent>
-                <TabsContent value="all"><></></TabsContent>
             </Tabs>
+            <DataTable
+                columns={columns}
+                data={data}
+                searchColumns={['first_name', 'last_name', 'email', 'company', 'title', 'city', 'state']}
+                showActionsColumn={true}
+                onViewDetails={handleViewDetails}
+                actionItems={actionItems}
+            />
         </div>
+
+
     </PageHeader>;
 };
 
