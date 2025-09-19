@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useParams } from "react-router-dom";
+//ts-ignore
 import type { ISettings } from "./interface";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
@@ -44,7 +45,7 @@ const Settings = () => {
 
     const { register, formState: { errors }, watch, setValue } = form;
 
-
+    //ts-ignore
     const onSubmit = (formData: ISettings) => {
         setIsSubmitting(true);
     };
