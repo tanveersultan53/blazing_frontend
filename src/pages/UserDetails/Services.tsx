@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckIcon, PencilIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { IServiceSettings, ISettings } from "./interface";
+import type { IServiceSettings } from "./interface";
 import { useForm } from "react-hook-form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
