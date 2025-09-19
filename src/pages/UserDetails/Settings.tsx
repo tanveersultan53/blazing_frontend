@@ -46,7 +46,7 @@ const Settings = () => {
     const { register, formState: { errors }, watch, setValue } = form;
 
     //ts-ignore
-    const onSubmit = (formData: ISettings) => {
+    const onSubmit = (_formData: ISettings) => {
         setIsSubmitting(true);
     };
 
