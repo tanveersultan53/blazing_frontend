@@ -48,15 +48,15 @@ const useAddPerson = (): AddPersonHookReturn => {
       customer_type: type === 'contact' ? 'contact' : 'referal_partner',
 
        //Loan Information
-      loan_status: '',
-      interest_rate: '',
-      sales_price: '',
-      loan_amount: '',
-      ltv: '',
-      close_date: '',
-      loan_program: '',
-      loan_type: '',
-      property_type: '',
+      // loan_status: '',
+      // interest_rate: '',
+      // sales_price: '',
+      // loan_amount: '',
+      // ltv: '',
+      // close_date: '',
+      // loan_program: '',
+      // loan_type: '',
+      // property_type: '',
     },
     mode: 'onChange'
   });
