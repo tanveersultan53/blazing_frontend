@@ -69,7 +69,11 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                                     id="title"
                                     placeholder="Enter title"
                                     {...register('title')}
+                                    className={errors.title ? 'border-red-500' : ''}
                                 />
+                                {errors.title && (
+                                    <p className="text-sm text-red-500">{errors.title.message}</p>
+                                )}
                             </div>
 
                             <div className="space-y-2">
@@ -174,23 +178,23 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
 
                         {/* ZIP */}
                         <div className="space-y-2">
-                            <label htmlFor="zip" className="text-sm font-medium">
+                            <label htmlFor="zip_code" className="text-sm font-medium">
                                 ZIP Code *
                             </label>
                             <Input
-                                id="zip"
+                                id="zip_code"
                                 placeholder="12345 or 12345-6789"
-                                {...register('zip', {
+                                {...register('zip_code', {
                                     required: 'ZIP code is required',
                                     pattern: {
                                         value: /^\d{5}(-\d{4})?$/,
                                         message: 'Please enter a valid ZIP code (e.g., 12345 or 12345-6789)'
                                     }
                                 })}
-                                className={errors.zip ? 'border-red-500' : ''}
+                                className={errors.zip_code ? 'border-red-500' : ''}
                             />
-                            {errors.zip && (
-                                <p className="text-sm text-red-500">{errors.zip.message}</p>
+                            {errors.zip_code && (
+                                <p className="text-sm text-red-500">{errors.zip_code.message}</p>
                             )}
                         </div>
 
@@ -203,7 +207,8 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                                 id="cell"
                                 type="tel"
                                 placeholder="e.g., +1234567890"
-                                {...register('cellphone', {
+                                {...register('cell', {
+                                    required: 'Cell phone is required',
                                     pattern: {
                                         value: /^\+[1-9]\d{1,14}$/,
                                         message: 'Phone number must be entered in the format: +999999999. Up to 15 digits allowed.'
@@ -249,7 +254,9 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                                     onChange={(date: Date | undefined) => setValue('birthday', date ? format(date, 'yyyy-MM-dd') : null)}
                                 />
                             </div>
-
+                            {errors.birthday && (
+                                <p className="text-sm text-red-500">{errors.birthday.message}</p>
+                            )}
                         </div>
 
                         {/* Age */}
@@ -279,35 +286,34 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                             <label htmlFor="group" className="text-sm font-medium">
                                 Group
                             </label>
-                            <Select onValueChange={(value) => setValue('group', value)} value={watch('group')}>
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Select group" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="family">Family</SelectItem>
-                                    <SelectItem value="friends">Friends</SelectItem>
-                                    <SelectItem value="business">Business</SelectItem>
-                                    <SelectItem value="other">Other</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <Input
+                                id="group"
+                                placeholder="Enter group name"
+                                {...register('group')}
+                                className={errors.group ? 'border-red-500' : ''}
+                            />
+                            {errors.group && (
+                                <p className="text-sm text-red-500">{errors.group.message}</p>
+                            )}
                         </div>
 
                         {/* Status */}
                         <div className="space-y-2">
-                            <label htmlFor="status" className="text-sm font-medium">
+                            <label htmlFor="send_status" className="text-sm font-medium">
                                 Status
                             </label>
-                            <Select onValueChange={(value) => setValue('status', value)} value={watch('status')}>
-                                <SelectTrigger className="w-full">
+                            <Select onValueChange={(value) => setValue('send_status', value)} value={watch('send_status')}>
+                                <SelectTrigger className={`w-full ${errors.send_status ? 'border-red-500' : ''}`}>
                                     <SelectValue placeholder="Select status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectContent>
-                                        <SelectItem value="send">Send</SelectItem>
-                                        <SelectItem value="dont_send">Don't Send</SelectItem>
-                                    </SelectContent>
+                                    <SelectItem value="send">Send</SelectItem>
+                                    <SelectItem value="dont_send">Don't Send</SelectItem>
                                 </SelectContent>
                             </Select>
+                            {errors.send_status && (
+                                <p className="text-sm text-red-500">{errors.send_status.message}</p>
+                            )}
                         </div>
 
                         {/* Optout */}
@@ -316,16 +322,17 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                                 Optout
                             </label>
                             <Select onValueChange={(value) => setValue('optout', value)} value={watch('optout')}>
-                                <SelectTrigger className="w-full">
+                                <SelectTrigger className={`w-full ${errors.optout ? 'border-red-500' : ''}`}>
                                     <SelectValue placeholder="Select Optout" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectContent>
-                                        <SelectItem value="send">Send</SelectItem>
-                                        <SelectItem value="dont_send">Don't Send</SelectItem>
-                                    </SelectContent>
+                                    <SelectItem value="send">Send</SelectItem>
+                                    <SelectItem value="dont_send">Don't Send</SelectItem>
                                 </SelectContent>
                             </Select>
+                            {errors.optout && (
+                                <p className="text-sm text-red-500">{errors.optout.message}</p>
+                            )}
                         </div>
 
                         {/* Newsletter */}
@@ -334,18 +341,21 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                                 Newsletter Version
                             </label>
                             <Select
-                                onValueChange={(value) => setValue('newsletter_version', value as 'long_version' | 'short_version' | 'none')}
+                                onValueChange={(value) => setValue('newsletter_version', value as 'long' | 'short' | 'none')}
                                 value={watch('newsletter_version')}
                             >
-                                <SelectTrigger className="w-full">
+                                <SelectTrigger className={`w-full ${errors.newsletter_version ? 'border-red-500' : ''}`}>
                                     <SelectValue placeholder="Select Newsletter version" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="long_version">Long Version</SelectItem>
-                                    <SelectItem value="short_version">Short Version</SelectItem>
+                                    <SelectItem value="long">Long Version</SelectItem>
+                                    <SelectItem value="short">Short Version</SelectItem>
                                     <SelectItem value="none">None</SelectItem>
                                 </SelectContent>
                             </Select>
+                            {errors.newsletter_version && (
+                                <p className="text-sm text-red-500">{errors.newsletter_version.message}</p>
+                            )}
                         </div>
                     </div>
                 </CardContent>
@@ -359,84 +369,95 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {/* Spouse First Name */}
+                            {/* Secondary First Name */}
                             <div className="space-y-2">
-                                <label htmlFor="spouse_first" className="text-sm font-medium">
+                                <label htmlFor="secondary_first_name" className="text-sm font-medium">
                                     First Name
                                 </label>
                                 <Input
-                                    id="spouse_first"
-                                    placeholder="Enter spouse first name"
-                                    {...register('spouse_first')}
+                                    id="secondary_first_name"
+                                    placeholder="Enter secondary first name"
+                                    {...register('secondary_first_name')}
+                                    className={errors.secondary_first_name ? 'border-red-500' : ''}
                                 />
+                                {errors.secondary_first_name && (
+                                    <p className="text-sm text-red-500">{errors.secondary_first_name.message}</p>
+                                )}
                             </div>
 
-                            {/* Spouse Last Name */}
+                            {/* Secondary Last Name */}
                             <div className="space-y-2">
-                                <label htmlFor="spouse_last" className="text-sm font-medium">
+                                <label htmlFor="secondary_last_name" className="text-sm font-medium">
                                     Last Name
                                 </label>
                                 <Input
-                                    id="spouse_last"
-                                    placeholder="Enter spouse last name"
-                                    {...register('spouse_last')}
+                                    id="secondary_last_name"
+                                    placeholder="Enter secondary last name"
+                                    {...register('secondary_last_name')}
+                                    className={errors.secondary_last_name ? 'border-red-500' : ''}
                                 />
+                                {errors.secondary_last_name && (
+                                    <p className="text-sm text-red-500">{errors.secondary_last_name.message}</p>
+                                )}
                             </div>
 
-                            {/* Spouse Email */}
+                            {/* Secondary Email */}
                             <div className="space-y-2">
-                                <label htmlFor="spouse_email" className="text-sm font-medium">
+                                <label htmlFor="secondary_email" className="text-sm font-medium">
                                     Email
                                 </label>
                                 <Input
-                                    id="spouse_email"
+                                    id="secondary_email"
                                     type="email"
-                                    placeholder="Enter spouse email"
-                                    {...register('spouse_email', {
+                                    placeholder="Enter secondary email"
+                                    {...register('secondary_email', {
                                         pattern: {
                                             value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                                             message: 'Invalid email address'
                                         }
                                     })}
-                                    className={errors.spouse_email ? 'border-red-500' : ''}
+                                    className={errors.secondary_email ? 'border-red-500' : ''}
                                 />
-                                {errors.spouse_email && (
-                                    <p className="text-sm text-red-500">{errors.spouse_email.message}</p>
+                                {errors.secondary_email && (
+                                    <p className="text-sm text-red-500">{errors.secondary_email.message}</p>
                                 )}
                             </div>
 
-                            {/* Spouse Birthday */}
+                            {/* Secondary Birthday */}
                             <div className="space-y-2">
-                                <label htmlFor="sbirthday" className="text-sm font-medium">
+                                <label htmlFor="secondary_birthday" className="text-sm font-medium">
                                     Birthday
                                 </label>
                                 <div className="w-full">
                                     <DatePicker
-                                        value={watch('sbirthday') ? new Date(watch('sbirthday')!) : undefined}
-                                        onChange={(date: Date | undefined) => setValue('sbirthday', date ? format(date, 'yyyy-MM-dd') : null)}
+                                        value={watch('secondary_birthday') ? new Date(watch('secondary_birthday')!) : undefined}
+                                        onChange={(date: Date | undefined) => setValue('secondary_birthday', date ? format(date, 'yyyy-MM-dd') : null)}
                                     />
                                 </div>
+                                {errors.secondary_birthday && (
+                                    <p className="text-sm text-red-500">{errors.secondary_birthday.message}</p>
+                                )}
                             </div>
 
-                            {/* Spouse Age */}
+                            {/* Secondary Age */}
                             <div className="space-y-2">
-                                <label htmlFor="sage" className="text-sm font-medium">
+                                <label htmlFor="secondary_age" className="text-sm font-medium">
                                     Age
                                 </label>
                                 <Input
-                                    id="sage"
+                                    id="secondary_age"
                                     type="number"
-                                    placeholder="Enter spouse age"
+                                    placeholder="Enter secondary age"
                                     min="0"
                                     max="150"
-                                    {...register('sage', {
+                                    {...register('secondary_age', {
                                         min: { value: 0, message: 'Age must be a positive number' },
                                         max: { value: 150, message: 'Age must be less than 150' }
                                     })}
-                                    className={errors.sage ? 'border-red-500' : ''}
+                                    className={errors.secondary_age ? 'border-red-500' : ''}
                                 />
-                                {errors.sage && (
-                                    <p className="text-sm text-red-500">{errors.sage.message}</p>
+                                {errors.secondary_age && (
+                                    <p className="text-sm text-red-500">{errors.secondary_age.message}</p>
                                 )}
                             </div>
                         </div>
@@ -457,9 +478,13 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                         <Textarea
                             id="notes"
                             placeholder="Enter any additional notes..."
-                            rows={15}
+                            rows={5}
                             {...register('notes')}
+                            className={`min-h-[200px] field-sizing-auto ${errors.notes ? 'border-red-500' : ''}`}
                         />
+                        {errors.notes && (
+                            <p className="text-sm text-red-500">{errors.notes.message}</p>
+                        )}
                     </div>
                 </CardContent>
             </Card>

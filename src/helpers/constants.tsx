@@ -8,5 +8,6 @@ export const queryKeys = Object.freeze({
     getEmailSettings: 'getEmailSettings',
     getSettings: 'getSettings',
     getServiceSettings: 'getServiceSettings',
+    contacts: 'contacts',
 });
 

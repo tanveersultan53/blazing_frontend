@@ -2,13 +2,16 @@ import { useForm } from 'react-hook-form';
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { AxiosError, AxiosResponse } from 'axios';
 import type { AddPersonFormData, AddPersonHookReturn } from './interface';
+import { createContact } from '@/services/contactService';
 
 const useAddPerson = (): AddPersonHookReturn => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const type = searchParams.get('type');
 
   const form = useForm<AddPersonFormData>({
     defaultValues: {
@@ -21,13 +24,13 @@ const useAddPerson = (): AddPersonHookReturn => {
       address: '',
       city: '',
       state: '',
-      zip: '',
-      cellphone: '',
+      zip_code: '',
+      cell: '',
       work_phone: '',
       birthday: '',
       age: '',
-      group: 'family',
-      status: 'dont_send',
+      group: '',
+      send_status: 'dont_send',
       optout: 'dont_send',
       newsletter_version: 'none',
 
@@ -39,23 +42,21 @@ const useAddPerson = (): AddPersonHookReturn => {
       sage: '',
 
       // Notes
-      notes: ''
+      notes: '',
+
+      // Type
+      customer_type: type === 'contact' ? 'contact' : 'referal_partner',
     },
     mode: 'onChange'
   });
 
   // Mock mutation - replace with actual API call
-  const { mutate: addPersonMutation } = useMutation({
-    mutationFn: async (data: AddPersonFormData) => {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('Adding person:', data);
-      return data;
-    },
+  const { mutate: addContactMutation } = useMutation({
+    mutationFn: createContact,
     onSuccess: () => {
-      toast.success("Person added successfully");
+      toast.success(type === 'contact' ? 'Contact added successfully' : 'Referal partner added successfully');
       setIsSubmitting(false);
-      navigate('/users'); // Navigate to users list
+      navigate('/user-dashboard?tab=' + type);
     },
     onError: (error: AxiosError) => {
       const response = error.response;
@@ -66,31 +67,33 @@ const useAddPerson = (): AddPersonHookReturn => {
 
   const handleApiError = (response: AxiosResponse) => {
     if (response.data) {
-      // Handle validation errors from server
-      const errorData = response.data as Record<string, string[]>;
+        // Handle validation errors from server
+        const errorData = response.data as Record<string, string[]>;
 
-      // Set field-specific errors
-      Object.keys(errorData).forEach((fieldName) => {
-        const fieldErrors = errorData[fieldName];
-        if (fieldErrors && fieldErrors.length > 0) {
-          // Set the first error message for each field
-          form.setError(fieldName as keyof AddPersonFormData, {
-            type: 'server',
-            message: fieldErrors[0]
-          });
-        }
-      });
+        // Set field-specific errors
+        Object.keys(errorData).forEach((fieldName) => {
+            const fieldErrors = errorData[fieldName];
+            if (fieldErrors && fieldErrors.length > 0) {
+                // Set the first error message for each field
+                form.setError(fieldName as keyof AddPersonFormData, {
+                    type: 'error',
+                    message: fieldErrors[0]
+                });
+            }
+        });
 
-      toast.error("Please fix the validation errors below");
+        toast.error("Please fix the validation errors below");
     } else {
-      // Handle other types of errors
-      toast.error("Failed to add person. Please try again.");
+        // Handle other types of errors
+        toast.error(type === 'contact' ? 'Failed to add contact. Please try again.' : 'Failed to add referal partner. Please try again.');
     }
   }
 
   const onSubmit = (data: AddPersonFormData) => {
+    // Clear any existing server errors before submitting
+    form.clearErrors();
     setIsSubmitting(true);
-    addPersonMutation(data);
+    addContactMutation({...data, optout: data.optout === 'send' ? false : true as any});
   };
 
 

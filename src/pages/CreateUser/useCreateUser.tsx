@@ -28,6 +28,7 @@ export interface CreateUserFormData {
     website: string;
     branch_id: string;
     personal_license: string;
+    industry_type: string;
 }
 
 const useCreateUser = () => {
@@ -55,7 +56,8 @@ const useCreateUser = () => {
             mid: '',
             website: '',
             branch_id: '',
-            personal_license: ''
+            personal_license: '',
+            industry_type: ''
         },
         mode: 'onChange'
     });

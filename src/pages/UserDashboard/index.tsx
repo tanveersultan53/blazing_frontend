@@ -1,16 +1,26 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useBreadcrumbs } from "@/hooks/usePageTitle";
 import PageHeader from "@/components/PageHeader";
 import { FileDown, UserPlus } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { DataTable } from "@/components/data-table";
 import { useUserDashboard } from "./useUserDashboard";
+import Loading from "@/components/Loading";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const UserDashboard = () => {
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
-    const tab = searchParams.get('tab');
+
     // Memoize breadcrumbs to prevent infinite loops
     const breadcrumbs = useMemo(() => [
         { label: 'Dashboard' }
@@ -18,10 +28,22 @@ const UserDashboard = () => {
 
     useBreadcrumbs(breadcrumbs);
 
-    const [activeTab, setActiveTab] = useState<'contact' | 'referal_partner' | 'all'>(tab as 'contact' | 'referal_partner' | 'all' || 'contact');
 
     // Use the dashboard hook
-    const { data, columns, actionItems, handleViewDetails } = useUserDashboard(activeTab);
+    const { 
+        data, 
+        columns, 
+        actionItems, 
+        handleViewDetails, 
+        activeTab, 
+        setActiveTab, 
+        isLoading,
+        deleteDialogOpen,
+        contactToDelete,
+        handleConfirmDelete,
+        handleCancelDelete,
+        isDeleting
+    } = useUserDashboard();
 
     const handleTabChange = (value: string) => {
         setActiveTab(value as 'contact' | 'referal_partner' | 'all');
@@ -37,7 +59,7 @@ const UserDashboard = () => {
         return '';
     }
 
-    return <PageHeader
+    return isLoading ? <Loading /> : <PageHeader
         title="Dashboard"
         description="Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos."
         actions={[
@@ -66,13 +88,44 @@ const UserDashboard = () => {
             <DataTable
                 columns={columns}
                 data={data}
-                searchColumns={['first_name', 'last_name', 'email', 'company', 'title', 'city', 'state']}
+                searchColumns={[ 'name', 'email', 'company', 'title']}
                 showActionsColumn={true}
                 onViewDetails={handleViewDetails}
                 actionItems={actionItems}
             />
         </div>
 
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={(open) => {
+            if (!open) {
+                handleCancelDelete();
+            }
+        }}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the contact{" "}
+                        <strong>
+                            {contactToDelete ? `${contactToDelete.first_name} ${contactToDelete.last_name}` : ''}
+                        </strong>{" "}
+                        from our servers.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel onClick={handleCancelDelete} disabled={isDeleting}>
+                        Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction 
+                        onClick={handleConfirmDelete} 
+                        disabled={isDeleting}
+                        className="bg-red-600 hover:bg-red-700"
+                    >
+                        {isDeleting ? 'Deleting...' : 'Delete'}
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
 
     </PageHeader>;
 };

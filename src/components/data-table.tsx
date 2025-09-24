@@ -145,10 +145,6 @@ export function DataTable<TData, TValue>({
     },
   })
 
-  // Separate action column from other columns
-  const dataColumns = React.useMemo(() => {
-    return finalColumns.filter(col => (col as any).id !== "actions")
-  }, [finalColumns])
 
   return (
     <div>
@@ -161,143 +157,51 @@ export function DataTable<TData, TValue>({
         />
         <DataTableViewOptions table={table} />
       </div>
-      <div className="relative overflow-hidden rounded-md border">
-        {showActionsColumn ? (
-          <div className="relative">
-            {/* Scrollable content area */}
-            <div className="overflow-x-auto" style={{ marginRight: '80px' }}>
-              <Table>
-                <TableHeader>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers
-                        .filter(header => (header.column.columnDef as any).id !== "actions")
-                        .map((header) => {
-                          return (
-                            <TableHead key={header.id}>
-                              {header.isPlaceholder
-                                ? null
-                                : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
-                            </TableHead>
-                          )
-                        })}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map((row) => (
-                      <TableRow
-                        key={row.id}
-                        data-state={row.getIsSelected() && "selected"}
-                      >
-                        {row.getVisibleCells()
-                          .filter(cell => (cell.column.columnDef as any).id !== "actions")
-                          .map((cell) => (
-                            <TableCell key={cell.id}>
-                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </TableCell>
-                          ))}
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={dataColumns.length} className="h-24 text-center">
-                        No results.
+      <div className="rounded-md border">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                      </TableHead>
+                    )
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-            
-            {/* Fixed action column */}
-            <div 
-              className="absolute top-0 right-0 h-full bg-background border-l shadow-lg z-10"
-              style={{ width: '80px' }}
-            >
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-center">
-                      Actions
-                    </TableHead>
+                    ))}
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map((row) => {
-                      const actionCell = row.getVisibleCells().find(cell => (cell.column.columnDef as any).id === "actions")
-                      return (
-                        <TableRow
-                          key={row.id}
-                          data-state={row.getIsSelected() && "selected"}
-                          className="hover:bg-muted/50"
-                        >
-                          <TableCell className="text-center">
-                            {actionCell && flexRender(actionCell.column.columnDef.cell, actionCell.getContext())}
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })
-                  ) : (
-                    <TableRow>
-                      <TableCell className="h-24"></TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      return (
-                        <TableHead key={header.id}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                        </TableHead>
-                      )
-                    })}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={finalColumns.length} className="h-24 text-center">
-                      No results.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        )}
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={finalColumns.length} className="h-24 text-center">
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <DataTablePagination table={table} />

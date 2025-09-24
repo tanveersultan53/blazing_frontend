@@ -2,31 +2,45 @@ export interface AddPersonFormData {
   // Primary Contact
   first_name: string;
   last_name: string;
+  email: string;
   title: string;
   company: string;
-  email: string;
   address: string;
   city: string;
   state: string;
-  zip: string;
-  cellphone: string;
+  zip_code: string;
+  cell: string;
   work_phone: string;
   birthday: string;
   age: string;
   group: string;
-  status: string;
+  send_status: string;
   optout: string;
   newsletter_version: string;
   
   // Secondary Contact
-  spouse_first: string;
-  spouse_last: string;
-  spouse_email: string;
-  sbirthday: string;
-  sage: string;
+  secondary_first_name: string;
+  secondary_last_name: string;
+  secondary_email: string;
+  secondary_birthday: string;
+  secondary_age: string;
   
   // Notes
   notes: string;
+
+  // Type
+  customer_type?: string;
+
+  //Loan Information
+  loan_status: string;
+  interest_rate: string;
+  sales_price: string;
+  loan_amount: string;
+  ltv: string;
+  close_date: string;
+  loan_program: string;
+  loan_type: string;
+  property_type: string;
 }
 
 export interface AddPersonHookReturn {

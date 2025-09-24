@@ -14,6 +14,10 @@ import { updateUser } from "@/services/userManagementService";
 import { toast } from "sonner";
 import { useParams } from "react-router-dom";
 import type { AxiosResponse } from "axios";
+import { Select, SelectContent, SelectItem } from "@/components/ui/select";
+import { SelectTrigger } from "@/components/ui/select";
+import { SelectValue } from "@/components/ui/select";
+import { PasswordInput } from "@/components/ui/password-input";
 
 const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined, refetch: () => void }) => {
     const { id } = useParams();
@@ -39,6 +43,8 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
         branch_id: user?.branch_id || '',
         is_active: user?.is_active || false,
         personal_license: user?.personal_license || '',
+        industry_type: user?.industry_type || '',
+        password: user?.password || '',
     }
 
     const [isEditMode, setIsEditMode] = useState(false);
@@ -48,7 +54,7 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
         mode: 'onChange'
     });
 
-    const { register, formState: { errors } } = form;
+    const { register, formState: { errors }, watch, setValue } = form;
 
     const { mutate: updateUserMutation } = useMutation({
         mutationFn: updateUser,
@@ -150,6 +156,10 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                     <label htmlFor="email" className="text-xs font-medium text-muted-foreground">Email</label>
                                     <p className="text-sm font-semibold">{user?.email}</p>
                                 </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="password" className="text-xs font-medium text-muted-foreground">Password</label>
+                                    <p className="text-sm font-semibold">{user?.password ? '••••••••' : '-'}</p>
+                                </div>
 
                                 {/* Contact Information */}
                                 <div className="space-y-2">
@@ -202,6 +212,10 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                 <div className="space-y-2">
                                     <label htmlFor="company" className="text-xs font-medium text-muted-foreground">Company</label>
                                     <p className="text-sm font-semibold">{user?.company}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="industry_type" className="text-xs font-medium text-muted-foreground">Industry Type</label>
+                                    <p className="text-sm font-semibold">{user?.industry_type ?? '-'}</p>
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="rep_name" className="text-xs font-medium text-muted-foreground">Representative Name</label>
@@ -282,6 +296,16 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                         <p className="text-sm text-red-500">{errors.first_name.message}</p>
                                     )}
                                 </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="mid" className="text-sm font-medium">
+                                        Middle Name
+                                    </label>
+                                    <Input
+                                        id="mid"
+                                        placeholder="Enter Middle Name"
+                                        {...register('mid')}
+                                    />
+                                </div>
 
                                 <div className="space-y-2">
                                     <label htmlFor="last_name" className="text-sm font-medium">
@@ -321,6 +345,20 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                     />
                                     {errors.email && (
                                         <p className="text-sm text-red-500">{errors.email.message}</p>
+                                    )}
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="password" className="text-sm font-medium">
+                                        Password
+                                    </label>
+                                    <PasswordInput
+                                        id="password"
+                                        placeholder="Enter password"
+                                        {...register('password')}
+                                        error={!!errors.password}
+                                    />
+                                    {errors.password && (
+                                        <p className="text-sm text-red-500">{errors.password.message}</p>
                                     )}
                                 </div>
 
@@ -514,6 +552,26 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                 </div>
 
                                 <div className="space-y-2">
+                                    <label htmlFor="industry_type" className="text-sm font-medium">
+                                        Industry Type
+                                    </label>
+                                    <Select onValueChange={(value) => setValue('industry_type', value)} value={watch('industry_type')}>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Select industry type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="real_estate">Real Estate</SelectItem>
+                                            <SelectItem value="mortgage">Mortgage</SelectItem>
+                                            <SelectItem value="insurance">Insurance</SelectItem>
+                                            <SelectItem value="other">Other</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.industry_type && (
+                                        <p className="text-sm text-red-500">{errors.industry_type.message}</p>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
                                     <label htmlFor="rep_name" className="text-sm font-medium">
                                         Representative Name
                                     </label>
@@ -521,18 +579,11 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                         id="rep_name"
                                         placeholder="Enter representative name"
                                         {...register('rep_name')}
+                                        className={errors.rep_name ? 'border-red-500' : ''}
                                     />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label htmlFor="mid" className="text-sm font-medium">
-                                        MID
-                                    </label>
-                                    <Input
-                                        id="mid"
-                                        placeholder="Enter MID"
-                                        {...register('mid')}
-                                    />
+                                    {errors.rep_name && (
+                                        <p className="text-sm text-red-500">{errors.rep_name.message}</p>
+                                    )}
                                 </div>
 
                                 <div className="space-y-2">
