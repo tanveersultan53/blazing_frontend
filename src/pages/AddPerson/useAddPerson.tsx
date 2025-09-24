@@ -35,17 +35,28 @@ const useAddPerson = (): AddPersonHookReturn => {
       newsletter_version: 'none',
 
       // Secondary Contact
-      spouse_first: '',
-      spouse_last: '',
-      spouse_email: '',
-      sbirthday: '',
-      sage: '',
+      secondary_first_name: '',
+      secondary_last_name: '',
+      secondary_email: '',
+      secondary_birthday: '',
+      secondary_age: '',
 
       // Notes
       notes: '',
 
       // Type
       customer_type: type === 'contact' ? 'contact' : 'referal_partner',
+
+       //Loan Information
+      loan_status: '',
+      interest_rate: '',
+      sales_price: '',
+      loan_amount: '',
+      ltv: '',
+      close_date: '',
+      loan_program: '',
+      loan_type: '',
+      property_type: '',
     },
     mode: 'onChange'
   });
@@ -67,25 +78,25 @@ const useAddPerson = (): AddPersonHookReturn => {
 
   const handleApiError = (response: AxiosResponse) => {
     if (response.data) {
-        // Handle validation errors from server
-        const errorData = response.data as Record<string, string[]>;
+      // Handle validation errors from server
+      const errorData = response.data as Record<string, string[]>;
 
-        // Set field-specific errors
-        Object.keys(errorData).forEach((fieldName) => {
-            const fieldErrors = errorData[fieldName];
-            if (fieldErrors && fieldErrors.length > 0) {
-                // Set the first error message for each field
-                form.setError(fieldName as keyof AddPersonFormData, {
-                    type: 'error',
-                    message: fieldErrors[0]
-                });
-            }
-        });
+      // Set field-specific errors
+      Object.keys(errorData).forEach((fieldName) => {
+        const fieldErrors = errorData[fieldName];
+        if (fieldErrors && fieldErrors.length > 0) {
+          // Set the first error message for each field
+          form.setError(fieldName as keyof AddPersonFormData, {
+            type: 'error',
+            message: fieldErrors[0]
+          });
+        }
+      });
 
-        toast.error("Please fix the validation errors below");
+      toast.error("Please fix the validation errors below");
     } else {
-        // Handle other types of errors
-        toast.error(type === 'contact' ? 'Failed to add contact. Please try again.' : 'Failed to add referal partner. Please try again.');
+      // Handle other types of errors
+      toast.error(type === 'contact' ? 'Failed to add contact. Please try again.' : 'Failed to add referal partner. Please try again.');
     }
   }
 
@@ -93,7 +104,7 @@ const useAddPerson = (): AddPersonHookReturn => {
     // Clear any existing server errors before submitting
     form.clearErrors();
     setIsSubmitting(true);
-    addContactMutation({...data, optout: data.optout === 'send' ? false : true as any});
+    addContactMutation({ ...data, optout: data.optout === 'send' ? false : true as any });
   };
 
 
