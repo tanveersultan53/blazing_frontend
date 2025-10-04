@@ -3,13 +3,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PasswordInput } from '@/components/ui/password-input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import useCreateUser from './useCreateUser';
 import { useNavigate } from 'react-router-dom';
 import { urlValidation } from '@/lib/utils';
+import { formatCellPhone, autoFormatPhoneNumber } from '@/lib/phoneFormatter';
 
 const UserForm = () => {
   const { form, onSubmit, isSubmitting } = useCreateUser();
-  const { register, formState: { errors } } = form;
+  const { register, formState: { errors }, watch, setValue } = form;
   const navigate = useNavigate();
   return (
     <form onSubmit={onSubmit} className="space-y-6">
@@ -221,6 +223,25 @@ const UserForm = () => {
                 {...register('personal_license')}
               />
             </div>
+            <div className="space-y-2">
+              <label htmlFor="industry_type" className="text-sm font-medium">
+                Industry Type
+              </label>
+              <Select onValueChange={(value) => setValue('industry_type', value)} value={watch('industry_type')}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select industry type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Mortgage">Mortgage</SelectItem>
+                  <SelectItem value="Real Estate">Real Estate</SelectItem>
+                  <SelectItem value="Title Insurance">Title Insurance</SelectItem>
+                  <SelectItem value="Others">Others</SelectItem>
+                </SelectContent>
+              </Select>
+              {errors.industry_type && (
+                <p className="text-sm text-red-500">{errors.industry_type.message}</p>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -335,11 +356,15 @@ const UserForm = () => {
               <Input
                 id="work_phone"
                 type="tel"
-                placeholder="e.g., +1234567890"
+                placeholder="(858) 369-5555"
                 {...register('work_phone', {
                   pattern: {
-                    value: /^\+[1-9]\d{1,14}$/,
-                    message: 'Phone number must be entered in the format: +999999999. Up to 15 digits allowed.'
+                    value: /^\(\d{3}\) \d{3}-\d{4}$|^\d{10}$|^\+1\d{10}$/,
+                    message: 'Phone number must be in format: (XXX) XXX-XXXX'
+                  },
+                  onChange: (e) => {
+                    const formatted = autoFormatPhoneNumber(e.target.value);
+                    setValue('work_phone', formatted, { shouldValidate: true });
                   }
                 })}
                 className={errors.work_phone ? 'border-red-500' : ''}
@@ -365,11 +390,15 @@ const UserForm = () => {
               <Input
                 id="cellphone"
                 type="tel"
-                placeholder="e.g., +1234567890"
+                placeholder="(858) 369-5555"
                 {...register('cellphone', {
                   pattern: {
-                    value: /^\+[1-9]\d{1,14}$/,
-                    message: 'Phone number must be entered in the format: +999999999. Up to 15 digits allowed.'
+                    value: /^\(\d{3}\) \d{3}-\d{4}$|^\d{10}$|^\+1\d{10}$/,
+                    message: 'Phone number must be in format: (XXX) XXX-XXXX'
+                  },
+                  onChange: (e) => {
+                    const formatted = autoFormatPhoneNumber(e.target.value);
+                    setValue('cellphone', formatted, { shouldValidate: true });
                   }
                 })}
                 className={errors.cellphone ? 'border-red-500' : ''}

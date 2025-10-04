@@ -33,6 +33,7 @@ export interface User {
   website:          string;
   account_folder:   string;
   branch_id:        string;
+  industry_type:    string;
   groups:           any[];
   user_permissions: any[];
 }

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
 import type { IUserList } from "./interface";
+import { formatCellPhone, formatWorkPhone } from "@/lib/phoneFormatter";
 
 const useUsers = () => {
     const columns: ColumnDef<IUserList>[] = [
@@ -37,10 +38,19 @@ const useUsers = () => {
         {
             accessorKey: "work_phone",
             header: "Work Phone",
+            cell: ({ row }) => {
+                const phoneNumber = row.getValue("work_phone") as string;
+                const extension = row.original.work_ext;
+                return <div className="text-sm">{formatWorkPhone(phoneNumber, extension)}</div>;
+            },
         },
         {
             accessorKey: "cellphone",
             header: "Cell Phone",
+            cell: ({ row }) => {
+                const phoneNumber = row.getValue("cellphone") as string;
+                return <div className="text-sm">{formatCellPhone(phoneNumber)}</div>;
+            },
         },
         {
             id: "location",

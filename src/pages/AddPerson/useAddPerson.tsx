@@ -6,6 +6,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { AxiosError, AxiosResponse } from 'axios';
 import type { AddPersonFormData, AddPersonHookReturn } from './interface';
 import { createContact } from '@/services/contactService';
+import { cleanPhoneNumber } from '@/lib/phoneFormatter';
 
 const useAddPerson = (): AddPersonHookReturn => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,15 +49,16 @@ const useAddPerson = (): AddPersonHookReturn => {
       customer_type: type === 'contact' ? 'contact' : 'referal_partner',
 
        //Loan Information
-      // loan_status: '',
-      // interest_rate: '',
-      // sales_price: '',
-      // loan_amount: '',
-      // ltv: '',
-      // close_date: '',
-      // loan_program: '',
-      // loan_type: '',
-      // property_type: '',
+      loan_status: '',
+      interest_rate: '',
+      sales_price: '',
+      loan_amount: '',
+      percent_down: '',
+      ltv: '',
+      close_date: '',
+      loan_program: '',
+      loan_type: '',
+      property_type: '',
     },
     mode: 'onChange'
   });
@@ -104,7 +106,14 @@ const useAddPerson = (): AddPersonHookReturn => {
     // Clear any existing server errors before submitting
     form.clearErrors();
     setIsSubmitting(true);
-    addContactMutation({ ...data, optout: data.optout === 'send' ? false : true as any });
+    const cleanedData = {
+      ...data,
+      // Clean phone numbers before sending to API
+      cell: cleanPhoneNumber(data.cell),
+      work_phone: cleanPhoneNumber(data.work_phone),
+      optout: data.optout === 'send' ? false : true as any
+    };
+    addContactMutation(cleanedData);
   };
 
 

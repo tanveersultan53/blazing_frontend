@@ -7,11 +7,18 @@ import useAddPerson from './useAddPerson';
 import { useNavigate } from 'react-router-dom';
 import { DatePicker } from '@/components/ui/date-picker';
 import { format } from 'date-fns';
+import { formatCellPhone, autoFormatPhoneNumber } from '@/lib/phoneFormatter';
+import { useSelector } from 'react-redux';
+import { type RootState } from '@/redux/store';
 
 const AddPersonForm = ({ type }: { type: string | null }) => {
     const { form, onSubmit, isSubmitting } = useAddPerson();
     const { register, formState: { errors }, setValue, watch } = form;
     const navigate = useNavigate();
+    const { currentUser } = useSelector((state: RootState) => state.user);
+    
+    // Show loan fields only if current user's industry type is Mortgage
+    const showLoanFields = currentUser?.industry_type === 'Mortgage';
 
     return (
         <form onSubmit={onSubmit} className="space-y-6">
@@ -60,7 +67,7 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                             )}
                         </div>
 
-                        {type === 'referal_partner' && <>
+                        {type === 'partner' && <>
                             <div className="space-y-2">
                                 <label htmlFor="title" className="text-sm font-medium">
                                     Title
@@ -206,12 +213,16 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                             <Input
                                 id="cell"
                                 type="tel"
-                                placeholder="e.g., +1234567890"
+                                placeholder="(858) 369-5555"
                                 {...register('cell', {
                                     required: 'Cell phone is required',
                                     pattern: {
-                                        value: /^\+[1-9]\d{1,14}$/,
-                                        message: 'Phone number must be entered in the format: +999999999. Up to 15 digits allowed.'
+                                        value: /^\(\d{3}\) \d{3}-\d{4}$|^\d{10}$|^\+1\d{10}$/,
+                                        message: 'Phone number must be in format: (XXX) XXX-XXXX'
+                                    },
+                                    onChange: (e) => {
+                                        const formatted = autoFormatPhoneNumber(e.target.value);
+                                        setValue('cell', formatted, { shouldValidate: true });
                                     }
                                 })}
                                 className={errors.cell ? 'border-red-500' : ''}
@@ -229,11 +240,15 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                             <Input
                                 id="work_phone"
                                 type="tel"
-                                placeholder="e.g., +1234567890"
+                                placeholder="(858) 369-5555"
                                 {...register('work_phone', {
                                     pattern: {
-                                        value: /^\+[1-9]\d{1,14}$/,
-                                        message: 'Phone number must be entered in the format: +999999999. Up to 15 digits allowed.'
+                                        value: /^\(\d{3}\) \d{3}-\d{4}$|^\d{10}$|^\+1\d{10}$/,
+                                        message: 'Phone number must be in format: (XXX) XXX-XXXX'
+                                    },
+                                    onChange: (e) => {
+                                        const formatted = autoFormatPhoneNumber(e.target.value);
+                                        setValue('work_phone', formatted, { shouldValidate: true });
                                     }
                                 })}
                                 className={errors.work_phone ? 'border-red-500' : ''}
@@ -360,6 +375,172 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                     </div>
                 </CardContent>
             </Card>
+
+            {/* Loan Details Section - Only show if user industry type is Mortgage */}
+            {showLoanFields && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Loan Details</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Loan Status */}
+                            <div className="space-y-2">
+                                <label htmlFor="loan_status" className="text-sm font-medium">
+                                    Loan Status
+                                </label>
+                                <Select onValueChange={(value) => setValue('loan_status', value)} value={watch('loan_status')}>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Select loan status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Open">Open</SelectItem>
+                                        <SelectItem value="Closed">Closed</SelectItem>
+                                        <SelectItem value="Approved">Approved</SelectItem>
+                                        <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                        <SelectItem value="Denied">Denied</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            {/* Interest Rate */}
+                            <div className="space-y-2">
+                                <label htmlFor="interest_rate" className="text-sm font-medium">
+                                    Interest Rate
+                                </label>
+                                <Input
+                                    id="interest_rate"
+                                    type="text"
+                                    placeholder="e.g., 6.5%"
+                                    {...register('interest_rate')}
+                                />
+                            </div>
+
+                            {/* Sales Price */}
+                            <div className="space-y-2">
+                                <label htmlFor="sales_price" className="text-sm font-medium">
+                                    Sales Price
+                                </label>
+                                <Input
+                                    id="sales_price"
+                                    type="text"
+                                    placeholder="e.g., $500,000"
+                                    {...register('sales_price')}
+                                />
+                            </div>
+
+                            {/* Loan Amount */}
+                            <div className="space-y-2">
+                                <label htmlFor="loan_amount" className="text-sm font-medium">
+                                    Loan Amount
+                                </label>
+                                <Input
+                                    id="loan_amount"
+                                    type="text"
+                                    placeholder="e.g., $400,000"
+                                    {...register('loan_amount')}
+                                />
+                            </div>
+
+                            {/* % Down */}
+                            <div className="space-y-2">
+                                <label htmlFor="percent_down" className="text-sm font-medium">
+                                    % Down
+                                </label>
+                                <Input
+                                    id="percent_down"
+                                    type="text"
+                                    placeholder="e.g., 20%"
+                                    {...register('percent_down')}
+                                />
+                            </div>
+
+                            {/* LTV */}
+                            <div className="space-y-2">
+                                <label htmlFor="ltv" className="text-sm font-medium">
+                                    LTV
+                                </label>
+                                <Input
+                                    id="ltv"
+                                    type="text"
+                                    placeholder="e.g., 80%"
+                                    {...register('ltv')}
+                                />
+                            </div>
+
+                            {/* Close Date */}
+                            <div className="space-y-2">
+                                <label htmlFor="close_date" className="text-sm font-medium">
+                                    Close Date
+                                </label>
+                                <Input
+                                    id="close_date"
+                                    type="date"
+                                    {...register('close_date', {
+                                        pattern: {
+                                            value: /^\d{4}-\d{2}-\d{2}$/,
+                                            message: 'Date must be in YYYY-MM-DD format'
+                                        }
+                                    })}
+                                    className={errors.close_date ? 'border-red-500' : ''}
+                                />
+                                {errors.close_date && (
+                                    <p className="text-sm text-red-500">{errors.close_date.message}</p>
+                                )}
+                            </div>
+
+                            {/* Loan Program */}
+                            <div className="space-y-2">
+                                <label htmlFor="loan_program" className="text-sm font-medium">
+                                    Loan Program
+                                </label>
+                                <Input
+                                    id="loan_program"
+                                    type="text"
+                                    placeholder="e.g., Conventional, FHA, VA"
+                                    {...register('loan_program')}
+                                />
+                            </div>
+
+                            {/* Loan Type */}
+                            <div className="space-y-2">
+                                <label htmlFor="loan_type" className="text-sm font-medium">
+                                    Loan Type
+                                </label>
+                                <Select onValueChange={(value) => setValue('loan_type', value)} value={watch('loan_type')}>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Select loan type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Purchase">Purchase</SelectItem>
+                                        <SelectItem value="Refinance">Refinance</SelectItem>
+                                        <SelectItem value="HELOC">HELOC</SelectItem>
+                                        <SelectItem value="Reverse">Reverse</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            {/* Property Type */}
+                            <div className="space-y-2">
+                                <label htmlFor="property_type" className="text-sm font-medium">
+                                    Property Type
+                                </label>
+                                <Select onValueChange={(value) => setValue('property_type', value)} value={watch('property_type')}>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Select property type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Primary">Primary</SelectItem>
+                                        <SelectItem value="Secondary">Secondary</SelectItem>
+                                        <SelectItem value="Investment">Investment</SelectItem>
+                                        <SelectItem value="Construction">Construction</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Secondary Contact Section */}
             {type === 'contact' && (

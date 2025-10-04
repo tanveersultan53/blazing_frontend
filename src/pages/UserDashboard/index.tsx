@@ -6,7 +6,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { DataTable } from "@/components/data-table";
 import { useUserDashboard } from "./useUserDashboard";
-import Loading from "@/components/Loading";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,11 +37,18 @@ const UserDashboard = () => {
         activeTab, 
         setActiveTab, 
         isLoading,
+        isFetching,
         deleteDialogOpen,
         contactToDelete,
         handleConfirmDelete,
         handleCancelDelete,
-        isDeleting
+        isDeleting,
+        filters,
+        updateFilter,
+        clearFilter,
+        clearAllFilters,
+        globalSearch,
+        updateGlobalSearch
     } = useUserDashboard();
 
     const handleTabChange = (value: string) => {
@@ -59,7 +65,20 @@ const UserDashboard = () => {
         return '';
     }
 
-    return isLoading ? <Loading /> : <PageHeader
+    // Column titles mapping for filter placeholders
+    const columnTitles = {
+        'name': 'Name',
+        'email': 'Email',
+        'cell': 'Cell Phone',
+        'work_phone': 'Work Phone',
+        'company': 'Company',
+        'title': 'Title',
+        'send_status': 'Status',
+        'created': 'Created Date',
+        'modified': 'Modified Date',
+    };
+
+    return <PageHeader
         title="Dashboard"
         description="Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos."
         actions={[
@@ -88,10 +107,19 @@ const UserDashboard = () => {
             <DataTable
                 columns={columns}
                 data={data}
-                searchColumns={[ 'name', 'email', 'company', 'title']}
+                searchColumns={[ 'name', 'email', 'company', 'title', 'cell', 'work_phone']}
                 showActionsColumn={true}
                 onViewDetails={handleViewDetails}
                 actionItems={actionItems}
+                filters={filters as Record<string, string | undefined>}
+                onFilterChange={(key: string, value: string) => updateFilter(key as keyof typeof filters, value)}
+                onClearFilter={(key: string) => clearFilter(key as keyof typeof filters)}
+                onClearAllFilters={clearAllFilters}
+                columnTitles={columnTitles}
+                isFetching={isFetching}
+                isLoading={isLoading}
+                globalSearch={globalSearch}
+                onGlobalSearchChange={updateGlobalSearch}
             />
         </div>
 

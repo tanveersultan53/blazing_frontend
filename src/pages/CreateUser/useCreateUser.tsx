@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { createUser } from '@/services/userManagementService';
 import { useNavigate } from 'react-router-dom';
 import type { AxiosError, AxiosResponse } from 'axios';
+import { cleanPhoneNumber } from '@/lib/phoneFormatter';
 
 export interface CreateUserFormData {
     password: string;
@@ -102,7 +103,13 @@ const useCreateUser = () => {
 
     const onSubmit = (data: CreateUserFormData) => {
         setIsSubmitting(true);
-        createUserMutation(data);
+        const cleanedData = {
+            ...data,
+            // Clean phone numbers before sending to API
+            cellphone: cleanPhoneNumber(data.cellphone),
+            work_phone: cleanPhoneNumber(data.work_phone),
+        };
+        createUserMutation(cleanedData);
     };
 
     return {

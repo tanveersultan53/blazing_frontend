@@ -36,6 +36,7 @@ export interface AddPersonFormData {
   interest_rate: string;
   sales_price: string;
   loan_amount: string;
+  percent_down: string;
   ltv: string;
   close_date: string;
   loan_program: string;

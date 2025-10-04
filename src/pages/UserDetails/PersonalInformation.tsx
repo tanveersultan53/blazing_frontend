@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem } from "@/components/ui/select";
 import { SelectTrigger } from "@/components/ui/select";
 import { SelectValue } from "@/components/ui/select";
 import { PasswordInput } from "@/components/ui/password-input";
+import { formatCellPhone, formatWorkPhone, autoFormatPhoneNumber, cleanPhoneNumber } from "@/lib/phoneFormatter";
 
 const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined, refetch: () => void }) => {
     const { id } = useParams();
@@ -26,8 +27,8 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
         first_name: user?.first_name || '',
         last_name: user?.last_name || '',
         email: user?.email || '',
-        cellphone: user?.cellphone || '',
-        work_phone: user?.work_phone || '',
+        cellphone: formatCellPhone(user?.cellphone) || '',
+        work_phone: formatCellPhone(user?.work_phone) || '',
         work_ext: user?.work_ext || '',
         address: user?.address || '',
         address2: user?.address2 || '',
@@ -99,6 +100,9 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
         setIsSubmitting(true);
         const postData = {
             ...data,
+            // Clean phone numbers before sending to API
+            cellphone: cleanPhoneNumber(data.cellphone),
+            work_phone: cleanPhoneNumber(data.work_phone),
         }
         delete postData.email;
         updateUserMutation({ id: id as string | number, user: postData });
@@ -163,16 +167,20 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
 
                                 {/* Contact Information */}
                                 <div className="space-y-2">
-                                    <label htmlFor="cellphone" className="text-xs font-medium text-muted-foreground">Cellphone</label>
-                                    <p className="text-sm font-semibold">{user?.cellphone}</p>
+                                    <label htmlFor="cellphone" className="text-xs font-medium text-muted-foreground">Cell Phone</label>
+                                    <p className="text-sm font-semibold">{formatCellPhone(user?.cellphone)}</p>
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="phone" className="text-xs font-medium text-muted-foreground">Work Phone</label>
-                                    <p className="text-sm font-semibold">{user?.work_phone}</p>
-                                </div>
-                                <div className="space-y-2">
-                                    <label htmlFor="ext" className="text-xs font-medium text-muted-foreground">Extension</label>
-                                    <p className="text-sm font-semibold">{user?.work_ext}</p>
+                                    <p className="text-sm font-semibold">
+                                        {user?.work_phone ? formatWorkPhone(user.work_phone, user.work_ext) : 'Not provided'}
+                                    </p>
+                                    {/* Debug info - remove this after testing */}
+                                    {process.env.NODE_ENV === 'development' && (
+                                        <p className="text-xs text-gray-500">
+                                            Raw: {user?.work_phone} | Ext: {user?.work_ext}
+                                        </p>
+                                    )}
                                 </div>
 
 
@@ -369,11 +377,15 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                     <Input
                                         id="cellphone"
                                         type="tel"
-                                        placeholder="e.g., +1234567890"
+                                        placeholder="(858) 369-5555"
                                         {...register('cellphone', {
                                             pattern: {
-                                                value: /^\+[1-9]\d{1,14}$/,
-                                                message: 'Phone number must be entered in the format: +999999999. Up to 15 digits allowed.'
+                                                value: /^\(\d{3}\) \d{3}-\d{4}$|^\d{10}$|^\+1\d{10}$/,
+                                                message: 'Phone number must be in format: (XXX) XXX-XXXX'
+                                            },
+                                            onChange: (e) => {
+                                                const formatted = autoFormatPhoneNumber(e.target.value);
+                                                setValue('cellphone', formatted, { shouldValidate: true });
                                             }
                                         })}
                                         className={errors.cellphone ? 'border-red-500' : ''}
@@ -390,11 +402,15 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                     <Input
                                         id="work_phone"
                                         type="tel"
-                                        placeholder="e.g., +1234567890"
+                                        placeholder="(858) 369-5555"
                                         {...register('work_phone', {
                                             pattern: {
-                                                value: /^\+[1-9]\d{1,14}$/,
-                                                message: 'Phone number must be entered in the format: +999999999. Up to 15 digits allowed.'
+                                                value: /^\(\d{3}\) \d{3}-\d{4}$|^\d{10}$|^\+1\d{10}$/,
+                                                message: 'Phone number must be in format: (XXX) XXX-XXXX'
+                                            },
+                                            onChange: (e) => {
+                                                const formatted = autoFormatPhoneNumber(e.target.value);
+                                                setValue('work_phone', formatted, { shouldValidate: true });
                                             }
                                         })}
                                         className={errors.work_phone ? 'border-red-500' : ''}
@@ -560,10 +576,10 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                             <SelectValue placeholder="Select industry type" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="real_estate">Real Estate</SelectItem>
-                                            <SelectItem value="mortgage">Mortgage</SelectItem>
-                                            <SelectItem value="insurance">Insurance</SelectItem>
-                                            <SelectItem value="other">Other</SelectItem>
+                                            <SelectItem value="Mortgage">Mortgage</SelectItem>
+                                            <SelectItem value="Real Estate">Real Estate</SelectItem>
+                                            <SelectItem value="Title Insurance">Title Insurance</SelectItem>
+                                            <SelectItem value="Others">Others</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     {errors.industry_type && (

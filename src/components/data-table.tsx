@@ -32,7 +32,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu"
-import { MoreHorizontal } from "lucide-react"
+import { MoreHorizontal, X } from "lucide-react"
 
 interface ActionItem<TData> {
   label: string
@@ -48,6 +48,17 @@ interface DataTableProps<TData, TValue> {
   showActionsColumn?: boolean
   onViewDetails?: (row: TData) => void
   actionItems?: ActionItem<TData>[]
+  // Server-side filtering props
+  filters?: Record<string, string | undefined>
+  onFilterChange?: (key: string, value: string) => void
+  onClearFilter?: (key: string) => void
+  onClearAllFilters?: () => void
+  columnTitles?: Record<string, string>
+  isFetching?: boolean
+  isLoading?: boolean
+  // Global search props
+  globalSearch?: string
+  onGlobalSearchChange?: (value: string) => void
 }
 
 export function DataTable<TData, TValue>({
@@ -57,6 +68,15 @@ export function DataTable<TData, TValue>({
   showActionsColumn = false,
   onViewDetails,
   actionItems = [],
+  filters = {},
+  onFilterChange,
+  onClearFilter,
+  onClearAllFilters,
+  columnTitles = {},
+  isFetching = false,
+  isLoading = false,
+  globalSearch = "",
+  onGlobalSearchChange,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -120,7 +140,8 @@ export function DataTable<TData, TValue>({
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
+    // Disable client-side filtering when using server-side filtering
+    getFilteredRowModel: onFilterChange ? undefined : getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, _columnId, value) => {
@@ -148,13 +169,30 @@ export function DataTable<TData, TValue>({
 
   return (
     <div>
-      <div className="flex items-center py-4">
+      <div className="flex items-center py-4 gap-2">
         <Input
           placeholder={`Search`}
-          value={globalFilter ?? ""}
-          onChange={(event) => setGlobalFilter(event.target.value)}
+          value={onGlobalSearchChange ? globalSearch : (globalFilter ?? "")}
+          onChange={(event) => {
+            if (onGlobalSearchChange) {
+              onGlobalSearchChange(event.target.value);
+            } else {
+              setGlobalFilter(event.target.value);
+            }
+          }}
           className="max-w-sm"
         />
+        {onClearAllFilters && (Object.keys(filters).some(key => filters[key]) || globalSearch) && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onClearAllFilters}
+            className="h-8 gap-1"
+          >
+            <X className="h-3 w-3" />
+            Clear All
+          </Button>
+        )}
         <DataTableViewOptions table={table} />
       </div>
       <div className="rounded-md border">
@@ -177,9 +215,64 @@ export function DataTable<TData, TValue>({
                   })}
                 </TableRow>
               ))}
+              {/* Filter Row */}
+              <TableRow>
+                {table.getHeaderGroups()[0]?.headers.map((header) => {
+                  const column = header.column;
+                  const columnId = column.id;
+                  const filterValue = filters[columnId] || "";
+                  
+                  // Get proper column title for placeholder
+                  const getColumnTitle = (columnId: string) => {
+                    // Use provided column titles mapping first
+                    if (columnTitles[columnId]) {
+                      return columnTitles[columnId];
+                    }
+                    
+                    // Fallback: convert column id to readable format
+                    return columnId
+                      .split('_')
+                      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+                      .join(' ');
+                  };
+                  
+                  return (
+                    <TableHead key={`filter-${header.id}`} className="p-2">
+                      {column.getCanFilter() && onFilterChange ? (
+                        <div className="relative">
+                          <Input
+                            placeholder={`${getColumnTitle(columnId)}...`}
+                            value={filterValue}
+                            onChange={(event) => onFilterChange(columnId, event.target.value)}
+                            className="h-8 text-xs pr-8"
+                          />
+                          {filterValue && onClearFilter && (
+                            <button
+                              type="button"
+                              onClick={() => onClearFilter(columnId)}
+                              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          )}
+                        </div>
+                      ) : null}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows?.length ? (
+              {(isLoading || isFetching) ? (
+                <TableRow>
+                  <TableCell colSpan={finalColumns.length} className="h-24 text-center">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      <span className="text-sm text-gray-600">Loading...</span>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow
                     key={row.id}
