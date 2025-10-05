@@ -30,6 +30,10 @@ export interface CreateUserFormData {
     branch_id: string;
     personal_license: string;
     industry_type: string;
+    // Media fields
+    photo?: FileList;
+    logo?: FileList;
+    disclaimer?: string;
 }
 
 const useCreateUser = () => {
@@ -58,7 +62,11 @@ const useCreateUser = () => {
             website: '',
             branch_id: '',
             personal_license: '',
-            industry_type: ''
+            industry_type: '',
+            // Media fields
+            photo: undefined,
+            logo: undefined,
+            disclaimer: ''
         },
         mode: 'onChange'
     });
@@ -103,13 +111,29 @@ const useCreateUser = () => {
 
     const onSubmit = (data: CreateUserFormData) => {
         setIsSubmitting(true);
-        const cleanedData = {
-            ...data,
-            // Clean phone numbers before sending to API
-            cellphone: cleanPhoneNumber(data.cellphone),
-            work_phone: cleanPhoneNumber(data.work_phone),
-        };
-        createUserMutation(cleanedData);
+        
+        // Create FormData for file uploads
+        const formData = new FormData();
+        
+        // Add all form fields to FormData
+        Object.keys(data).forEach((key) => {
+            const value = data[key as keyof CreateUserFormData];
+            if (key === 'photo' || key === 'logo') {
+                // Handle file uploads
+                if (value && (value as FileList).length > 0) {
+                    formData.append(key, (value as FileList)[0]);
+                }
+            } else if (value !== undefined && value !== null && value !== '') {
+                // Handle regular fields
+                if (key === 'cellphone' || key === 'work_phone') {
+                    formData.append(key, cleanPhoneNumber(value as string));
+                } else {
+                    formData.append(key, value as string);
+                }
+            }
+        });
+        
+        createUserMutation(formData as any);
     };
 
     return {

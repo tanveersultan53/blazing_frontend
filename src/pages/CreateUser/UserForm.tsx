@@ -4,17 +4,51 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Upload, Image as ImageIcon, X } from 'lucide-react';
 import useCreateUser from './useCreateUser';
 import { useNavigate } from 'react-router-dom';
 import { urlValidation } from '@/lib/utils';
-import { formatCellPhone, autoFormatPhoneNumber } from '@/lib/phoneFormatter';
+import { autoFormatPhoneNumber } from '@/lib/phoneFormatter';
+import { useEffect, useRef } from 'react';
 
 const UserForm = () => {
   const { form, onSubmit, isSubmitting } = useCreateUser();
   const { register, formState: { errors }, watch, setValue } = form;
   const navigate = useNavigate();
+
+  // Watch for file changes to show previews
+  const photoFile = watch('photo');
+  const logoFile = watch('logo');
+  const photoPreviewRef = useRef<string | null>(null);
+  const logoPreviewRef = useRef<string | null>(null);
+
+  // Cleanup object URLs to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (photoPreviewRef.current) {
+        URL.revokeObjectURL(photoPreviewRef.current);
+      }
+      if (logoPreviewRef.current) {
+        URL.revokeObjectURL(logoPreviewRef.current);
+      }
+    };
+  }, []);
+
+  // Function to clear file selection
+  const clearFile = (fieldName: 'photo' | 'logo') => {
+    setValue(fieldName, undefined as any);
+    if (fieldName === 'photo' && photoPreviewRef.current) {
+      URL.revokeObjectURL(photoPreviewRef.current);
+      photoPreviewRef.current = null;
+    }
+    if (fieldName === 'logo' && logoPreviewRef.current) {
+      URL.revokeObjectURL(logoPreviewRef.current);
+      logoPreviewRef.current = null;
+    }
+  };
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
+    <form onSubmit={onSubmit} className="space-y-6" encType="multipart/form-data">
       {/* Personal Information Section */}
       <Card>
         <CardHeader>
@@ -407,6 +441,152 @@ const UserForm = () => {
                 <p className="text-sm text-red-500">{errors.cellphone.message}</p>
               )}
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Media Information Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Media Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label htmlFor="photo" className="text-sm font-medium">
+                User Photo
+              </label>
+              <div className="relative">
+                <Input
+                  id="photo"
+                  type="file"
+                  accept="image/*"
+                  {...register('photo')}
+                  onChange={(e) => {
+                    register('photo').onChange(e);
+                  }}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <div className="flex items-center justify-between w-full px-3 py-2 text-sm border border-input bg-background rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                  <div className="flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">
+                      {photoFile && photoFile[0] ? photoFile[0].name : 'No file chosen'}
+                    </span>
+                  </div>
+                  <Button type="button" variant="outline" size="sm" className="ml-2">
+                    <Upload className="h-4 w-4 mr-1" />
+                    Choose File
+                  </Button>
+                </div>
+              </div>
+              {photoFile && photoFile[0] && (
+                <div className="mt-2">
+                  <div className="relative inline-block">
+                    <img
+                      src={(() => {
+                        if (photoPreviewRef.current) {
+                          URL.revokeObjectURL(photoPreviewRef.current);
+                        }
+                        photoPreviewRef.current = URL.createObjectURL(photoFile[0]);
+                        return photoPreviewRef.current;
+                      })()}
+                      alt="Photo preview"
+                      className="w-20 h-20 object-cover rounded-md border"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                      onClick={() => clearFile('photo')}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Preview</p>
+                </div>
+              )}
+              <p className="text-xs text-gray-500">Upload a profile photo (JPG, PNG, GIF)</p>
+              {errors.photo && (
+                <p className="text-sm text-red-500">{errors.photo.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="logo" className="text-sm font-medium">
+                User Logo
+              </label>
+              <div className="relative">
+                <Input
+                  id="logo"
+                  type="file"
+                  accept="image/*"
+                  {...register('logo')}
+                  onChange={(e) => {
+                    register('logo').onChange(e);
+                  }}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <div className="flex items-center justify-between w-full px-3 py-2 text-sm border border-input bg-background rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                  <div className="flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">
+                      {logoFile && logoFile[0] ? logoFile[0].name : 'No file chosen'}
+                    </span>
+                  </div>
+                  <Button type="button" variant="outline" size="sm" className="ml-2">
+                    <Upload className="h-4 w-4 mr-1" />
+                    Choose File
+                  </Button>
+                </div>
+              </div>
+              {logoFile && logoFile[0] && (
+                <div className="mt-2">
+                  <div className="relative inline-block">
+                    <img
+                      src={(() => {
+                        if (logoPreviewRef.current) {
+                          URL.revokeObjectURL(logoPreviewRef.current);
+                        }
+                        logoPreviewRef.current = URL.createObjectURL(logoFile[0]);
+                        return logoPreviewRef.current;
+                      })()}
+                      alt="Logo preview"
+                      className="w-20 h-20 object-cover rounded-md border"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                      onClick={() => clearFile('logo')}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Preview</p>
+                </div>
+              )}
+              <p className="text-xs text-gray-500">Upload a company/user logo (JPG, PNG, GIF)</p>
+              {errors.logo && (
+                <p className="text-sm text-red-500">{errors.logo.message}</p>
+              )}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="disclaimer" className="text-sm font-medium">
+              Disclaimer Text
+            </label>
+            <Textarea
+              id="disclaimer"
+              placeholder="Enter disclaimer text (optional)"
+              {...register('disclaimer')}
+              className={errors.disclaimer ? 'border-red-500' : ''}
+            />
+            <p className="text-xs text-gray-500">Add any disclaimer or additional information about the user</p>
+            {errors.disclaimer && (
+              <p className="text-sm text-red-500">{errors.disclaimer.message}</p>
+            )}
           </div>
         </CardContent>
       </Card>

@@ -8,8 +8,17 @@ import type { ISocials } from "@/pages/UserDetails/interface";
 export const getUsers = (): Promise<AxiosResponse<{ results: IUserList[] }>> =>
     api.get("/accounts/auth/users");
 
-export const createUser = (user: CreateUserFormData): Promise<AxiosResponse<CreateUserFormData>> =>
-    api.post("/accounts/auth/users", user);
+export const createUser = (user: CreateUserFormData | FormData): Promise<AxiosResponse<CreateUserFormData>> => {
+    // If it's FormData, we need to let the browser set the Content-Type header automatically
+    if (user instanceof FormData) {
+        return api.post("/accounts/auth/users", user, {
+            headers: {
+                'Content-Type': undefined, // Let the browser set the Content-Type with boundary
+            },
+        });
+    }
+    return api.post("/accounts/auth/users", user);
+};
 
 export const getUserDetails = (id: string | number): Promise<AxiosResponse<IUserDetails>> =>
     api.get(`/accounts/auth/users/${id}`);

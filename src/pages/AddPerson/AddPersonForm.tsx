@@ -3,11 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { ChangeEvent } from 'react';
 import useAddPerson from './useAddPerson';
 import { useNavigate } from 'react-router-dom';
 import { DatePicker } from '@/components/ui/date-picker';
 import { format } from 'date-fns';
-import { formatCellPhone, autoFormatPhoneNumber } from '@/lib/phoneFormatter';
+import { autoFormatPhoneNumber } from '@/lib/phoneFormatter';
 import { useSelector } from 'react-redux';
 import { type RootState } from '@/redux/store';
 
@@ -220,7 +221,7 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                                         value: /^\(\d{3}\) \d{3}-\d{4}$|^\d{10}$|^\+1\d{10}$/,
                                         message: 'Phone number must be in format: (XXX) XXX-XXXX'
                                     },
-                                    onChange: (e) => {
+                                    onChange: (e: ChangeEvent<HTMLInputElement>) => {
                                         const formatted = autoFormatPhoneNumber(e.target.value);
                                         setValue('cell', formatted, { shouldValidate: true });
                                     }
@@ -246,7 +247,7 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                                         value: /^\(\d{3}\) \d{3}-\d{4}$|^\d{10}$|^\+1\d{10}$/,
                                         message: 'Phone number must be in format: (XXX) XXX-XXXX'
                                     },
-                                    onChange: (e) => {
+                                    onChange: (e: ChangeEvent<HTMLInputElement>) => {
                                         const formatted = autoFormatPhoneNumber(e.target.value);
                                         setValue('work_phone', formatted, { shouldValidate: true });
                                     }
