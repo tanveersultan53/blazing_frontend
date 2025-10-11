@@ -258,9 +258,15 @@ const UserForm = () => {
               <label htmlFor="industry_type" className="text-sm font-medium">
                 Industry Type *
               </label>
+              <input
+                type="hidden"
+                {...register('industry_type', {
+                  required: 'Industry type is required'
+                })}
+              />
               <Select 
                 onValueChange={(value) => {
-                  setValue('industry_type', value);
+                  setValue('industry_type', value, { shouldValidate: true });
                   // Clear any existing error when user selects a value
                   if (errors.industry_type) {
                     form.clearErrors('industry_type');

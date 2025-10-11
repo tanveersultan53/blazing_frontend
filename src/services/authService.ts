@@ -36,7 +36,7 @@ export const refresh_token = (): Promise<AxiosResponse<TokenResponse>> => {
 export const logoutUser = (): void => {
   localStorage.removeItem("access_token");
   localStorage.removeItem("refresh_token");
-  window.location.href = "https://blazingsocial.com/";
+  window.location.href = "/";
 };
 
 export const userProfile = (): Promise<AxiosResponse<User>> => 

@@ -48,7 +48,9 @@ const UserDashboard = () => {
         clearFilter,
         clearAllFilters,
         globalSearch,
-        updateGlobalSearch
+        updateGlobalSearch,
+        handleDeleteSelected,
+        handleSendEmailSelected
     } = useUserDashboard();
 
     const handleTabChange = (value: string) => {
@@ -120,6 +122,9 @@ const UserDashboard = () => {
                 isLoading={isLoading}
                 globalSearch={globalSearch}
                 onGlobalSearchChange={updateGlobalSearch}
+                enableRowSelection={true}
+                onDeleteSelected={handleDeleteSelected}
+                onSendEmailSelected={handleSendEmailSelected}
             />
         </div>
 

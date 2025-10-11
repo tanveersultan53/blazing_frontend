@@ -12,6 +12,7 @@ import { Button } from "./ui/button";
 import { Sparkles } from "lucide-react";
 import { useSelector } from "react-redux";
 import type { User } from "@/redux/features/userSlice";
+import { useNavigate } from "react-router-dom";
 
 export function NavSecondary({
   items,
@@ -24,7 +25,7 @@ export function NavSecondary({
   }[]
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
   const currentUser = useSelector((state: { user: { currentUser: User } }) => state.user.currentUser);
-
+  const navigate = useNavigate();
   return (
     <SidebarGroup {...props}>
       <SidebarGroupContent>
@@ -39,7 +40,7 @@ export function NavSecondary({
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
-          {!currentUser?.is_superuser && <Button size="default">
+          {!currentUser?.is_superuser && <Button size="default" onClick={() => navigate("https://blazingsocial.com/")}>
             <Sparkles />
             Upgrade
           </Button>}
