@@ -3,7 +3,7 @@ import { refresh_token, logoutUser } from './authService';
 
 // Create an Axios instance
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://investortrading.com',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://blazing-social-backend-368859323211.us-central1.run.app',
   headers: {
     'Content-Type': 'application/json',
   },

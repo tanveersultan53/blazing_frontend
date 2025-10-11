@@ -32,7 +32,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu"
-import { MoreHorizontal, X } from "lucide-react"
+import { MoreHorizontal, X, Mail, Trash2 } from "lucide-react"
+import { Checkbox } from "./ui/checkbox"
 
 interface ActionItem<TData> {
   label: string
@@ -59,6 +60,10 @@ interface DataTableProps<TData, TValue> {
   // Global search props
   globalSearch?: string
   onGlobalSearchChange?: (value: string) => void
+  // Row selection props
+  enableRowSelection?: boolean
+  onDeleteSelected?: (rows: TData[]) => void
+  onSendEmailSelected?: (rows: TData[]) => void
 }
 
 export function DataTable<TData, TValue>({
@@ -77,6 +82,9 @@ export function DataTable<TData, TValue>({
   isLoading = false,
   globalSearch = "",
   onGlobalSearchChange,
+  enableRowSelection = false,
+  onDeleteSelected,
+  onSendEmailSelected,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -85,52 +93,88 @@ export function DataTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [globalFilter, setGlobalFilter] = React.useState("");
+  const [rowSelection, setRowSelection] = React.useState({})
 
   const finalColumns = React.useMemo<ColumnDef<TData, TValue>[]>(() => {
-    if (!showActionsColumn) return columns
+    const columnsWithExtras: ColumnDef<TData, TValue>[] = []
 
-    const actionsColumn: ColumnDef<TData, TValue> = {
-      id: "actions" as any,
-      header: "Actions" as any,
-      cell: ({ row }) => {
-        const original = row.original as TData
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => onViewDetails?.(original)}>
-                View Details
-              </DropdownMenuItem>
-              {(actionItems && actionItems.length > 0) && (
-                <DropdownMenuSeparator />
-              )}
-              {actionItems?.map((item, index) => {
-                const Icon = item.icon
-                return (
-                  <DropdownMenuItem
-                    key={index}
-                    onClick={() => item.onClick(original)}
-                    className={item.className}
-                  >
-                    {Icon ? <Icon className={item.className} /> : null}
-                    {item.label}
-                  </DropdownMenuItem>
-                )
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )
-      },
+    // Add checkbox column if row selection is enabled
+    if (enableRowSelection) {
+      const selectColumn: ColumnDef<TData, TValue> = {
+        id: "select" as any,
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        ) as any,
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ) as any,
+        enableSorting: false,
+        enableHiding: false,
+        enableColumnFilter: false,
+      }
+      columnsWithExtras.push(selectColumn)
     }
 
-    return [...columns, actionsColumn]
-  }, [columns, showActionsColumn, actionItems, onViewDetails])
+    // Add user-defined columns
+    columnsWithExtras.push(...columns)
+
+    // Add actions column if needed
+    if (showActionsColumn) {
+      const actionsColumn: ColumnDef<TData, TValue> = {
+        id: "actions" as any,
+        header: "Actions" as any,
+        cell: ({ row }) => {
+          const original = row.original as TData
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => onViewDetails?.(original)}>
+                  View Details
+                </DropdownMenuItem>
+                {(actionItems && actionItems.length > 0) && (
+                  <DropdownMenuSeparator />
+                )}
+                {actionItems?.map((item, index) => {
+                  const Icon = item.icon
+                  return (
+                    <DropdownMenuItem
+                      key={index}
+                      onClick={() => item.onClick(original)}
+                      className={item.className}
+                    >
+                      {Icon ? <Icon className={item.className} /> : null}
+                      {item.label}
+                    </DropdownMenuItem>
+                  )
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )
+        },
+      }
+      columnsWithExtras.push(actionsColumn)
+    }
+
+    return columnsWithExtras
+  }, [columns, showActionsColumn, actionItems, onViewDetails, enableRowSelection])
 
   const table = useReactTable({
     data,
@@ -144,15 +188,17 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: onFilterChange ? undefined : getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onGlobalFilterChange: setGlobalFilter,
+    onRowSelectionChange: setRowSelection,
+    enableRowSelection: enableRowSelection,
     globalFilterFn: (row, _columnId, value) => {
       // Get the searchable columns
       const searchableColumns = searchColumns.length > 0 ? searchColumns : finalColumns.map(col => (col as any).accessorKey).filter(Boolean);
-      
+
       // Check if any of the searchable columns contain the search value
       return searchableColumns.some(columnKey => {
         const cellValue = row.getValue(columnKey as string);
         if (cellValue == null) return false;
-        
+
         return String(cellValue)
           .toLowerCase()
           .includes(String(value).toLowerCase());
@@ -163,37 +209,69 @@ export function DataTable<TData, TValue>({
       columnFilters,
       columnVisibility,
       globalFilter,
+      rowSelection,
     },
   })
+
+  // Get selected rows
+  const selectedRows = table.getFilteredSelectedRowModel().rows.map(row => row.original)
+  const hasSelection = selectedRows.length > 0
 
 
   return (
     <div>
-      <div className="flex items-center py-4 gap-2">
-        <Input
-          placeholder={`Search`}
-          value={onGlobalSearchChange ? globalSearch : (globalFilter ?? "")}
-          onChange={(event) => {
-            if (onGlobalSearchChange) {
-              onGlobalSearchChange(event.target.value);
-            } else {
-              setGlobalFilter(event.target.value);
-            }
-          }}
-          className="max-w-sm"
-        />
-        {onClearAllFilters && (Object.keys(filters).some(key => filters[key]) || globalSearch) && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onClearAllFilters}
-            className="h-8 gap-1"
-          >
-            <X className="h-3 w-3" />
-            Clear All
-          </Button>
-        )}
-        <DataTableViewOptions table={table} />
+      <div className="flex items-center py-4 gap-2 justify-between">
+        <div className="flex items-center gap-2 flex-1">
+          <Input
+            placeholder={`Search`}
+            value={onGlobalSearchChange ? globalSearch : (globalFilter ?? "")}
+            onChange={(event) => {
+              if (onGlobalSearchChange) {
+                onGlobalSearchChange(event.target.value);
+              } else {
+                setGlobalFilter(event.target.value);
+              }
+            }}
+            className="max-w-sm"
+          />
+          {onClearAllFilters && (Object.keys(filters).some(key => filters[key]) || globalSearch) && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onClearAllFilters}
+              className="h-8 gap-1"
+            >
+              <X className="h-3 w-3" />
+              Clear All
+            </Button>
+          )}
+        </div>
+        <div className="flex items-center gap-2 justify-end">
+          {/* Row selection action buttons */}
+          {enableRowSelection && hasSelection && (
+            <>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => onDeleteSelected?.(selectedRows)}
+                className="h-9 gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete ({selectedRows.length})
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => onSendEmailSelected?.(selectedRows)}
+                className="h-9 gap-2"
+              >
+                <Mail className="h-4 w-4" />
+                Send Email ({selectedRows.length})
+              </Button>
+            </>
+          )}
+          <DataTableViewOptions table={table} />
+        </div>
       </div>
       <div className="rounded-md border">
         <div className="overflow-x-auto">
@@ -221,21 +299,21 @@ export function DataTable<TData, TValue>({
                   const column = header.column;
                   const columnId = column.id;
                   const filterValue = filters[columnId] || "";
-                  
+
                   // Get proper column title for placeholder
                   const getColumnTitle = (columnId: string) => {
                     // Use provided column titles mapping first
                     if (columnTitles[columnId]) {
                       return columnTitles[columnId];
                     }
-                    
+
                     // Fallback: convert column id to readable format
                     return columnId
                       .split('_')
                       .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
                       .join(' ');
                   };
-                  
+
                   return (
                     <TableHead key={`filter-${header.id}`} className="p-2">
                       {column.getCanFilter() && onFilterChange ? (

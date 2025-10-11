@@ -39,7 +39,7 @@ export function NavSecondary({
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
-          {!currentUser?.is_superuser && <Button size="default">
+          {!currentUser?.is_superuser && <Button size="default" onClick={() => window.open("https://blazingsocial.com", "_blank")}>
             <Sparkles />
             Upgrade
           </Button>}

@@ -5,8 +5,32 @@ import type { CreateUserFormData } from "@/pages/CreateUser/useCreateUser";
 import type { ICallToAction, IEmailSettings, INewsletterInfo, IServiceSettings, ISettings, IUserDetails } from "@/pages/UserDetails/interface";
 import type { ISocials } from "@/pages/UserDetails/interface";
 
-export const getUsers = (): Promise<AxiosResponse<{ results: IUserList[] }>> =>
-    api.get("/accounts/auth/users");
+export interface UserFilters {
+  name?: string;
+  email?: string;
+  company?: string;
+  title?: string;
+  location?: string;
+  status?: string;
+  role?: string;
+  work_phone?: string;
+  cellphone?: string;
+  search?: string; // Global search parameter
+}
+
+export const getUsers = (filters: UserFilters = {}): Promise<AxiosResponse<{ results: IUserList[] }>> => {
+  const params = new URLSearchParams();
+  
+  // Add all non-empty filter parameters
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value && value.trim() !== '') {
+      params.append(key, value);
+    }
+  });
+  
+  const queryString = params.toString();
+  return api.get(`/accounts/auth/users${queryString ? '?' + queryString : ''}`);
+};
 
 export const createUser = (user: CreateUserFormData | FormData): Promise<AxiosResponse<CreateUserFormData>> => {
     // If it's FormData, we need to let the browser set the Content-Type header automatically

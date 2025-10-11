@@ -110,15 +110,6 @@ const useCreateUser = () => {
     }
 
     const onSubmit = (data: CreateUserFormData) => {
-        // Validate industry_type field
-        if (!data.industry_type) {
-            form.setError('industry_type', {
-                type: 'required',
-                message: 'Industry type is required'
-            });
-            return;
-        }
-        
         setIsSubmitting(true);
         
         // Create FormData for file uploads

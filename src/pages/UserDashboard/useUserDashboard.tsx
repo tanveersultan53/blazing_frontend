@@ -282,6 +282,14 @@ export const useUserDashboard = () => {
     setGlobalSearch(value);
   }, []);
 
+  const handleDeleteSelected = (selectedRows: PersonData[]) => {
+    console.log("Delete selected rows:", selectedRows);
+  };
+
+  const handleSendEmailSelected = (selectedRows: PersonData[]) => {
+    console.log("Send email to selected rows:", selectedRows);
+  };
+
   return {
     data: contacts?.data?.results || [],
     isLoading,
@@ -304,5 +312,7 @@ export const useUserDashboard = () => {
     clearAllFilters,
     globalSearch,
     updateGlobalSearch,
+    handleDeleteSelected,
+    handleSendEmailSelected
   };
 };
