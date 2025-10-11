@@ -181,12 +181,20 @@ export interface ICallToAction {
 }
 
 export interface ISettings {
+  // Form field names
   name: string;
   password: string;
   isNoRatePlan: boolean;
   isChangeablePhoneLabel: boolean;
   isNameInSubject: boolean;
   isEmailReport: boolean;
+  
+  // API response field names
+  sendgrid_password?: string;
+  no_rate_post?: boolean;
+  change_phone_label?: boolean;
+  use_first_name?: boolean;
+  no_emal_report?: boolean;
 }
 
 export interface IServiceSettings {
