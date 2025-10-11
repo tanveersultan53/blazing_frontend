@@ -10,6 +10,7 @@ import UserDetails from './pages/UserDetails';
 import UserDashboard from './pages/UserDashboard';
 import AddPerson from './pages/AddPerson/index.tsx';
 import Contact from './pages/Contact';
+import UserProfile from './pages/UserProfile';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="users/create" element={<CreateUser />} />
           <Route path="users/:id" element={<UserDetails />} />
           <Route path="user-dashboard" element={<UserDashboard />} />
+          <Route path="profile" element={<UserProfile />} />
           <Route path="add-person" element={<AddPerson />} />
           <Route path="contacts/:id" element={<Contact />} />
         </Route>
