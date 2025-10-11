@@ -53,6 +53,11 @@ export const updateEmailSettings = ({ id, emailSettings }: { id: string | number
 export const getSettings = (id: string | number): Promise<AxiosResponse<ISettings>> =>
     api.get(`/accounts/admin/users/${id}/settings`);
 
+export const updateSettings = ({ id, settings }: { id: string | number, settings: ISettings }): Promise<AxiosResponse<ISettings>> =>
+    api.patch(`/accounts/admin/users/${id}/settings`, settings);
 
 export const getServiceSettings = (id: string | number): Promise<AxiosResponse<IServiceSettings>> =>
     api.get(`/accounts/admin/users/${id}/service-settings`);
+
+export const updateServiceSettings = ({ id, serviceSettings }: { id: string | number, serviceSettings: IServiceSettings }): Promise<AxiosResponse<IServiceSettings>> =>
+    api.patch(`/accounts/admin/users/${id}/service-settings`, serviceSettings);

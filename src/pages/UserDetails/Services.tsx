@@ -7,24 +7,42 @@ import { useForm } from "react-hook-form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { queryKeys } from "@/helpers/constants";
-import { getServiceSettings } from "@/services/userManagementService";
+import { getServiceSettings, updateServiceSettings } from "@/services/userManagementService";
 import type { AxiosResponse } from "axios";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import Loading from "@/components/Loading";
+import { toast } from "sonner";
 
 const Services = () => {
     const { id } = useParams();
     const [isEditMode, setIsEditMode] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const queryClient = useQueryClient();
 
     const { data, isLoading } = useQuery<AxiosResponse<IServiceSettings>>({
         queryKey: [queryKeys.getServiceSettings, id],
         queryFn: () => getServiceSettings(id as string | number),
     });
 
+    const updateServiceSettingsMutation = useMutation({
+        mutationFn: (serviceSettings: IServiceSettings) => updateServiceSettings({ id: id as string | number, serviceSettings }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [queryKeys.getServiceSettings, id] });
+            setIsEditMode(false);
+            setIsSubmitting(false);
+            toast.success("Service settings updated successfully!");
+        },
+        onError: (error: any) => {
+            console.error('Error updating service settings:', error);
+            setIsSubmitting(false);
+            toast.error(error?.response?.data?.message || "Failed to update service settings. Please try again.");
+        }
+    });
+
     const handleCancel = () => {
         setIsEditMode(false);
+        form.reset(data?.data || initialValues);
     };
 
     const initialValues = {
@@ -67,9 +85,16 @@ const Services = () => {
         }
     };
 
-    const onSubmit = (data: IServiceSettings) => {
-        console.log(data);
+    const onSubmit = (formData: IServiceSettings) => {
+        // Filter out null, undefined, and empty string values
+        const filteredData = Object.fromEntries(
+            Object.entries(formData).filter(([_, value]) => 
+                value !== null && value !== undefined && value !== ''
+            )
+        ) as IServiceSettings;
+        
         setIsSubmitting(true);
+        updateServiceSettingsMutation.mutate(filteredData);
     };
 
     useEffect(() => {

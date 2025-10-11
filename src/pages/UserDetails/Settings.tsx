@@ -9,23 +9,40 @@ import { PencilIcon } from "lucide-react";
 import { XIcon } from "lucide-react";
 import { CheckIcon } from "lucide-react";
 import type { AxiosResponse } from "axios";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/helpers/constants";
-import { getSettings } from "@/services/userManagementService";
+import { getSettings, updateSettings } from "@/services/userManagementService";
 import Loading from "@/components/Loading";
 import { Input } from "@/components/ui/input";
 import React from "react";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
 
 const Settings = () => {
     const { id } = useParams();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
+    const queryClient = useQueryClient();
 
     const { data, isLoading } = useQuery<AxiosResponse<ISettings>>({
         queryKey: [queryKeys.getSettings, id],
         queryFn: () => getSettings(id as string | number),
+    });
+
+    const updateSettingsMutation = useMutation({
+        mutationFn: (settings: ISettings) => updateSettings({ id: id as string | number, settings }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [queryKeys.getSettings, id] });
+            setIsEditMode(false);
+            setIsSubmitting(false);
+            toast.success("Settings updated successfully!");
+        },
+        onError: (error: any) => {
+            console.error('Error updating settings:', error);
+            setIsSubmitting(false);
+            toast.error(error?.response?.data?.message || "Failed to update settings. Please try again.");
+        }
     });
 
 
@@ -45,21 +62,60 @@ const Settings = () => {
 
     const { register, formState: { errors }, watch, setValue } = form;
 
-    //ts-ignore
-    const onSubmit = (_formData: ISettings) => {
+    const onSubmit = (formData: ISettings) => {
+        // Map form field names to API field names and filter out null/undefined/empty values
+        const apiPayload = {
+            name: formData.name || null,
+            sendgrid_password: formData.password || null,
+            no_rate_post: formData.isNoRatePlan || null,
+            change_phone_label: formData.isChangeablePhoneLabel || null,
+            use_first_name: formData.isNameInSubject || null,
+            no_emal_report: formData.isEmailReport || null,
+        };
+        
+        // Filter out null values
+        const filteredData = Object.fromEntries(
+            Object.entries(apiPayload).filter(([_, value]) => 
+                value !== null && value !== undefined && value !== ''
+            )
+        );
+        
         setIsSubmitting(true);
+        updateSettingsMutation.mutate(filteredData as any);
     };
 
     // Reset form when data changes
     React.useEffect(() => {
         if (data?.data) {
-            form.reset(initialValues);
+            // Map API response field names to form field names
+            const formData = {
+                name: data.data.name || '',
+                password: data.data.sendgrid_password || '',
+                isNoRatePlan: data.data.no_rate_post || false,
+                isChangeablePhoneLabel: data.data.change_phone_label || false,
+                isNameInSubject: data.data.use_first_name || false,
+                isEmailReport: data.data.no_emal_report || false,
+            };
+            form.reset(formData);
         }
     }, [data?.data]);
 
     const handleCancel = () => {
         setIsEditMode(false);
-        form.reset(initialValues);
+        if (data?.data) {
+            // Map API response field names to form field names
+            const formData = {
+                name: data.data.name || '',
+                password: data.data.sendgrid_password || '',
+                isNoRatePlan: data.data.no_rate_post || false,
+                isChangeablePhoneLabel: data.data.change_phone_label || false,
+                isNameInSubject: data.data.use_first_name || false,
+                isEmailReport: data.data.no_emal_report || false,
+            };
+            form.reset(formData);
+        } else {
+            form.reset(initialValues);
+        }
     };
 
     return isLoading ? <Loading /> : (
@@ -98,23 +154,23 @@ const Settings = () => {
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">SendGrid Password</label>
-                                    <p className="text-sm font-semibold">{data?.data?.password || '-'}</p>
+                                    <p className="text-sm font-semibold">{data?.data?.sendgrid_password || '-'}</p>
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">No Rate Plan</label>
-                                    <p className="text-sm font-semibold">{data?.data?.isNoRatePlan ? 'Yes' : 'No'}</p>
+                                    <p className="text-sm font-semibold">{data?.data?.no_rate_post ? 'Yes' : 'No'}</p>
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">Changeable Phone Label</label>
-                                    <p className="text-sm font-semibold">{data?.data?.isChangeablePhoneLabel ? 'Yes' : 'No'}</p>
+                                    <p className="text-sm font-semibold">{data?.data?.change_phone_label ? 'Yes' : 'No'}</p>
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">First Name In Subject</label>
-                                    <p className="text-sm font-semibold">{data?.data?.isNameInSubject ? 'Yes' : 'No'}</p>
+                                    <p className="text-sm font-semibold">{data?.data?.use_first_name ? 'Yes' : 'No'}</p>
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">Email Report</label>
-                                    <p className="text-sm font-semibold">{data?.data?.isEmailReport ? 'Yes' : 'No'}</p>
+                                    <p className="text-sm font-semibold">{data?.data?.no_emal_report ? 'Yes' : 'No'}</p>
                                 </div>
                             </div>
                         </div>

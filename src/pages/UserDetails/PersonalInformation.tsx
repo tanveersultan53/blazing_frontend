@@ -97,6 +97,15 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
     }
 
     const onSubmit = (data: CreateUserFormData) => {
+        // Validate industry_type field
+        if (!data.industry_type) {
+            form.setError('industry_type', {
+                type: 'required',
+                message: 'Industry type is required'
+            });
+            return;
+        }
+        
         setIsSubmitting(true);
         const postData = {
             ...data,
@@ -454,15 +463,12 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
 
                                 <div className="space-y-2">
                                     <label htmlFor="address" className="text-sm font-medium">
-                                        Address *
+                                        Address
                                     </label>
                                     <Input
                                         id="address"
                                         placeholder="Enter street address"
-                                        {...register('address', {
-                                            required: 'Address is required',
-                                            minLength: { value: 5, message: 'Address must be at least 5 characters' }
-                                        })}
+                                        {...register('address')}
                                         className={errors.address ? 'border-red-500' : ''}
                                     />
                                     {errors.address && (
@@ -483,15 +489,12 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
 
                                 <div className="space-y-2">
                                     <label htmlFor="city" className="text-sm font-medium">
-                                        City *
+                                        City
                                     </label>
                                     <Input
                                         id="city"
                                         placeholder="Enter city"
-                                        {...register('city', {
-                                            required: 'City is required',
-                                            minLength: { value: 2, message: 'City must be at least 2 characters' }
-                                        })}
+                                        {...register('city')}
                                         className={errors.city ? 'border-red-500' : ''}
                                     />
                                     {errors.city && (
@@ -501,15 +504,12 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
 
                                 <div className="space-y-2">
                                     <label htmlFor="state" className="text-sm font-medium">
-                                        State *
+                                        State
                                     </label>
                                     <Input
                                         id="state"
                                         placeholder="Enter state"
-                                        {...register('state', {
-                                            required: 'State is required',
-                                            minLength: { value: 2, message: 'State must be at least 2 characters' }
-                                        })}
+                                        {...register('state')}
                                         className={errors.state ? 'border-red-500' : ''}
                                     />
                                     {errors.state && (
@@ -519,18 +519,12 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
 
                                 <div className="space-y-2">
                                     <label htmlFor="zip_code" className="text-sm font-medium">
-                                        ZIP Code *
+                                        ZIP Code
                                     </label>
                                     <Input
                                         id="zip_code"
                                         placeholder="12345 or 12345-6789"
-                                        {...register('zip_code', {
-                                            required: 'ZIP code is required',
-                                            pattern: {
-                                                value: /^\d{5}(-\d{4})?$/,
-                                                message: 'Please enter a valid ZIP code (e.g., 12345 or 12345-6789)'
-                                            }
-                                        })}
+                                        {...register('zip_code')}
                                         className={errors.zip_code ? 'border-red-500' : ''}
                                     />
                                     {errors.zip_code && (
@@ -551,15 +545,12 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
 
                                 <div className="space-y-2">
                                     <label htmlFor="company" className="text-sm font-medium">
-                                        Company Name *
+                                        Company Name
                                     </label>
                                     <Input
                                         id="company"
                                         placeholder="Enter company name"
-                                        {...register('company', {
-                                            required: 'Company name is required',
-                                            minLength: { value: 2, message: 'Company name must be at least 2 characters' }
-                                        })}
+                                        {...register('company')}
                                         className={errors.company ? 'border-red-500' : ''}
                                     />
                                     {errors.company && (
@@ -569,10 +560,18 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
 
                                 <div className="space-y-2">
                                     <label htmlFor="industry_type" className="text-sm font-medium">
-                                        Industry Type
+                                        Industry Type *
                                     </label>
-                                    <Select onValueChange={(value) => setValue('industry_type', value)} value={watch('industry_type')}>
-                                        <SelectTrigger className="w-full">
+                                    <Select 
+                                        onValueChange={(value) => {
+                                            setValue('industry_type', value);
+                                            if (errors.industry_type) {
+                                                form.clearErrors('industry_type');
+                                            }
+                                        }} 
+                                        value={watch('industry_type')}
+                                    >
+                                        <SelectTrigger className={`w-full ${errors.industry_type ? 'border-red-500' : ''}`}>
                                             <SelectValue placeholder="Select industry type" />
                                         </SelectTrigger>
                                         <SelectContent>
