@@ -9,6 +9,7 @@ interface ActionButton {
   size?: 'default' | 'sm' | 'lg' | 'icon';
   disabled?: boolean;
   icon?: LucideIcon;
+  hidden?: boolean;
 }
 
 interface PageHeaderProps {
@@ -32,6 +33,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, description, children, a
               <div className="flex flex-wrap gap-2">
                 {actions.map((action, index) => {
                   const IconComponent = action.icon;
+                  if (action.hidden) return null;
                   return (
                     <Button
                       key={index}
@@ -39,6 +41,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, description, children, a
                       variant={action.variant || 'default'}
                       size={action.size || 'default'}
                       disabled={action.disabled}
+                      hidden={action.hidden}
                     >
                       {IconComponent && <IconComponent />}
                       {action.label}

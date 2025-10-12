@@ -9,8 +9,8 @@ import { cleanPhoneNumber } from '@/lib/phoneFormatter';
 
 export interface CreateUserFormData {
     password: string;
-    is_active: boolean;
-    rep_name: string;
+    is_active?: boolean;
+    rep_name?: string;
     company: string;
     company_id: string;
     address: string;

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useBreadcrumbs } from "@/hooks/usePageTitle";
 import PageHeader from "@/components/PageHeader";
 import { Edit } from "lucide-react";
@@ -10,15 +10,16 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { getNewsletter } from "@/services/userManagementService";
 import { queryKeys } from "@/helpers/constants";
-import type { INewsletterInfo } from "@/pages/UserDetails/interface";
+import type { INewsletterInfo, IUserDetails } from "@/pages/UserDetails/interface";
 import type { AxiosResponse } from "axios";
 import Loading from "@/components/Loading";
+import UpdateUserProfile from "./UpdateUserProfile";
 
 const UserProfile = () => {
     const currentUser = useSelector((state: { user: { currentUser: User } }) => state.user.currentUser);
 
     // Fetch newsletter information
-    const { data: newsletterData, isLoading: isNewsletterLoading } = useQuery<AxiosResponse<INewsletterInfo>>({
+    const { data: newsletterData, isLoading: isNewsletterLoading, refetch: refetchNewsletter } = useQuery<AxiosResponse<INewsletterInfo>>({
         queryKey: [queryKeys.getNewsletter, currentUser?.rep_id],
         queryFn: () => getNewsletter(currentUser?.rep_id as string | number),
         enabled: !!currentUser?.rep_id,
@@ -31,10 +32,10 @@ const UserProfile = () => {
 
     useBreadcrumbs(breadcrumbs);
 
-    const { 
-        first_name, 
-        last_name, 
-        email, 
+    const {
+        first_name,
+        last_name,
+        email,
         is_superuser,
         is_staff,
         is_active,
@@ -60,6 +61,8 @@ const UserProfile = () => {
         socials
     } = currentUser || {};
 
+    const [isEditMode, setIsEditMode] = useState(false);
+
     // Get initials for avatar fallback
     const initials = `${first_name?.charAt(0) || ''}${last_name?.charAt(0) || ''}`.toUpperCase();
 
@@ -74,16 +77,16 @@ const UserProfile = () => {
 
     // Format work phone with extension
     const formattedWorkPhone = work_phone ? formatPhoneNumber(work_phone, work_ext) : '-';
-    
+
     // Format date joined
     const formatDate = (date: Date | string) => {
         if (!date) return '-';
         try {
             const dateObj = new Date(date);
-            return dateObj.toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+            return dateObj.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
             });
         } catch {
             return '-';
@@ -102,13 +105,14 @@ const UserProfile = () => {
             actions={[
                 {
                     label: "Edit Profile",
-                    onClick: () => console.log("Edit profile clicked"),
+                    onClick: () => setIsEditMode(true),
                     variant: "default" as const,
                     icon: Edit,
+                    hidden: isEditMode,
                 },
             ]}
         >
-            <div className="flex w-full flex-col gap-3 mb-10">
+            {!isEditMode && <div className="flex w-full flex-col gap-3 mb-10">
                 {/* Profile Header Card */}
                 <Card>
                     <CardHeader>
@@ -379,7 +383,7 @@ const UserProfile = () => {
                     <CardHeader>
                         <CardTitle>Social Accounts Information</CardTitle>
                         <CardDescription>
-                            You can also update social links information here by clicking the update button.
+                            Following are the social accounts information for the user.
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -476,7 +480,7 @@ const UserProfile = () => {
                     <CardHeader>
                         <CardTitle>Newsletter Information</CardTitle>
                         <CardDescription>
-                            You can also update newsletter information here by clicking the update button.
+                            Following are the newsletter information for the user.
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -571,7 +575,8 @@ const UserProfile = () => {
                         )}
                     </CardContent>
                 </Card>
-            </div>
+            </div>}
+            {isEditMode && <UpdateUserProfile user={currentUser as unknown as IUserDetails} refetch={refetchNewsletter} setIsEditMode={setIsEditMode} />}
         </PageHeader>
     );
 };
