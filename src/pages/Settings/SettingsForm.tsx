@@ -6,25 +6,23 @@ import { queryKeys } from "@/helpers/constants";
 import { getSettings, updateSettings } from "@/services/userManagementService";
 import Loading from "@/components/Loading";
 import { Input } from "@/components/ui/input";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import type { ISettings } from "../UserDetails/interface";
+import { Button } from "@/components/ui/button";    
+import { CheckIcon, PencilIcon, XIcon } from "lucide-react";
 
 interface SettingsFormProps {
     userId: number | string;
-    isEditMode: boolean;
-    onSaveComplete: () => void;
-    onSaveError: () => void;
 }
 
 const SettingsForm: React.FC<SettingsFormProps> = ({
     userId,
-    isEditMode,
-    onSaveComplete,
-    onSaveError
 }) => {
+    const [isEditMode, setIsEditMode] = useState(false);    
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const queryClient = useQueryClient();
 
     const { data, isLoading } = useQuery<AxiosResponse<ISettings>>({
@@ -36,12 +34,12 @@ const SettingsForm: React.FC<SettingsFormProps> = ({
         mutationFn: (settings: ISettings) => updateSettings({ id: userId, settings }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: [queryKeys.getSettings, userId] });
-            onSaveComplete();
+            setIsSubmitting(false);
             toast.success("Settings updated successfully!");
         },
         onError: (error: any) => {
             console.error('Error updating settings:', error);
-            onSaveError();
+            setIsSubmitting(false);
             toast.error(error?.response?.data?.message || "Failed to update settings. Please try again.");
         }
     });
@@ -79,17 +77,63 @@ const SettingsForm: React.FC<SettingsFormProps> = ({
                 value !== null && value !== undefined && value !== ''
             )
         );
-
+        setIsSubmitting(true);
         updateSettingsMutation.mutate(filteredData as any);
     };
+
+    const handleCancel = () => {
+        setIsEditMode(false);
+        if (data?.data) {
+            // Map API response field names to form field names
+            const formData = {
+                name: data.data.name || '',
+                password: data.data.sendgrid_password || '',
+                isNoRatePlan: data.data.no_rate_post || false,
+                isChangeablePhoneLabel: data.data.change_phone_label || false,
+                isNameInSubject: data.data.use_first_name || false,
+                isEmailReport: data.data.no_emal_report || false,
+            };
+            form.reset(formData);
+        } else {
+            form.reset(initialValues);
+        }
+    };
+
+    useEffect(() => {
+        if (data?.data) {
+            form.reset(data.data);
+        } else {
+            form.reset(initialValues);
+        }
+    }, [data?.data]);
 
 
     return isLoading ? <Loading /> : (
         <form onSubmit={handleSubmit(onSubmit)}>
             <Card className="mb-12">
-                <CardHeader>
-                    <CardTitle>Settings</CardTitle>
-                    <CardDescription>You can also update social links information here by clicking the update button.</CardDescription>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <div>
+                        <CardTitle>Settings</CardTitle>
+                        <CardDescription>You can also update social links information here by clicking the update button.</CardDescription>
+                    </div>
+
+                    {isEditMode &&
+                        <div className="flex items-center gap-2">
+                            <Button variant="secondary" size="sm" className="flex items-center gap-2" onClick={handleCancel} disabled={isSubmitting}>
+                                <XIcon className="w-4 h-4" />
+                                Cancel
+                            </Button>
+                            <Button variant="default" size="sm" className="flex items-center gap-2" disabled={isSubmitting} type="submit"><CheckIcon className="w-4 h-4" />
+                                {isSubmitting ? 'Saving...' : 'Save Changes'}
+                            </Button>
+                        </div>
+                    }
+                    {!isEditMode &&
+                        <Button variant="outline" size="sm" className="flex items-center gap-2" onClick={() => { setIsEditMode(true); }}>
+                            <PencilIcon className="w-4 h-4" />
+                            Update Settings
+                        </Button>
+                    }
                 </CardHeader>
                 <CardContent>
                     {!isEditMode &&
