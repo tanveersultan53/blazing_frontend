@@ -35,6 +35,9 @@ export interface IUserDetails {
   user_permissions: any[]
   personal_license?: string
   industry_type?: string
+  photo?: string
+  logo?: string
+  disclaimer?: string
 }
 
 export interface Socials {

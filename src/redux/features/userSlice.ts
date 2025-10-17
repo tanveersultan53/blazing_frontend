@@ -36,6 +36,9 @@ export interface User {
   industry_type:    string;
   groups:           any[];
   user_permissions: any[];
+  photo:            string;
+  logo:             string;
+  disclaimer:       string;
 }
 
 export interface Messaging {

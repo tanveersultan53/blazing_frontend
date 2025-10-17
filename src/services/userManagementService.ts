@@ -47,8 +47,17 @@ export const createUser = (user: CreateUserFormData | FormData): Promise<AxiosRe
 export const getUserDetails = (id: string | number): Promise<AxiosResponse<IUserDetails>> =>
     api.get(`/accounts/auth/users/${id}`);
 
-export const updateUser = ({ id, user }: { id: string | number, user: CreateUserFormData }): Promise<AxiosResponse<CreateUserFormData>> =>
-    api.put(`/accounts/auth/users/${id}`, user);
+export const updateUser = ({ id, user }: { id: string | number, user: CreateUserFormData | FormData }): Promise<AxiosResponse<CreateUserFormData>> => {
+    // If it's FormData, we need to let the browser set the Content-Type header automatically
+    if (user instanceof FormData) {
+        return api.put(`/accounts/auth/users/${id}`, user, {
+            headers: {
+                'Content-Type': undefined, // Let the browser set the Content-Type with boundary
+            },
+        });
+    }
+    return api.put(`/accounts/auth/users/${id}`, user);
+};
 
 export const getSocials = (id: string | number): Promise<AxiosResponse<ISocials>> =>
     api.get(`/accounts/admin/users/${id}/socials`);

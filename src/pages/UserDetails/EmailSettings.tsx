@@ -19,7 +19,7 @@ import { format } from "date-fns";
 
 const EmailSettings = () => {
     const { id } = useParams();
-    const [isEditMode, setIsEditMode] = useState(true);
+    const [isEditMode, setIsEditMode] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const { data, isLoading, refetch } = useQuery<AxiosResponse<IEmailSettings>>({

@@ -195,13 +195,9 @@ const UserForm = () => {
               <Input
                 id="company_id"
                 type="text"
-                placeholder="Enter company ID (numbers only)"
+                placeholder="Enter company ID"
                 {...register('company_id', {
-                  required: 'Company ID is required',
-                  pattern: {
-                    value: /^\d+$/,
-                    message: 'A valid integer is required.'
-                  }
+                  required: 'Company ID is required'
                 })}
                 className={errors.company_id ? 'border-red-500' : ''}
               />

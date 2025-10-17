@@ -5,8 +5,6 @@ import useUserDetails from "./useUserDetails";
 import Loading from "@/components/Loading";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import PersonalInformation from "./PersonalInformation";
-import { ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import SocialLinksInformation from "./SocialLinksInformation";
 import NewsLetterInformation from "./NewsLetterInformation";
 import CallToAction from "./CallToAction";
@@ -16,7 +14,6 @@ import EmailSettings from "./EmailSettings";
 
 const UserDetails = () => {
     const { user, isLoading, activeTab, setActiveTab, refetch } = useUserDetails();
-    const navigate = useNavigate();
     // Memoize breadcrumbs to prevent infinite loops
     const breadcrumbs = useMemo(() => [
         { label: 'Users', path: '/' },
@@ -32,12 +29,6 @@ const UserDetails = () => {
             title={`${user?.first_name || ''} ${user?.last_name || ''}`}
             description={user?.email ?? ''}
             actions={[
-                {
-                    label: "Back to Users List",
-                    onClick: () => navigate('/users'),
-                    variant: "outline",
-                    icon: ArrowLeft,
-                },
             ]}
 
         >

@@ -118,7 +118,7 @@ const UserProfile = () => {
                     <CardHeader>
                         <div className="flex items-center gap-4">
                             <Avatar className="h-20 w-20">
-                                <AvatarImage src="https://www.tadpole.co.nz/wp-content/uploads/2021/02/team-1.jpg" alt={`${first_name} ${last_name}`} />
+                                <AvatarImage src={currentUser?.photo || ''} alt={`${first_name} ${last_name}`} />
                                 <AvatarFallback className="bg-orange-500 text-white text-xl">
                                     {initials}
                                 </AvatarFallback>
