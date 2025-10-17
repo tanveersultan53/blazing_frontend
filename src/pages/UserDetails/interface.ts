@@ -198,27 +198,23 @@ export interface ISettings {
 }
 
 export interface IServiceSettings {
-  email_service: boolean;
-  email_service_charge: string;
-  email_service_royality: string;
-
-  bs_service: boolean;
-  bs_service_charge: string;
-  bs_service_royality: string;
-
-  send_post_service: boolean;
-  send_post_service_charge: string;
-  send_post_service_royality: string;
-
-  send_weekly_newsletter: boolean;
-  send_weekly_newsletter_charge: string;
-  send_weekly_newsletter_royality: string;
-
-  send_coming_home_service: boolean;
-  send_coming_home_service_charge: string;
-  send_coming_home_service_royality: string;
-
-  has_coming: boolean;
-  no_branding: boolean;
+  email_service: boolean
+  bs_service: boolean
+  send_post_service: boolean
+  send_newsletter: boolean
+  send_cominghome: boolean
+  coming_home_file?: string // later to be removed coming_home_file 
+  has_coming_home: boolean
+  no_branding: boolean
+  email_service_amt: number
+  bs_service_amt: number
+  send_post_amt: number
+  send_news_amt: number
+  send_cominghome_amt: number
+  email_service_cost: number
+  bs_service_cost: number
+  send_post_cost: number
+  send_news_cost: number
+  send_cominghome_cost: number
 
 }

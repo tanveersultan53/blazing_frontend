@@ -47,22 +47,23 @@ const Services = () => {
 
     const initialValues = {
         email_service: false,
-        email_service_charge: '',
-        email_service_royality: '',
-        bs_service: false, // Example: This will show enabled fields on load
-        bs_service_charge: '',
-        bs_service_royality: '',
+        bs_service: false,
         send_post_service: false,
-        send_post_service_charge: '',
-        send_post_service_royality: '',
-        send_weekly_newsletter: false,
-        send_weekly_newsletter_charge: '',
-        send_weekly_newsletter_royality: '',
-        send_coming_home_service: false,
-        send_coming_home_service_charge: '',
-        send_coming_home_service_royality: '',
-        has_coming: false,
+        send_newsletter: false,
+        send_cominghome: false,
+        coming_home_file: '', // later to be removed coming_home_file 
+        has_coming_home: false,
         no_branding: false,
+        email_service_amt: 0,
+        bs_service_amt: 0,
+        send_post_amt: 0,
+        send_news_amt: 0,
+        send_cominghome_amt: 0,
+        email_service_cost: 0,
+        bs_service_cost: 0,
+        send_post_cost: 0,
+        send_news_cost: 0,
+        send_cominghome_cost: 0,
     }
 
     const form = useForm<IServiceSettings>({
@@ -78,23 +79,23 @@ const Services = () => {
 
         if (!checked) {
             // Clear the charge and royalty fields when unchecked
-            const chargeField = `${serviceName}_charge` as keyof IServiceSettings;
-            const royaltyField = `${serviceName}_royality` as keyof IServiceSettings;
-            setValue(chargeField, '');
-            setValue(royaltyField, '');
+            const chargeField = `${serviceName}_amt` as keyof IServiceSettings;
+            const royaltyField = `${serviceName}_cost` as keyof IServiceSettings;
+            setValue(chargeField, 0);
+            setValue(royaltyField, 0);
         }
     };
 
     const onSubmit = (formData: IServiceSettings) => {
         // Filter out null, undefined, and empty string values
         const filteredData = Object.fromEntries(
-            Object.entries(formData).filter(([_, value]) => 
+            Object.entries(formData).filter(([_, value]) =>
                 value !== null && value !== undefined && value !== ''
             )
         ) as IServiceSettings;
-        
+
         setIsSubmitting(true);
-        updateServiceSettingsMutation.mutate(filteredData);
+        updateServiceSettingsMutation.mutate({...filteredData, coming_home_file: watch('send_cominghome') ? 'yes' : 'no'}); // later to be removed coming_home_file 
     };
 
     useEffect(() => {
@@ -108,7 +109,7 @@ const Services = () => {
             <Card className="mb-12">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <div>
-                        <CardTitle>Service Setting for **Customer Name**</CardTitle>
+                        <CardTitle>Service Setting</CardTitle>
                         <CardDescription>You can also update services information here by clicking the update button. </CardDescription>
                     </div>
                     {!isEditMode &&
@@ -140,11 +141,11 @@ const Services = () => {
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="email_service_charge" className="text-xs font-medium text-muted-foreground">Service Charges ($)</label>
-                                    <p className="text-sm font-medium">{data?.data?.email_service_charge || '-'}</p>
+                                    <p className="text-sm font-medium">{data?.data?.email_service_amt || '-'}</p>
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="email_service_royality" className="text-xs font-medium text-muted-foreground">Service Royality (%)</label>
-                                    <p className="text-sm font-medium">{data?.data?.email_service_royality || '-'}</p>
+                                    <p className="text-sm font-medium">{data?.data?.email_service_cost || '-'}</p>
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -154,11 +155,11 @@ const Services = () => {
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="bs_service_charge" className="text-xs font-medium text-muted-foreground">Service Charges ($)</label>
-                                    <p className="text-sm font-medium">{data?.data?.bs_service_charge || '-'}</p>
+                                    <p className="text-sm font-medium">{data?.data?.bs_service_amt || '-'}</p>
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="bs_service_royality" className="text-xs font-medium text-muted-foreground">Service Royality (%)</label>
-                                    <p className="text-sm font-medium">{data?.data?.bs_service_royality || '-'}</p>
+                                    <p className="text-sm font-medium">{data?.data?.bs_service_cost || '-'}</p>
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -168,45 +169,45 @@ const Services = () => {
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="send_post_service_charge" className="text-xs font-medium text-muted-foreground">Service Charges ($)</label>
-                                    <p className="text-sm font-medium">{data?.data?.send_post_service_charge || '-'}</p>
+                                    <p className="text-sm font-medium">{data?.data?.send_post_amt || '-'}</p>
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="send_post_service_royality" className="text-xs font-medium text-muted-foreground">Service Royality (%)</label>
-                                    <p className="text-sm font-medium">{data?.data?.send_post_service_royality || '-'}</p>
+                                    <p className="text-sm font-medium">{data?.data?.send_post_cost || '-'}</p>
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="space-y-2">
                                     <label htmlFor="send_weekly_newsletter" className="text-xs font-medium text-muted-foreground">Send Weekly Newsletter</label>
-                                    <p className="text-sm font-medium">{data?.data?.send_weekly_newsletter ? 'Enabled' : 'Disabled'}</p>
+                                    <p className="text-sm font-medium">{data?.data?.send_newsletter ? 'Enabled' : 'Disabled'}</p>
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="send_weekly_newsletter_charge" className="text-xs font-medium text-muted-foreground">Service Charges ($)</label>
-                                    <p className="text-sm font-medium">{data?.data?.send_weekly_newsletter_charge || '-'}</p>
+                                    <p className="text-sm font-medium">{data?.data?.send_news_amt || '-'}</p>
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="send_weekly_newsletter_royality" className="text-xs font-medium text-muted-foreground">Service Royality (%)</label>
-                                    <p className="text-sm font-medium">{data?.data?.send_weekly_newsletter_royality || '-'}</p>
+                                        <p className="text-sm font-medium">{data?.data?.send_news_cost || '-'}</p>
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="space-y-2">
                                     <label htmlFor="send_coming_home_service" className="text-xs font-medium text-muted-foreground">Send Coming Home File</label>
-                                    <p className="text-sm font-medium">{data?.data?.send_coming_home_service ? 'Enabled' : 'Disabled'}</p>
+                                    <p className="text-sm font-medium">{data?.data?.send_cominghome ? 'Enabled' : 'Disabled'}</p>
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="send_coming_home_service_charge" className="text-xs font-medium text-muted-foreground">Service Charges ($)</label>
-                                    <p className="text-sm font-medium">{data?.data?.send_coming_home_service_charge || '-'}</p>
+                                    <p className="text-sm font-medium">{data?.data?.send_cominghome_amt || '-'}</p>
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="send_coming_home_service_royality" className="text-xs font-medium text-muted-foreground">Service Royality (%)</label>
-                                    <p className="text-sm font-medium">{data?.data?.send_coming_home_service_royality || '-'}</p>
+                                    <p className="text-sm font-medium">{data?.data?.send_cominghome_cost || '-'}</p>
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                                 <div className="space-y-2">
                                     <label htmlFor="has_coming" className="text-xs font-medium text-muted-foreground">Has Coming</label>
-                                    <p className="text-sm font-medium">{data?.data?.has_coming ? 'Enabled' : 'Disabled'}</p>
+                                    <p className="text-sm font-medium">{data?.data?.has_coming_home ? 'Enabled' : 'Disabled'}</p>
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="no_branding" className="text-xs font-medium text-muted-foreground">No Branding</label>
@@ -240,7 +241,7 @@ const Services = () => {
                                     type="text"
                                     placeholder="Enter Service Charge"
                                     disabled={!watch('email_service')}
-                                    {...register('email_service_charge')}
+                                    {...register('email_service_amt')}
                                 />
                             </div>
                             <div className="space-y-2">
@@ -250,7 +251,7 @@ const Services = () => {
                                     type="text"
                                     placeholder="Enter Service Royality"
                                     disabled={!watch('email_service')}
-                                    {...register('email_service_royality')}
+                                    {...register('email_service_cost')}
                                 />
                             </div>
                         </div>
@@ -272,7 +273,7 @@ const Services = () => {
                                     type="text"
                                     placeholder="Enter Service Charge"
                                     disabled={!watch('bs_service')}
-                                    {...register('bs_service_charge')}
+                                    {...register('bs_service_amt')}
                                 />
                             </div>
                             <div className="space-y-2">
@@ -282,7 +283,7 @@ const Services = () => {
                                     type="text"
                                     placeholder="Enter Service Royality"
                                     disabled={!watch('bs_service')}
-                                    {...register('bs_service_royality')}
+                                    {...register('bs_service_cost')}
                                 />
                             </div>
                         </div>
@@ -305,7 +306,7 @@ const Services = () => {
                                     type="text"
                                     placeholder="Enter Service Charge"
                                     disabled={!watch('send_post_service')}
-                                    {...register('send_post_service_charge')}
+                                    {...register('send_post_amt')}
                                 />
                             </div>
                             <div className="space-y-2">
@@ -315,7 +316,7 @@ const Services = () => {
                                     type="text"
                                     placeholder="Enter Service Royality"
                                     disabled={!watch('send_post_service')}
-                                    {...register('send_post_service_royality')}
+                                    {...register('send_post_cost')}
                                 />
                             </div>
                         </div>
@@ -325,8 +326,8 @@ const Services = () => {
                                 <div className="flex items-center space-x-2 h-full">
                                     <Checkbox
                                         id="send_weekly_newsletter"
-                                        checked={watch('send_weekly_newsletter')}
-                                        onCheckedChange={(checked) => handleServiceCheckboxChange('send_weekly_newsletter', checked as boolean)}
+                                        checked={watch('send_newsletter')}
+                                        onCheckedChange={(checked) => handleServiceCheckboxChange('send_newsletter', checked as boolean)}
                                     />
                                     <label htmlFor="send_weekly_newsletter" className="text-sm font-medium">Send Weekly Newsletter</label>
                                 </div>
@@ -337,8 +338,8 @@ const Services = () => {
                                     id="send_weekly_newsletter_charge"
                                     type="text"
                                     placeholder="Enter Service Charge"
-                                    disabled={!watch('send_weekly_newsletter')}
-                                    {...register('send_weekly_newsletter_charge')}
+                                    disabled={!watch('send_newsletter')}
+                                    {...register('send_news_amt')}
                                 />
                             </div>
                             <div className="space-y-2">
@@ -347,8 +348,8 @@ const Services = () => {
                                     id="send_weekly_newsletter_royality"
                                     type="text"
                                     placeholder="Enter Service Royality"
-                                    disabled={!watch('send_weekly_newsletter')}
-                                    {...register('send_weekly_newsletter_royality')}
+                                    disabled={!watch('send_newsletter')}
+                                    {...register('send_news_cost')}
                                 />
                             </div>
                         </div>
@@ -357,42 +358,42 @@ const Services = () => {
                             <div className="space-y-2">
                                 <div className="flex items-center space-x-2 h-full">
                                     <Checkbox
-                                        id="send_coming_home_service"
-                                        checked={watch('send_coming_home_service')}
-                                        onCheckedChange={(checked) => handleServiceCheckboxChange('send_coming_home_service', checked as boolean)}
+                                        id="send_cominghome"
+                                        checked={watch('send_cominghome')}
+                                        onCheckedChange={(checked) => handleServiceCheckboxChange('send_cominghome', checked as boolean)}
                                     />
-                                    <label htmlFor="send_coming_home_service" className="text-sm font-medium">Send Coming Home File</label>
+                                    <label htmlFor="send_cominghome" className="text-sm font-medium">Send Coming Home File</label>
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <label htmlFor="send_coming_home_service_charge" className="text-xs font-medium text-muted-foreground">Service Charges ($)</label>
+                                <label htmlFor="send_cominghome_amt" className="text-xs font-medium text-muted-foreground">Service Charges ($)</label>
                                 <Input
-                                    id="send_coming_home_service_charge"
+                                    id="send_cominghome_amt"
                                     type="text"
                                     placeholder="Enter Service Charge"
-                                    disabled={!watch('send_coming_home_service')}
-                                    {...register('send_coming_home_service_charge')}
+                                    disabled={!watch('send_cominghome')}
+                                    {...register('send_cominghome_amt')}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label htmlFor="send_coming_home_service_royality" className="text-xs font-medium text-muted-foreground">Service Royality (%)</label>
+                                <label htmlFor="send_cominghome_cost" className="text-xs font-medium text-muted-foreground">Service Royality (%)</label>
                                 <Input
-                                    id="send_coming_home_service_royality"
+                                    id="send_cominghome_cost"
                                     type="text"
                                     placeholder="Enter Service Royality"
-                                    disabled={!watch('send_coming_home_service')}
-                                    {...register('send_coming_home_service_royality')}
+                                    disabled={!watch('send_cominghome')}
+                                    {...register('send_cominghome_cost')}
                                 />
                             </div>
                         </div>
                         <div className="space-y-2">
                             <div className="flex items-center space-x-2">
                                 <Checkbox
-                                    id="has_coming"
-                                    checked={watch('has_coming')}
-                                    onCheckedChange={(checked) => setValue('has_coming', checked as boolean)}
+                                    id="has_coming_home"
+                                    checked={watch('has_coming_home')}
+                                    onCheckedChange={(checked) => setValue('has_coming_home', checked as boolean)}
                                 />
-                                <label htmlFor="has_coming" className="text-sm font-medium">Has Coming</label>
+                                <label htmlFor="has_coming_home" className="text-sm font-medium">Has Coming</label>
                             </div>
                         </div>
                         <div className="space-y-2">
