@@ -39,7 +39,8 @@ interface ActionItem<TData> {
   label: string
   onClick: (row: TData) => void
   icon?: React.ComponentType<{ className?: string }>
-  className?: string
+  className?: string | ((row: TData) => string)
+  disabled?: boolean | ((row: TData) => boolean)
 }
 
 interface DataTableProps<TData, TValue> {
@@ -158,9 +159,10 @@ export function DataTable<TData, TValue>({
                     <DropdownMenuItem
                       key={index}
                       onClick={() => item.onClick(original)}
-                      className={item.className}
+                      className={item.className ? (typeof item.className === 'function' ? item.className(original as TData) : item.className) : undefined}
+                      disabled={item.disabled ? (typeof item.disabled === 'function' ? item.disabled(original as TData) : item.disabled) : false}
                     >
-                      {Icon ? <Icon className={item.className} /> : null}
+                      {Icon ? <Icon className={item.className ? (typeof item.className === 'function' ? item.className(original as TData) : item.className) : undefined} /> : null}
                       {item.label}
                     </DropdownMenuItem>
                   )

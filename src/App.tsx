@@ -12,6 +12,8 @@ import AddPerson from './pages/AddPerson/index.tsx';
 import Contact from './pages/Contact';
 import UserProfile from './pages/UserProfile';
 import Settings from './pages/Settings';
+import Email from './pages/Email';
+import EmailTemplate from './pages/EmailTemplate';
 
 function App() {
   return (
@@ -26,6 +28,8 @@ function App() {
           <Route path="settings" element={<Settings />} />
           <Route path="add-person" element={<AddPerson />} />
           <Route path="contacts/:id" element={<Contact />} />
+          <Route path="email" element={<Email />} />
+          <Route path="email-template-editor" element={<EmailTemplate />} />
         </Route>
         <Route path="/login" element={<WithoutAuth><Login /></WithoutAuth>} />
         <Route path="*" element={<Navigate to="/" replace />} />
