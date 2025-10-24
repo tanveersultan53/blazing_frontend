@@ -302,3 +302,48 @@
     @apply bg-background text-foreground;
   }
 }
+
+.ql-font-sans-serif {
+  font-family: "Sans Serif", sans-serif;
+}
+
+.ql-font-arial {
+  font-family: Arial, sans-serif;
+}
+
+.ql-font-poppins {
+  font-family: "Poppins", sans-serif;
+}
+
+.ql-font-times-new-roman {
+  font-family: "Times New Roman", serif;
+}
+
+.ql-font-roboto {
+  font-family: "Roboto", sans-serif;
+}
+
+/* Optional: make the dropdown show the actual font style */
+.ql-picker.ql-font .ql-picker-label[data-value="arial"]::before,
+.ql-picker.ql-font .ql-picker-item[data-value="arial"]::before {
+  font-family: Arial, sans-serif;
+  content: "Arial";
+}
+
+.ql-picker.ql-font .ql-picker-label[data-value="poppins"]::before,
+.ql-picker.ql-font .ql-picker-item[data-value="poppins"]::before {
+  font-family: "Poppins", sans-serif;
+  content: "Poppins";
+}
+
+.ql-picker.ql-font .ql-picker-label[data-value="times-new-roman"]::before,
+.ql-picker.ql-font .ql-picker-item[data-value="times-new-roman"]::before {
+  font-family: "Times New Roman", serif;
+  content: "Times New Roman";
+}
+
+.ql-picker.ql-font .ql-picker-label[data-value="roboto"]::before,
+.ql-picker.ql-font .ql-picker-item[data-value="roboto"]::before {
+  font-family: "Roboto", sans-serif;
+  content: "Roboto";
+}
