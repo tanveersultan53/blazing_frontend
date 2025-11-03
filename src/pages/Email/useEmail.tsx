@@ -5,6 +5,9 @@ import { Trash2 } from 'lucide-react';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { toast } from 'sonner';
 import type { EmailTemplate } from './interface';
+import { getDefaultEmailTemplate } from '@/services/emailService';
+import { useQuery } from '@tanstack/react-query';
+import { queryKeys } from '@/helpers/constants';
 
 // Dummy data for email templates
 const dummyTemplates: EmailTemplate[] = [
@@ -73,6 +76,11 @@ const useEmail = () => {
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const globalSearchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const getDefaultTemplateQuery = useQuery({
+    queryKey: [queryKeys.getDefaultEmailTemplate as string],
+    queryFn: getDefaultEmailTemplate,
+  });
+
   // Debounce filters to prevent too many operations
   useEffect(() => {
     if (debounceTimeoutRef.current) {
@@ -108,31 +116,9 @@ const useEmail = () => {
   }, [globalSearch]);
 
   // Create new template
-  const createTemplate = useCallback((templateData: { name: string; subject: string; isDefault: boolean }) => {
-    const newTemplate: EmailTemplate = {
-      id: Date.now().toString(),
-      name: templateData.name,
-      subject: templateData.subject,
-      isDefault: templateData.isDefault,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      content: `This is the content for ${templateData.name} template.`
-    };
-
-    setTemplates(prev => {
-      // If setting as default, remove default from other templates
-      if (templateData.isDefault) {
-        const updatedTemplates = prev.map(template => ({
-          ...template,
-          isDefault: false
-        }));
-        return [...updatedTemplates, newTemplate];
-      }
-      return [...prev, newTemplate];
-    });
-
-    toast.success('Email template created successfully');
-  }, []);
+  const createTemplate = (template: EmailTemplate) => {
+    console.log(template);
+  }
 
   // Delete template
   const deleteTemplate = useCallback((templateId: string) => {
@@ -306,6 +292,7 @@ const useEmail = () => {
     clearAllFilters,
     globalSearch,
     updateGlobalSearch,
+    defaultTemplate: getDefaultTemplateQuery.data?.data?.results || [],
   };
 };
 

@@ -1,4 +1,5 @@
 export const queryKeys = Object.freeze({
+    getDefaultEmailTemplate: 'getDefaultEmailTemplate',
     userProfile: 'userProfile',
     usersList: 'usersList',
     getUserDetails: 'getUserDetails',

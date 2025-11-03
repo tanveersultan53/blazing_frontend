@@ -8,6 +8,7 @@ import { DataTable } from '@/components/data-table';
 import { CreateEmailTemplateModal } from './CreateEmailTemplateModal';
 import useEmail from './useEmail';
 import { useNavigate } from 'react-router-dom';
+import type { EmailTemplate } from './interface';
 
 const Email = () => {
   const currentUser = useSelector((state: { user: { currentUser: User } }) => state.user.currentUser);
@@ -25,6 +26,7 @@ const Email = () => {
     clearAllFilters,
     globalSearch,
     updateGlobalSearch,
+    defaultTemplate,
   } = useEmail();
 
   const navigate = useNavigate();
@@ -41,7 +43,7 @@ const Email = () => {
     setIsCreateModalOpen(true);
   };
 
-  const handleCreateTemplateSubmit = (templateData: { name: string; subject: string; isDefault: boolean }) => {
+  const handleCreateTemplateSubmit = (templateData: EmailTemplate) => {
     createTemplate(templateData);
     setIsCreateModalOpen(false);
   };
@@ -93,6 +95,7 @@ const Email = () => {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onCreateTemplate={handleCreateTemplateSubmit}
+        defaultTemplate={defaultTemplate}
       />
 
     </div>

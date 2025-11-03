@@ -1,9 +1,19 @@
 export interface EmailTemplate {
-  id: string;
+  name: string,
+  subject: string,
+  is_default: boolean,
+  customer?: number,
+  template?: number,
+  is_active?: boolean
+}
+
+export interface DefaultEmailTemplate {
+  created_at: string;
+  html_file: string;
+  html_content: string;
+  id: number;
+  is_active: boolean;
   name: string;
-  subject: string;
-  isDefault: boolean;
-  createdAt: string;
-  updatedAt: string;
-  content?: string; // For future use when viewing template
+  type: string;
+  updated_at: string;
 }
