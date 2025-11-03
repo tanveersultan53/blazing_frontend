@@ -5,8 +5,8 @@ import { Trash2 } from 'lucide-react';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { toast } from 'sonner';
 import type { EmailTemplate } from './interface';
-import { getDefaultEmailTemplate } from '@/services/emailService';
-import { useQuery } from '@tanstack/react-query';
+import { createEmailTemplate, getDefaultEmailTemplate } from '@/services/emailService';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/helpers/constants';
 
 // Dummy data for email templates
@@ -81,6 +81,18 @@ const useEmail = () => {
     queryFn: getDefaultEmailTemplate,
   });
 
+  const createEmailTemplateMutation = useMutation({
+    mutationFn: createEmailTemplate,
+    onSuccess: () => {
+      toast.success('Email template created successfully');
+      setIsCreateModalOpen(false);
+    },
+    onError: (error) => {
+      toast.error('Failed to create email template');
+      setIsCreateModalOpen(false);
+    },
+  });
+
   // Debounce filters to prevent too many operations
   useEffect(() => {
     if (debounceTimeoutRef.current) {
@@ -117,7 +129,14 @@ const useEmail = () => {
 
   // Create new template
   const createTemplate = (template: EmailTemplate) => {
-    console.log(template);
+    createEmailTemplateMutation.mutate({
+      name: template.name,
+      subject: template.subject,
+      is_default: template.is_default,
+      customer: template.customer,
+      template: template.template,
+      is_active: template.is_active,
+    });
   }
 
   // Delete template

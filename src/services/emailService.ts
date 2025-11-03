@@ -8,7 +8,7 @@ interface EmailTemplate {
     is_default: boolean,
     customer?: number,
     template?: number,
-    is_active: boolean
+    is_active?: boolean
 }
 
 interface DefaultEmailTemplateResponse {

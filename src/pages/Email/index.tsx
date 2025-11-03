@@ -12,7 +12,7 @@ import type { EmailTemplate } from './interface';
 
 const Email = () => {
   const currentUser = useSelector((state: { user: { currentUser: User } }) => state.user.currentUser);
-  
+
   const {
     templates,
     columns,
@@ -45,7 +45,6 @@ const Email = () => {
 
   const handleCreateTemplateSubmit = (templateData: EmailTemplate) => {
     createTemplate(templateData);
-    setIsCreateModalOpen(false);
   };
 
   // Column titles mapping for filter placeholders
@@ -62,12 +61,12 @@ const Email = () => {
         title="Email Management"
         description="Manage your email templates and settings."
         actions={[
-            {
-                label: 'Create Template',
-                onClick: handleCreateTemplate,
-                variant: 'default',
-                icon: Plus,
-            },
+          {
+            label: 'Create Template',
+            onClick: handleCreateTemplate,
+            variant: 'default',
+            icon: Plus,
+          },
         ]}
       >
         <div className="pb-3">
@@ -91,13 +90,14 @@ const Email = () => {
       </PageHeader>
 
       {/* Create Template Modal */}
-      <CreateEmailTemplateModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onCreateTemplate={handleCreateTemplateSubmit}
-        defaultTemplate={defaultTemplate}
-      />
-
+      {isCreateModalOpen && (
+        <CreateEmailTemplateModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onCreateTemplate={handleCreateTemplateSubmit}
+          defaultTemplate={defaultTemplate}
+        />
+      )}
     </div>
   );
 };

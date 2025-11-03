@@ -13,7 +13,7 @@ import {
 import { toast } from 'sonner';
 import type { DefaultEmailTemplate, EmailTemplate } from './interface';
 import { Select, SelectTrigger, SelectItem, SelectValue, SelectContent } from '@/components/ui/select';
-import { Eye } from 'lucide-react';
+import { Eye, X } from 'lucide-react';
 
 interface CreateEmailTemplateModalProps {
   isOpen: boolean;
@@ -28,7 +28,14 @@ export const CreateEmailTemplateModal = ({
   onCreateTemplate,
   defaultTemplate,
 }: CreateEmailTemplateModalProps) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    subject: string;
+    isDefault: boolean;
+    isActive: boolean;
+    customer: number | undefined;
+    template: number | undefined;
+  }>({
     name: '',
     subject: '',
     isDefault: false,
@@ -59,21 +66,36 @@ export const CreateEmailTemplateModal = ({
   };
 
   const handleClose = () => {
-    setFormData({ name: '', subject: '', isDefault: false, isActive: true, customer: undefined, template: undefined });
+    setFormData({ 
+      name: '', 
+      subject: '', 
+      isDefault: false, 
+      isActive: true, 
+      customer: undefined, 
+      template: undefined 
+    });
     onClose();
   };
 
-  const handleInputChange = (field: string, value: string | boolean) => {
+  const handleInputChange = (field: string, value: string | boolean | number | undefined) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,
     }));
   };
 
+  const handleClearTemplate = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setFormData(prev => ({
+      ...prev,
+      template: undefined,
+    }));
+  };
+
   // Get the selected template details
   const selectedTemplate = useMemo(() => {
     if (!formData.template) return null;
-    return defaultTemplate.find(t => t.id.toString() === formData.template);
+    return defaultTemplate.find(t => t.id === formData.template);
   }, [formData.template, defaultTemplate]);
 
   // Generate iframe source - prefer html_content over html_file
@@ -87,12 +109,12 @@ export const CreateEmailTemplateModal = ({
     if (!selectedTemplate) return '';
     
     // If html_content is available, use it with a blob URL
-    if (selectedTemplate.html_content) {
-      const blob = new Blob([selectedTemplate.html_content], { type: 'text/html' });
-      const blobUrl = URL.createObjectURL(blob);
-      blobUrlRef.current = blobUrl;
-      return blobUrl;
-    }
+    // if (selectedTemplate.html_content) {
+    //   const blob = new Blob([selectedTemplate.html_content], { type: 'text/html' });
+    //   const blobUrl = URL.createObjectURL(blob);
+    //   blobUrlRef.current = blobUrl;
+    //   return blobUrl;
+    // }
     
     // Otherwise, use html_file URL
     if (selectedTemplate.html_file) {
@@ -164,16 +186,32 @@ export const CreateEmailTemplateModal = ({
                 <label htmlFor="default-template" className="text-sm font-medium mb-2 block">
                   Default Template
                 </label>
-                <Select value={formData.template} onValueChange={(value) => handleInputChange('template', value)}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select default template" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {defaultTemplate.map((template) => (
-                      <SelectItem key={template.id} value={template.id.toString()}>{template.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="relative">
+                  <Select 
+                    {...(formData.template ? { value: formData.template.toString() } : {})}
+                    onValueChange={(value) => handleInputChange('template', parseInt(value, 10))}
+                    key={formData.template || 'empty'}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select default template" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {defaultTemplate.map((template) => (
+                        <SelectItem key={template.id} value={template.id.toString()}>{template.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {formData.template && (
+                    <button
+                      type="button"
+                      onClick={handleClearTemplate}
+                      className="absolute right-9 top-1/2 -translate-y-1/2 z-10 rounded-full p-1 hover:bg-muted transition-colors"
+                      aria-label="Clear selection"
+                    >
+                      <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium mb-2 block">Preview</label>
@@ -213,8 +251,6 @@ export const CreateEmailTemplateModal = ({
                 </label>
               </div>
             </div>
-
-
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
