@@ -10,5 +10,6 @@ export const queryKeys = Object.freeze({
     getSettings: 'getSettings',
     getServiceSettings: 'getServiceSettings',
     contacts: 'contacts',
+    getEmailTemplates: 'getEmailTemplates',
 });
 

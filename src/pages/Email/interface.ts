@@ -17,3 +17,16 @@ export interface DefaultEmailTemplate {
   type: string;
   updated_at: string;
 }
+
+export interface EmailTemplateList {
+  id: number
+  name: string
+  subject: string
+  is_default: boolean
+  customer: number
+  template: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  attachments: any[]
+}

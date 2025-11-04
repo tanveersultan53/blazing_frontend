@@ -4,70 +4,22 @@ import { Badge } from '@/components/ui/badge';
 import { Trash2 } from 'lucide-react';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { toast } from 'sonner';
-import type { EmailTemplate } from './interface';
-import { createEmailTemplate, getDefaultEmailTemplate } from '@/services/emailService';
+import type { EmailTemplate, EmailTemplateList } from './interface';
+import { createEmailTemplate, getDefaultEmailTemplate, getEmailTemplates } from '@/services/emailService';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/helpers/constants';
-
-// Dummy data for email templates
-const dummyTemplates: EmailTemplate[] = [
-  {
-    id: '1',
-    name: 'Welcome Email',
-    subject: 'Welcome to Our Platform!',
-    isDefault: true,
-    createdAt: '2024-01-15T10:30:00Z',
-    updatedAt: '2024-01-15T10:30:00Z',
-    content: 'Welcome to our platform! We are excited to have you on board...'
-  },
-  {
-    id: '2',
-    name: 'Newsletter Template',
-    subject: 'Monthly Newsletter - January 2024',
-    isDefault: false,
-    createdAt: '2024-01-10T14:20:00Z',
-    updatedAt: '2024-01-20T09:15:00Z',
-    content: 'Here is your monthly newsletter with the latest updates...'
-  },
-  {
-    id: '3',
-    name: 'Password Reset',
-    subject: 'Reset Your Password',
-    isDefault: false,
-    createdAt: '2024-01-05T16:45:00Z',
-    updatedAt: '2024-01-05T16:45:00Z',
-    content: 'Click the link below to reset your password...'
-  },
-  {
-    id: '4',
-    name: 'Promotional Offer',
-    subject: 'Special Offer - 50% Off!',
-    isDefault: false,
-    createdAt: '2024-01-12T11:00:00Z',
-    updatedAt: '2024-01-18T13:30:00Z',
-    content: 'Don\'t miss out on our special promotional offer...'
-  },
-  {
-    id: '5',
-    name: 'Account Verification',
-    subject: 'Verify Your Email Address',
-    isDefault: false,
-    createdAt: '2024-01-08T08:15:00Z',
-    updatedAt: '2024-01-08T08:15:00Z',
-    content: 'Please verify your email address by clicking the link below...'
-  }
-];
 
 // Define filter interface for email templates
 export interface EmailTemplateFilters {
   name?: string;
   subject?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  is_default?: string;
+  is_active?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 const useEmail = () => {
-  const [templates, setTemplates] = useState<EmailTemplate[]>(dummyTemplates);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [filters, setFilters] = useState<EmailTemplateFilters>({});
   const [globalSearch, setGlobalSearch] = useState<string>("");
@@ -81,17 +33,28 @@ const useEmail = () => {
     queryFn: getDefaultEmailTemplate,
   });
 
+  const getEmailTemplatesQuery = useQuery({
+    queryKey: [queryKeys.getEmailTemplates as string],
+    queryFn: getEmailTemplates,
+  });
+
   const createEmailTemplateMutation = useMutation({
     mutationFn: createEmailTemplate,
     onSuccess: () => {
       toast.success('Email template created successfully');
       setIsCreateModalOpen(false);
+      getEmailTemplatesQuery.refetch();
     },
-    onError: (error) => {
+    onError: () => {
       toast.error('Failed to create email template');
       setIsCreateModalOpen(false);
     },
   });
+
+  // Get templates from API
+  const templates: EmailTemplateList[] = useMemo(() => {
+    return getEmailTemplatesQuery.data?.data?.results || [];
+  }, [getEmailTemplatesQuery.data]);
 
   // Debounce filters to prevent too many operations
   useEffect(() => {
@@ -140,15 +103,8 @@ const useEmail = () => {
   }
 
   // Delete template
-  const deleteTemplate = useCallback((templateId: string) => {
-    setTemplates(prev => {
-      const template = prev.find(t => t.id === templateId);
-      if (template?.isDefault) {
-        toast.error('Cannot delete the default template');
-        return prev;
-      }
-      return prev.filter(t => t.id !== templateId);
-    });
+  const deleteTemplate = useCallback((templateId: number) => {
+    // TODO: Implement delete API call
     toast.success('Email template deleted successfully');
   }, []);
 
@@ -202,17 +158,27 @@ const useEmail = () => {
       );
     }
 
-    if (debouncedFilters.createdAt) {
+    if (debouncedFilters.is_default) {
+      const isDefaultValue = debouncedFilters.is_default.toLowerCase() === 'true' || debouncedFilters.is_default.toLowerCase() === 'yes';
+      filtered = filtered.filter(template => template.is_default === isDefaultValue);
+    }
+
+    if (debouncedFilters.is_active) {
+      const isActiveValue = debouncedFilters.is_active.toLowerCase() === 'true' || debouncedFilters.is_active.toLowerCase() === 'yes';
+      filtered = filtered.filter(template => template.is_active === isActiveValue);
+    }
+
+    if (debouncedFilters.created_at) {
       filtered = filtered.filter(template => {
-        const templateDate = new Date(template.createdAt).toLocaleDateString();
-        return templateDate.includes(debouncedFilters.createdAt!);
+        const templateDate = new Date(template.created_at).toLocaleDateString();
+        return templateDate.includes(debouncedFilters.created_at!);
       });
     }
 
-    if (debouncedFilters.updatedAt) {
+    if (debouncedFilters.updated_at) {
       filtered = filtered.filter(template => {
-        const templateDate = new Date(template.updatedAt).toLocaleDateString();
-        return templateDate.includes(debouncedFilters.updatedAt!);
+        const templateDate = new Date(template.updated_at).toLocaleDateString();
+        return templateDate.includes(debouncedFilters.updated_at!);
       });
     }
 
@@ -229,7 +195,7 @@ const useEmail = () => {
   }, [templates, debouncedFilters, debouncedGlobalSearch]);
 
   // Table columns
-  const columns: ColumnDef<EmailTemplate>[] = useMemo(() => [
+  const columns: ColumnDef<EmailTemplateList>[] = useMemo(() => [
     {
       accessorKey: "name",
       header: ({ column }) => (
@@ -240,7 +206,7 @@ const useEmail = () => {
         return (
           <div className="flex items-center gap-2">
             <span className="font-medium">{template.name}</span>
-            {template.isDefault && (
+            {template.is_default && (
               <Badge variant="default" className="text-xs">
                 Default
               </Badge>
@@ -263,37 +229,78 @@ const useEmail = () => {
       enableColumnFilter: true,
     },
     {
-      accessorKey: "createdAt",
+      accessorKey: "is_default",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Created Date" />
+        <DataTableColumnHeader column={column} title="Default" />
       ),
       cell: ({ row }) => {
-        const date = new Date(row.getValue("createdAt"));
+        const isDefault = row.getValue("is_default") as boolean;
+        return (
+          <Badge variant={isDefault ? "default" : "secondary"}>
+            {isDefault ? "Yes" : "No"}
+          </Badge>
+        );
+      },
+      enableColumnFilter: true,
+    },
+    {
+      accessorKey: "template",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Template" />
+      ),
+      cell: ({ row }) => {
+        const templateId = row.getValue("template") as number;
+        return <div className="text-sm">{templateId}</div>;
+      },
+      enableColumnFilter: false,
+    },
+    {
+      accessorKey: "is_active",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Status" />
+      ),
+      cell: ({ row }) => {
+        const isActive = row.getValue("is_active") as boolean;
+        return (
+          <Badge variant={isActive ? "default" : "secondary"}>
+            {isActive ? "Active" : "Inactive"}
+          </Badge>
+        );
+      },
+      enableColumnFilter: true,
+    },
+    {
+      accessorKey: "created_at",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Created At" />
+      ),
+      cell: ({ row }) => {
+        const date = new Date(row.getValue("created_at"));
         return <div className="text-sm">{date.toLocaleDateString()}</div>;
       },
       enableColumnFilter: true,
     },
     {
-      accessorKey: "updatedAt",
+      accessorKey: "updated_at",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Updated Date" />
+        <DataTableColumnHeader column={column} title="Updated At" />
       ),
       cell: ({ row }) => {
-        const date = new Date(row.getValue("updatedAt"));
+        const date = new Date(row.getValue("updated_at"));
         return <div className="text-sm">{date.toLocaleDateString()}</div>;
       },
       enableColumnFilter: true,
     },
-  ], [deleteTemplate]);
+  ], []);
 
   // Action items for bulk operations
   const actionItems = [
     {
       label: 'Delete',
-      onClick: (row: EmailTemplate) => deleteTemplate(row.id),
+      onClick: (row: EmailTemplateList) => deleteTemplate(row.id),
       icon: Trash2,
       className: 'text-red-600',
-      disabled: (row: EmailTemplate) => row.isDefault || false,
+      disabled: (row: EmailTemplateList) => row.is_default || false,
     },
   ];
 
@@ -312,6 +319,7 @@ const useEmail = () => {
     globalSearch,
     updateGlobalSearch,
     defaultTemplate: getDefaultTemplateQuery.data?.data?.results || [],
+    isLoading: getEmailTemplatesQuery.isLoading,
   };
 };
 

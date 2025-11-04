@@ -51,8 +51,10 @@ const Email = () => {
   const columnTitles = {
     'name': 'Template Name',
     'subject': 'Subject',
-    'createdAt': 'Created Date',
-    'updatedAt': 'Updated Date',
+    'is_default': 'Is Default',
+    'is_active': 'Is Active',
+    'created_at': 'Created At',
+    'updated_at': 'Updated At',
   };
 
   return (
