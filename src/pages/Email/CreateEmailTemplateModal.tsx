@@ -14,6 +14,8 @@ import { toast } from 'sonner';
 import type { DefaultEmailTemplate, EmailTemplate } from './interface';
 import { Select, SelectTrigger, SelectItem, SelectValue, SelectContent } from '@/components/ui/select';
 import { Eye, X } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import type { User } from '@/redux/features/userSlice';
 
 interface CreateEmailTemplateModalProps {
   isOpen: boolean;
@@ -28,6 +30,7 @@ export const CreateEmailTemplateModal = ({
   onCreateTemplate,
   defaultTemplate,
 }: CreateEmailTemplateModalProps) => {
+  const currentUser = useSelector((state: { user: { currentUser: User } }) => state.user.currentUser);
   const [formData, setFormData] = useState<{
     name: string;
     subject: string;
@@ -40,7 +43,7 @@ export const CreateEmailTemplateModal = ({
     subject: '',
     isDefault: false,
     isActive: true,
-    customer: undefined,
+    customer: currentUser?.id as number,
     template: undefined,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
