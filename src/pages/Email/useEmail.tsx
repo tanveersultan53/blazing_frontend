@@ -105,7 +105,7 @@ const useEmail = () => {
   // Delete template
   const deleteTemplate = useCallback((templateId: number) => {
     // TODO: Implement delete API call
-    toast.success('Email template deleted successfully');
+    toast.success(`Email template ${templateId} deleted successfully`);
   }, []);
 
   // Filter update function
