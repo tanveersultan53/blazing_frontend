@@ -8,10 +8,11 @@ import { DataTable } from '@/components/data-table';
 import { CreateEmailTemplateModal } from './CreateEmailTemplateModal';
 import useEmail from './useEmail';
 import { useNavigate } from 'react-router-dom';
+import type { EmailTemplate } from './interface';
 
 const Email = () => {
   const currentUser = useSelector((state: { user: { currentUser: User } }) => state.user.currentUser);
-  
+
   const {
     templates,
     columns,
@@ -25,6 +26,7 @@ const Email = () => {
     clearAllFilters,
     globalSearch,
     updateGlobalSearch,
+    defaultTemplate,
   } = useEmail();
 
   const navigate = useNavigate();
@@ -41,17 +43,18 @@ const Email = () => {
     setIsCreateModalOpen(true);
   };
 
-  const handleCreateTemplateSubmit = (templateData: { name: string; subject: string; isDefault: boolean }) => {
+  const handleCreateTemplateSubmit = (templateData: EmailTemplate) => {
     createTemplate(templateData);
-    setIsCreateModalOpen(false);
   };
 
   // Column titles mapping for filter placeholders
   const columnTitles = {
     'name': 'Template Name',
     'subject': 'Subject',
-    'createdAt': 'Created Date',
-    'updatedAt': 'Updated Date',
+    'is_default': 'Is Default',
+    'is_active': 'Is Active',
+    'created_at': 'Created At',
+    'updated_at': 'Updated At',
   };
 
   return (
@@ -60,12 +63,12 @@ const Email = () => {
         title="Email Management"
         description="Manage your email templates and settings."
         actions={[
-            {
-                label: 'Create Template',
-                onClick: handleCreateTemplate,
-                variant: 'default',
-                icon: Plus,
-            },
+          {
+            label: 'Create Template',
+            onClick: handleCreateTemplate,
+            variant: 'default',
+            icon: Plus,
+          },
         ]}
       >
         <div className="pb-3">
@@ -89,12 +92,14 @@ const Email = () => {
       </PageHeader>
 
       {/* Create Template Modal */}
-      <CreateEmailTemplateModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onCreateTemplate={handleCreateTemplateSubmit}
-      />
-
+      {isCreateModalOpen && (
+        <CreateEmailTemplateModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onCreateTemplate={handleCreateTemplateSubmit}
+          defaultTemplate={defaultTemplate}
+        />
+      )}
     </div>
   );
 };

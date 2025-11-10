@@ -147,7 +147,9 @@ export function DataTable<TData, TValue>({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => onViewDetails?.(original)}>
+                <DropdownMenuItem
+                  onSelect={() => onViewDetails?.(original)}
+                >
                   View Details
                 </DropdownMenuItem>
                 {(actionItems && actionItems.length > 0) && (
@@ -155,14 +157,24 @@ export function DataTable<TData, TValue>({
                 )}
                 {actionItems?.map((item, index) => {
                   const Icon = item.icon
+                  const itemClassName = item.className
+                    ? (typeof item.className === "function"
+                        ? item.className(original as TData)
+                        : item.className)
+                    : undefined
+                  const itemDisabled = item.disabled
+                    ? (typeof item.disabled === "function"
+                        ? item.disabled(original as TData)
+                        : item.disabled)
+                    : false
                   return (
                     <DropdownMenuItem
                       key={index}
-                      onClick={() => item.onClick(original)}
-                      className={item.className ? (typeof item.className === 'function' ? item.className(original as TData) : item.className) : undefined}
-                      disabled={item.disabled ? (typeof item.disabled === 'function' ? item.disabled(original as TData) : item.disabled) : false}
+                      onSelect={() => item.onClick(original)}
+                      className={itemClassName}
+                      disabled={itemDisabled}
                     >
-                      {Icon ? <Icon className={item.className ? (typeof item.className === 'function' ? item.className(original as TData) : item.className) : undefined} /> : null}
+                      {Icon ? <Icon className={itemClassName} /> : null}
                       {item.label}
                     </DropdownMenuItem>
                   )

@@ -8,20 +8,73 @@ import type { User } from "@/redux/features/userSlice";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
-import { getNewsletter } from "@/services/userManagementService";
+import {
+    getCallToAction,
+    getEmailSettings,
+    getNewsletter,
+    getServiceSettings,
+    getSocials,
+    getUserDetails
+} from "@/services/userManagementService";
 import { queryKeys } from "@/helpers/constants";
-import type { INewsletterInfo, IUserDetails } from "@/pages/UserDetails/interface";
+import type {
+    ICallToAction,
+    IEmailSettings,
+    INewsletterInfo,
+    IServiceSettings,
+    ISocials,
+    IUserDetails
+} from "@/pages/UserDetails/interface";
 import type { AxiosResponse } from "axios";
 import Loading from "@/components/Loading";
 import UpdateUserProfile from "./UpdateUserProfile";
+import { Button } from "@/components/ui/button";
+import UpdateUserSocialLinks from "./UpdateUserSocialLinks";
+import UpdateUserAccountDetails from "./UpdateUserAccountDetails";
+import UpdateUserNewsletterInfo from "./UpdateUserNewsletterInfo";
+import UpdateUserPersonalInfo from "./UpdateUserPersonalInfo";
+import UpdateUserServiceSettings from "./UpdateUserServiceSettings";
+import UpdateUserEmailSettings from "./UpdateUserEmailSettings";
+import UpdateUserCallToAction from "./UpdateUserCallToAction";
 
 const UserProfile = () => {
     const currentUser = useSelector((state: { user: { currentUser: User } }) => state.user.currentUser);
+
+    const { data: userDetailsData, isLoading: isUserDetailsLoading, refetch: refetchUserDetails } = useQuery<AxiosResponse<IUserDetails>>({
+        queryKey: [queryKeys.getUserDetails, currentUser?.rep_id],
+        queryFn: () => getUserDetails(currentUser?.rep_id as string | number),
+        enabled: !!currentUser?.rep_id,
+    });
 
     // Fetch newsletter information
     const { data: newsletterData, isLoading: isNewsletterLoading, refetch: refetchNewsletter } = useQuery<AxiosResponse<INewsletterInfo>>({
         queryKey: [queryKeys.getNewsletter, currentUser?.rep_id],
         queryFn: () => getNewsletter(currentUser?.rep_id as string | number),
+        enabled: !!currentUser?.rep_id,
+    });
+
+    // Fetch socials information
+    const { data: socialsData, isLoading: isSocialsLoading, refetch: refetchSocials } = useQuery<AxiosResponse<ISocials>>({
+        queryKey: [queryKeys.getSocials, currentUser?.rep_id],
+        queryFn: () => getSocials(currentUser?.rep_id as string | number),
+        enabled: !!currentUser?.rep_id,
+    });
+
+    const { data: serviceSettingsData, isLoading: isServicesLoading, refetch: refetchServiceSettings } = useQuery<AxiosResponse<IServiceSettings>>({
+        queryKey: [queryKeys.getServiceSettings, currentUser?.rep_id],
+        queryFn: () => getServiceSettings(currentUser?.rep_id as string | number),
+        enabled: !!currentUser?.rep_id,
+    });
+
+    const { data: emailSettingsData, isLoading: isEmailSettingsLoading, refetch: refetchEmailSettings } = useQuery<AxiosResponse<IEmailSettings>>({
+        queryKey: [queryKeys.getEmailSettings, currentUser?.rep_id],
+        queryFn: () => getEmailSettings(currentUser?.rep_id as string | number),
+        enabled: !!currentUser?.rep_id,
+    });
+
+    const { data: callToActionData, isLoading: isCallToActionLoading, refetch: refetchCallToAction } = useQuery<AxiosResponse<ICallToAction>>({
+        queryKey: [queryKeys.getCallToAction, currentUser?.rep_id],
+        queryFn: () => getCallToAction(currentUser?.rep_id as string | number),
         enabled: !!currentUser?.rep_id,
     });
 
@@ -31,6 +84,8 @@ const UserProfile = () => {
     ], []);
 
     useBreadcrumbs(breadcrumbs);
+
+    const userDetails = (userDetailsData?.data ?? currentUser) as unknown as IUserDetails | undefined;
 
     const {
         first_name,
@@ -59,9 +114,16 @@ const UserProfile = () => {
         branch_id,
         industry_type,
         socials
-    } = currentUser || {};
+    } = userDetails || {};
 
     const [isEditMode, setIsEditMode] = useState(false);
+    const [isPersonalEditMode, setIsPersonalEditMode] = useState(false);
+    const [isAccountEditMode, setIsAccountEditMode] = useState(false);
+    const [isNewsletterEditMode, setIsNewsletterEditMode] = useState(false);
+    const [isSocialEditMode, setIsSocialEditMode] = useState(false);
+    const [isServicesEditMode, setIsServicesEditMode] = useState(false);
+    const [isEmailSettingsEditMode, setIsEmailSettingsEditMode] = useState(false);
+    const [isCallToActionEditMode, setIsCallToActionEditMode] = useState(false);
 
     // Get initials for avatar fallback
     const initials = `${first_name?.charAt(0) || ''}${last_name?.charAt(0) || ''}`.toUpperCase();
@@ -118,7 +180,7 @@ const UserProfile = () => {
                     <CardHeader>
                         <div className="flex items-center gap-4">
                             <Avatar className="h-20 w-20">
-                                <AvatarImage src={currentUser?.photo || ''} alt={`${first_name} ${last_name}`} />
+                                <AvatarImage src={userDetails?.photo || ''} alt={`${first_name} ${last_name}`} />
                                 <AvatarFallback className="bg-orange-500 text-white text-xl">
                                     {initials}
                                 </AvatarFallback>
@@ -144,13 +206,35 @@ const UserProfile = () => {
 
                 {/* Personal Information Card */}
                 <Card>
-                    <CardHeader>
-                        <CardTitle>Personal Information</CardTitle>
-                        <CardDescription>
-                            You can also update personal information here by clicking the update button.
-                        </CardDescription>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <div>
+                            <CardTitle>Personal Information</CardTitle>
+                            <CardDescription>
+                                You can also update personal information here by clicking the update button.
+                            </CardDescription>
+                        </div>
+                        {!isPersonalEditMode && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex items-center gap-2"
+                                onClick={() => setIsPersonalEditMode(true)}
+                                disabled={isUserDetailsLoading}
+                            >
+                                <Edit className="w-4 h-4" />
+                                Edit Personal Info
+                            </Button>
+                        )}
                     </CardHeader>
                     <CardContent className="space-y-4">
+                        {isPersonalEditMode ? (
+                            <UpdateUserPersonalInfo
+                                user={userDetails as IUserDetails | undefined}
+                                userId={userDetails?.rep_id}
+                                setIsEditMode={setIsPersonalEditMode}
+                                refetch={refetchUserDetails}
+                            />
+                        ) : (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {/* Left Column */}
                             <div className="space-y-4">
@@ -205,7 +289,7 @@ const UserProfile = () => {
                                     <label className="text-sm font-medium text-muted-foreground">
                                         Date Joined
                                     </label>
-                                    <p className="text-base mt-1">{formatDate(date_joined)}</p>
+                                    <p className="text-base mt-1">{formatDate(date_joined ?? '')}</p>
                                 </div>
                                 <div>
                                     <label className="text-sm font-medium text-muted-foreground">
@@ -331,161 +415,232 @@ const UserProfile = () => {
                                 </div>
                             </div>
                         </div>
+                        )}
                     </CardContent>
                 </Card>
 
                 {/* Account Details Card */}
                 <Card>
-                    <CardHeader>
-                        <CardTitle>Account Details</CardTitle>
-                        <CardDescription>
-                            Your account type and permissions
-                        </CardDescription>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <div>
+                            <CardTitle>Account Details</CardTitle>
+                            <CardDescription>
+                                Your account type and permissions
+                            </CardDescription>
+                        </div>
+                        {!isAccountEditMode && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex items-center gap-2"
+                                onClick={() => setIsAccountEditMode(true)}
+                                disabled={isUserDetailsLoading}
+                            >
+                                <Edit className="w-4 h-4" />
+                                Edit Account
+                            </Button>
+                        )}
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="text-sm font-medium text-muted-foreground">
-                                    Account Type
-                                </label>
-                                <p className="text-base mt-1">
-                                    {is_superuser ? 'Administrator' : 'User'}
-                                </p>
-                            </div>
-                            <div>
-                                <label className="text-sm font-medium text-muted-foreground">
-                                    Status
-                                </label>
-                                <div className="mt-1">
-                                    <Badge variant="outline" className={is_active ? "text-green-600 border-green-600" : "text-red-600 border-red-600"}>
-                                        {is_active ? 'Active' : 'Inactive'}
-                                    </Badge>
+                        {isAccountEditMode ? (
+                            <UpdateUserAccountDetails
+                                user={userDetails}
+                                userId={userDetails?.rep_id}
+                                setIsEditMode={setIsAccountEditMode}
+                                refetch={refetchUserDetails}
+                            />
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-sm font-medium text-muted-foreground">
+                                        Account Type
+                                    </label>
+                                    <p className="text-base mt-1">
+                                        {is_superuser ? 'Administrator' : 'User'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-muted-foreground">
+                                        Status
+                                    </label>
+                                    <div className="mt-1">
+                                        <Badge variant="outline" className={is_active ? "text-green-600 border-green-600" : "text-red-600 border-red-600"}>
+                                            {is_active ? 'Active' : 'Inactive'}
+                                        </Badge>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-muted-foreground">
+                                        Representative ID
+                                    </label>
+                                    <p className="text-base mt-1">{displayValue(rep_id)}</p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-muted-foreground">
+                                        User ID
+                                    </label>
+                                    <p className="text-base mt-1">{displayValue(userDetails?.id ?? currentUser?.id)}</p>
                                 </div>
                             </div>
-                            <div>
-                                <label className="text-sm font-medium text-muted-foreground">
-                                    Representative ID
-                                </label>
-                                <p className="text-base mt-1">{displayValue(rep_id)}</p>
-                            </div>
-                            <div>
-                                <label className="text-sm font-medium text-muted-foreground">
-                                    User ID
-                                </label>
-                                <p className="text-base mt-1">{displayValue(currentUser?.id)}</p>
-                            </div>
-                        </div>
+                        )}
                     </CardContent>
                 </Card>
 
                 {/* Social Accounts Information Card */}
                 <Card>
-                    <CardHeader>
-                        <CardTitle>Social Accounts Information</CardTitle>
-                        <CardDescription>
-                            Following are the social accounts information for the user.
-                        </CardDescription>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <div>
+                            <CardTitle>Social Accounts Information</CardTitle>
+                            <CardDescription>
+                                Following are the social accounts information for the user.
+                            </CardDescription>
+                        </div>
+                        {!isSocialEditMode && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex items-center gap-2"
+                                onClick={() => setIsSocialEditMode(true)}
+                                disabled={isSocialsLoading}
+                            >
+                                <Edit className="w-4 h-4" />
+                                Edit Social Links
+                            </Button>
+                        )}
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {/* Column 1 */}
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="text-sm font-medium text-muted-foreground">
-                                        Facebook url
-                                    </label>
-                                    <p className="text-base mt-1">{displayValue(socials?.facebook)}</p>
+                        {isSocialsLoading ? (
+                            <Loading />
+                        ) : isSocialEditMode ? (
+                            <UpdateUserSocialLinks
+                                socials={socialsData?.data ?? socials}
+                                userId={currentUser?.rep_id}
+                                setIsEditMode={setIsSocialEditMode}
+                                refetch={refetchSocials}
+                            />
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {/* Column 1 */}
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">
+                                            Facebook url
+                                        </label>
+                                        <p className="text-base mt-1">{displayValue((socialsData?.data ?? socials)?.facebook)}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">
+                                            Instagram url
+                                        </label>
+                                        <p className="text-base mt-1">{displayValue((socialsData?.data ?? socials)?.instagram)}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">
+                                            Google url
+                                        </label>
+                                        <p className="text-base mt-1">{displayValue((socialsData?.data ?? socials)?.google)}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">
+                                            Moneyapp url
+                                        </label>
+                                        <p className="text-base mt-1">{displayValue((socialsData?.data ?? socials)?.moneyapp)}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="text-sm font-medium text-muted-foreground">
-                                        Instagram url
-                                    </label>
-                                    <p className="text-base mt-1">{displayValue(socials?.instagram)}</p>
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium text-muted-foreground">
-                                        Google url
-                                    </label>
-                                    <p className="text-base mt-1">{displayValue(socials?.google)}</p>
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium text-muted-foreground">
-                                        Moneyapp url
-                                    </label>
-                                    <p className="text-base mt-1">{displayValue(socials?.moneyapp)}</p>
-                                </div>
-                            </div>
 
-                            {/* Column 2 */}
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="text-sm font-medium text-muted-foreground">
-                                        Linkedin url
-                                    </label>
-                                    <p className="text-base mt-1">{displayValue(socials?.linkedin)}</p>
+                                {/* Column 2 */}
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">
+                                            Linkedin url
+                                        </label>
+                                        <p className="text-base mt-1">{displayValue((socialsData?.data ?? socials)?.linkedin)}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">
+                                            Youtube url
+                                        </label>
+                                        <p className="text-base mt-1">{displayValue((socialsData?.data ?? socials)?.youtube)}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">
+                                            Yelp url
+                                        </label>
+                                        <p className="text-base mt-1">{displayValue((socialsData?.data ?? socials)?.yelp)}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">
+                                            Socialapp url
+                                        </label>
+                                        <p className="text-base mt-1">{displayValue((socialsData?.data ?? socials)?.socialapp)}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="text-sm font-medium text-muted-foreground">
-                                        Youtube url
-                                    </label>
-                                    <p className="text-base mt-1">{displayValue(socials?.youtube)}</p>
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium text-muted-foreground">
-                                        Yelp url
-                                    </label>
-                                    <p className="text-base mt-1">{displayValue(socials?.yelp)}</p>
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium text-muted-foreground">
-                                        Socialapp url
-                                    </label>
-                                    <p className="text-base mt-1">{displayValue(socials?.socialapp)}</p>
-                                </div>
-                            </div>
 
-                            {/* Column 3 */}
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="text-sm font-medium text-muted-foreground">
-                                        Twitter url
-                                    </label>
-                                    <p className="text-base mt-1">{displayValue(socials?.twitter)}</p>
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium text-muted-foreground">
-                                        Blogger url
-                                    </label>
-                                    <p className="text-base mt-1">{displayValue(socials?.blogr)}</p>
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium text-muted-foreground">
-                                        Vimeo url
-                                    </label>
-                                    <p className="text-base mt-1">{displayValue(socials?.vimeo)}</p>
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium text-muted-foreground">
-                                        Customapp url
-                                    </label>
-                                    <p className="text-base mt-1">{displayValue(socials?.customapp)}</p>
+                                {/* Column 3 */}
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">
+                                            Twitter url
+                                        </label>
+                                        <p className="text-base mt-1">{displayValue((socialsData?.data ?? socials)?.twitter)}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">
+                                            Blogger url
+                                        </label>
+                                        <p className="text-base mt-1">{displayValue((socialsData?.data ?? socials)?.blogr)}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">
+                                            Vimeo url
+                                        </label>
+                                        <p className="text-base mt-1">{displayValue((socialsData?.data ?? socials)?.vimeo)}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground">
+                                            Customapp url
+                                        </label>
+                                        <p className="text-base mt-1">{displayValue((socialsData?.data ?? socials)?.customapp)}</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
                     </CardContent>
                 </Card>
 
                 {/* Newsletter Information Card */}
                 <Card>
-                    <CardHeader>
-                        <CardTitle>Newsletter Information</CardTitle>
-                        <CardDescription>
-                            Following are the newsletter information for the user.
-                        </CardDescription>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <div>
+                            <CardTitle>Newsletter Information</CardTitle>
+                            <CardDescription>
+                                Following are the newsletter information for the user.
+                            </CardDescription>
+                        </div>
+                        {!isNewsletterEditMode && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex items-center gap-2"
+                                onClick={() => setIsNewsletterEditMode(true)}
+                                disabled={isNewsletterLoading}
+                            >
+                                <Edit className="w-4 h-4" />
+                                Edit Newsletter
+                            </Button>
+                        )}
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {isNewsletterLoading ? (
                             <Loading />
+                        ) : isNewsletterEditMode ? (
+                            <UpdateUserNewsletterInfo
+                                newsletter={newsletterData?.data}
+                                userId={userDetails?.rep_id}
+                                setIsEditMode={setIsNewsletterEditMode}
+                                refetch={refetchNewsletter}
+                                companyName={userDetails?.company}
+                            />
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 {/* Column 1 */}
@@ -494,7 +649,7 @@ const UserProfile = () => {
                                         <label className="text-sm font-medium text-muted-foreground">
                                             Company
                                         </label>
-                                        <p className="text-base mt-1">{displayValue(currentUser?.company)}</p>
+                                        <p className="text-base mt-1">{displayValue(userDetails?.company)}</p>
                                     </div>
                                     <div>
                                         <label className="text-sm font-medium text-muted-foreground">
@@ -575,11 +730,228 @@ const UserProfile = () => {
                         )}
                     </CardContent>
                 </Card>
+
+                {/* Services Settings Card */}
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <div>
+                            <CardTitle>Services Settings</CardTitle>
+                            <CardDescription>
+                                Manage active services and billing preferences.
+                            </CardDescription>
+                        </div>
+                        {!isServicesEditMode && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex items-center gap-2"
+                                onClick={() => setIsServicesEditMode(true)}
+                                disabled={isServicesLoading}
+                            >
+                                <Edit className="w-4 h-4" />
+                                Edit Services
+                            </Button>
+                        )}
+                    </CardHeader>
+                    <CardContent>
+                        {isServicesLoading ? (
+                            <Loading />
+                        ) : isServicesEditMode ? (
+                            <UpdateUserServiceSettings
+                                userId={userDetails?.rep_id}
+                                serviceSettings={serviceSettingsData?.data}
+                                setIsEditMode={setIsServicesEditMode}
+                                refetch={refetchServiceSettings}
+                            />
+                        ) : (
+                            <ServiceSettingsSummary serviceSettings={serviceSettingsData?.data} />
+                        )}
+                    </CardContent>
+                </Card>
+
+                {/* Email Settings Card */}
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <div>
+                            <CardTitle>Email Settings</CardTitle>
+                            <CardDescription>
+                                Configure email automation preferences.
+                            </CardDescription>
+                        </div>
+                        {!isEmailSettingsEditMode && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex items-center gap-2"
+                                onClick={() => setIsEmailSettingsEditMode(true)}
+                                disabled={isEmailSettingsLoading}
+                            >
+                                <Edit className="w-4 h-4" />
+                                Edit Email Settings
+                            </Button>
+                        )}
+                    </CardHeader>
+                    <CardContent>
+                        {isEmailSettingsLoading ? (
+                            <Loading />
+                        ) : isEmailSettingsEditMode ? (
+                            <UpdateUserEmailSettings
+                                userId={userDetails?.rep_id}
+                                emailSettings={emailSettingsData?.data}
+                                setIsEditMode={setIsEmailSettingsEditMode}
+                                refetch={refetchEmailSettings}
+                            />
+                        ) : (
+                            <EmailSettingsSummary emailSettings={emailSettingsData?.data} />
+                        )}
+                    </CardContent>
+                </Card>
+
+                {/* Call to Action Card */}
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <div>
+                            <CardTitle>Call To Action</CardTitle>
+                            <CardDescription>
+                                Customize CTA buttons shown on marketing assets.
+                            </CardDescription>
+                        </div>
+                        {!isCallToActionEditMode && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex items-center gap-2"
+                                onClick={() => setIsCallToActionEditMode(true)}
+                                disabled={isCallToActionLoading}
+                            >
+                                <Edit className="w-4 h-4" />
+                                Edit Call To Action
+                            </Button>
+                        )}
+                    </CardHeader>
+                    <CardContent>
+                        {isCallToActionLoading ? (
+                            <Loading />
+                        ) : isCallToActionEditMode ? (
+                            <UpdateUserCallToAction
+                                userId={userDetails?.rep_id}
+                                callToAction={callToActionData?.data}
+                                setIsEditMode={setIsCallToActionEditMode}
+                                refetch={refetchCallToAction}
+                            />
+                        ) : (
+                            <CallToActionSummary callToAction={callToActionData?.data} />
+                        )}
+                    </CardContent>
+                </Card>
             </div>}
-            {isEditMode && <UpdateUserProfile user={currentUser as unknown as IUserDetails} refetch={refetchNewsletter} setIsEditMode={setIsEditMode} />}
+            {isEditMode && (
+                <UpdateUserProfile
+                    user={userDetails as unknown as IUserDetails}
+                    refetch={refetchNewsletter}
+                    setIsEditMode={setIsEditMode}
+                />
+            )}
         </PageHeader>
     );
 };
 
 export default UserProfile;
+
+const renderBoolean = (value?: boolean) => value ? "Yes" : "No";
+
+const ServiceSettingsSummary = ({ serviceSettings }: { serviceSettings?: IServiceSettings }) => {
+    if (!serviceSettings) {
+        return <p className="text-sm text-muted-foreground">No service settings available.</p>;
+    }
+
+    const items = [
+        { label: "Email Service", value: serviceSettings.email_service },
+        { label: "Blazing Social Service", value: serviceSettings.bs_service },
+        { label: "Send Post Service", value: serviceSettings.send_post_service },
+        { label: "Send Newsletter", value: serviceSettings.send_newsletter },
+        { label: "Send Coming Home", value: serviceSettings.send_cominghome },
+        { label: "Has Coming Home", value: serviceSettings.has_coming_home },
+        { label: "No Branding", value: serviceSettings.no_branding },
+    ];
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {items.map((item) => (
+                <div key={item.label} className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground">
+                        {item.label}
+                    </label>
+                    <p className="text-base mt-1">{renderBoolean(item.value)}</p>
+                </div>
+            ))}
+            {serviceSettings.coming_home_file && (
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground">Coming Home File</label>
+                    <p className="text-base mt-1">{serviceSettings.coming_home_file}</p>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const EmailSettingsSummary = ({ emailSettings }: { emailSettings?: IEmailSettings }) => {
+    if (!emailSettings) {
+        return <p className="text-sm text-muted-foreground">No email settings configured.</p>;
+    }
+
+    const items = [
+        { label: "Birthday Emails", value: emailSettings.birthday },
+        { label: "Spouse Birthday Emails", value: emailSettings.spouse_birthday },
+        { label: "Newsletter Status", value: emailSettings.newsletter_status === "send" },
+        { label: "Newsletter Frequency", text: emailSettings.frequency ?? "—" },
+        { label: "E-card Status", value: emailSettings.ecard_status === "send" },
+    ];
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {items.map((item) => (
+                <div key={item.label} className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground">
+                        {item.label}
+                    </label>
+                    {"text" in item ? (
+                        <p className="text-base mt-1">{item.text}</p>
+                    ) : (
+                        <p className="text-base mt-1">{renderBoolean(item.value)}</p>
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+};
+
+const CallToActionSummary = ({ callToAction }: { callToAction?: ICallToAction }) => {
+    if (!callToAction) {
+        return <p className="text-sm text-muted-foreground">No call to action configured.</p>;
+    }
+
+    const items = [
+        { label: "CTA Label 1", text: callToAction.cta_label1 },
+        { label: "CTA URL 1", text: callToAction.cta_url1 },
+        { label: "CTA Label 2", text: callToAction.cta_label2 },
+        { label: "CTA URL 2", text: callToAction.cta_url2 },
+        { label: "Reverse Label", text: callToAction.reverse_label },
+        { label: "CTA URL 3", text: callToAction.cta_url3 },
+        { label: "Hashtags", text: callToAction.hashtags },
+    ];
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {items.map((item) => (
+                <div key={item.label} className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground">
+                        {item.label}
+                    </label>
+                    <p className="text-base mt-1">{item.text || "—"}</p>
+                </div>
+            ))}
+        </div>
+    );
+};
 
