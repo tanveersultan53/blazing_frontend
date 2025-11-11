@@ -1,10 +1,12 @@
 export interface EmailTemplate {
-  name: string,
-  subject: string,
-  is_default: boolean,
-  customer?: number,
-  template?: number,
-  is_active?: boolean
+  company_id: number,
+  rep: number,
+  email_type: number | undefined,
+  email_name: string | undefined,
+  email_subject: string | undefined,
+  email_html: string | undefined,
+  send_ecard: boolean
+  email_id?: number;
 }
 
 export interface DefaultEmailTemplate {
@@ -16,17 +18,4 @@ export interface DefaultEmailTemplate {
   name: string;
   type: string;
   updated_at: string;
-}
-
-export interface EmailTemplateList {
-  id: number
-  name: string
-  subject: string
-  is_default: boolean
-  customer: number
-  template: number
-  is_active: boolean
-  created_at: string
-  updated_at: string
-  attachments: any[]
 }

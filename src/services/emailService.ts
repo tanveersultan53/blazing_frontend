@@ -1,22 +1,13 @@
 import type { AxiosResponse } from "axios";
 import api from "./axiosInterceptor";
-import type { DefaultEmailTemplate, EmailTemplateList } from "@/pages/Email/interface";
-
-interface EmailTemplate {
-    name: string,
-    subject: string,
-    is_default: boolean,
-    customer?: number,
-    template?: number,
-    is_active?: boolean
-}
+import type { DefaultEmailTemplate, EmailTemplate } from "@/pages/Email/interface";
 
 interface DefaultEmailTemplateResponse {
     results: DefaultEmailTemplate[];
 }
 
 interface EmailTemplateListResponse {
-    results: EmailTemplateList[];
+    results: EmailTemplate[];
 }
 
 export const createEmailTemplate = (details: EmailTemplate): Promise<AxiosResponse<EmailTemplate>> =>
@@ -27,3 +18,12 @@ export const getDefaultEmailTemplate = (): Promise<AxiosResponse<DefaultEmailTem
 
 export const getEmailTemplates = (): Promise<AxiosResponse<EmailTemplateListResponse>> =>
     api.get(`/email/customer-templates`);
+
+export const deleteEmailTemplate = (id: string | number): Promise<AxiosResponse<void>> =>
+    api.delete(`/email/customer-templates/${id}`);
+
+export const updateEmailTemplate = (id: string | number, details: EmailTemplate): Promise<AxiosResponse<EmailTemplate>> =>
+    api.put(`/email/customer-templates/${id}`, details);
+
+export const getEmailTemplateById = (id: string | number): Promise<AxiosResponse<EmailTemplate>> =>
+    api.get(`/email/customer-templates/${id}`);

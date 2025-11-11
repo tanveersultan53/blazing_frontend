@@ -9,6 +9,16 @@ import { CreateEmailTemplateModal } from './CreateEmailTemplateModal';
 import useEmail from './useEmail';
 import { useNavigate } from 'react-router-dom';
 import type { EmailTemplate } from './interface';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const Email = () => {
   const currentUser = useSelector((state: { user: { currentUser: User } }) => state.user.currentUser);
@@ -20,6 +30,13 @@ const Email = () => {
     isCreateModalOpen,
     setIsCreateModalOpen,
     createTemplate,
+    updateTemplate,
+    deleteTemplate,
+    isDeleteDialogOpen,
+    templateToDelete,
+    closeDeleteDialog,
+    templateToEdit,
+    setTemplateToEdit,
     filters,
     updateFilter,
     clearFilter,
@@ -44,17 +61,21 @@ const Email = () => {
   };
 
   const handleCreateTemplateSubmit = (templateData: EmailTemplate) => {
-    createTemplate(templateData);
+    if (templateToEdit?.email_id) {
+      // Update existing template
+      updateTemplate({ ...templateData, email_id: templateToEdit.email_id });
+    } else {
+      // Create new template
+      createTemplate(templateData);
+    }
   };
 
   // Column titles mapping for filter placeholders
   const columnTitles = {
-    'name': 'Template Name',
-    'subject': 'Subject',
-    'is_default': 'Is Default',
-    'is_active': 'Is Active',
-    'created_at': 'Created At',
-    'updated_at': 'Updated At',
+    'email_name': 'Template Name',  
+    'email_subject': 'Subject',
+    'email_type': 'Email Type',
+    'send_ecard': 'E-Card Status',
   };
 
   return (
@@ -75,18 +96,18 @@ const Email = () => {
           <DataTable
             columns={columns}
             data={templates}
-            searchColumns={['name', 'subject']}
+            searchColumns={['email_name', 'email_subject']}
             showActionsColumn={true}
             actionItems={actionItems}
             columnTitles={columnTitles}
             enableRowSelection={false}
-            filters={filters as Record<string, string | undefined>}
+            filters={filters as unknown as Record<string, string | undefined>}
             onFilterChange={(key: string, value: string) => updateFilter(key as keyof typeof filters, value)}
             onClearFilter={(key: string) => clearFilter(key as keyof typeof filters)}
             onClearAllFilters={clearAllFilters}
             globalSearch={globalSearch}
             onGlobalSearchChange={updateGlobalSearch}
-            onViewDetails={() => navigate('/email-template-editor')}
+            onViewDetails={(row: EmailTemplate) => navigate(`/email/${row.email_id}`)}
           />
         </div>
       </PageHeader>
@@ -95,11 +116,41 @@ const Email = () => {
       {isCreateModalOpen && (
         <CreateEmailTemplateModal
           isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
+          onClose={() => {
+            setIsCreateModalOpen(false);
+            setTemplateToEdit(null);
+          }}
           onCreateTemplate={handleCreateTemplateSubmit}
           defaultTemplate={defaultTemplate}
+          templateToEdit={templateToEdit}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={(open) => {
+        if (!open) {
+          closeDeleteDialog();
+        }
+      }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Email Template</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the template "{templateToDelete?.email_name}"? 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={closeDeleteDialog}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={deleteTemplate}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

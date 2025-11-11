@@ -17,11 +17,18 @@ import { Eye, X } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import type { User } from '@/redux/features/userSlice';
 
+// Dummy data for email types
+const EMAIL_TYPES = Array.from({ length: 14 }, (_, i) => ({
+  id: i + 1,
+  name: `ECard ${i + 1}`,
+}));
+
 interface CreateEmailTemplateModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreateTemplate: (template: EmailTemplate) => void;
   defaultTemplate: DefaultEmailTemplate[];
+  templateToEdit?: EmailTemplate | null;
 }
 
 export const CreateEmailTemplateModal = ({
@@ -29,77 +36,98 @@ export const CreateEmailTemplateModal = ({
   onClose,
   onCreateTemplate,
   defaultTemplate,
+  templateToEdit,
 }: CreateEmailTemplateModalProps) => {
   const currentUser = useSelector((state: { user: { currentUser: User } }) => state.user.currentUser);
-  const [formData, setFormData] = useState<{
-    name: string;
-    subject: string;
-    isDefault: boolean;
-    isActive: boolean;
-    customer: number | undefined;
-    template: number | undefined;
-  }>({
-    name: '',
-    subject: '',
-    isDefault: false,
-    isActive: true,
-    customer: currentUser?.id as number,
-    template: undefined,
+  const [formData, setFormData] = useState<EmailTemplate | undefined>({
+    company_id: currentUser?.company_id as number,
+    rep: currentUser?.id as number,
+    email_type: undefined,
+    email_name: undefined,
+    email_subject: undefined,
+    email_html: undefined,
+    send_ecard: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isViewTemplateOpen, setIsViewTemplateOpen] = useState(false);
   const blobUrlRef = useRef<string | null>(null);
 
+  // Initialize form data when templateToEdit changes or modal opens
+  useEffect(() => {
+    if (isOpen) {
+      if (templateToEdit) {
+        // Populate form with template data (excluding email_html)
+        setFormData({
+          company_id: templateToEdit.company_id,
+          rep: templateToEdit.rep,
+          email_type: templateToEdit.email_type,
+          email_name: templateToEdit.email_name,
+          email_subject: templateToEdit.email_subject,
+          email_html: undefined, // Don't populate email_html
+          send_ecard: templateToEdit.send_ecard,
+          email_id: templateToEdit.email_id,
+        });
+      } else {
+        // Reset form for new template
+        setFormData({
+          company_id: currentUser?.company_id as number,
+          rep: currentUser?.id as number,
+          email_type: undefined,
+          email_name: undefined,
+          email_subject: undefined,
+          email_html: undefined,
+          send_ecard: false,
+        });
+      }
+    }
+  }, [isOpen, templateToEdit, currentUser]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name.trim() || !formData.subject.trim()) {
+    if (!formData?.email_name?.trim() || !formData?.email_subject?.trim()) {
       toast.error('Please fill in all required fields');
       return;
     }
     setIsSubmitting(true);
-    onCreateTemplate({
-      name: formData.name,
-      subject: formData.subject,
-      is_default: formData.isDefault,
-      customer: formData.customer,
-      template: formData.template,
-      is_active: formData.isActive,
-    });
+    
+    onCreateTemplate(formData as EmailTemplate);
   };
 
   const handleClose = () => {
-    setFormData({ 
-      name: '', 
-      subject: '', 
-      isDefault: false, 
-      isActive: true, 
-      customer: undefined, 
-      template: undefined 
+    setFormData({
+      company_id: currentUser?.company_id as number,
+      rep: currentUser?.id as number,
+      email_type: undefined,
+      email_name: undefined,
+      email_subject: undefined,
+      email_html: undefined,
+      send_ecard: false,
     });
+    setIsSubmitting(false);
     onClose();
   };
 
   const handleInputChange = (field: string, value: string | boolean | number | undefined) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value,
-    }));
+    setFormData({
+      ...formData as EmailTemplate,
+      [field]: value as string | boolean,
+    });
   };
 
   const handleClearTemplate = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setFormData(prev => ({
-      ...prev,
-      template: undefined,
-    }));
+    setFormData({
+      ...formData as EmailTemplate,
+      email_html: undefined,
+    });
   };
 
   // Get the selected template details
   const selectedTemplate = useMemo(() => {
-    if (!formData.template) return null;
-    return defaultTemplate.find(t => t.id === formData.template);
-  }, [formData.template, defaultTemplate]);
+    if (!formData?.email_html) return null;
+    return defaultTemplate.find(t => t.id === Number(formData?.email_html));
+  }, [formData?.email_html, defaultTemplate]);
 
   // Generate iframe source - prefer html_content over html_file
   const iframeSrc = useMemo(() => {
@@ -110,7 +138,7 @@ export const CreateEmailTemplateModal = ({
     }
 
     if (!selectedTemplate) return '';
-    
+
     // If html_content is available, use it with a blob URL
     // if (selectedTemplate.html_content) {
     //   const blob = new Blob([selectedTemplate.html_content], { type: 'text/html' });
@@ -118,12 +146,12 @@ export const CreateEmailTemplateModal = ({
     //   blobUrlRef.current = blobUrl;
     //   return blobUrl;
     // }
-    
+
     // Otherwise, use html_file URL
     if (selectedTemplate.html_file) {
       return selectedTemplate.html_file;
     }
-    
+
     return '';
   }, [selectedTemplate]);
 
@@ -154,9 +182,11 @@ export const CreateEmailTemplateModal = ({
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>Create Email Template</DialogTitle>
+            <DialogTitle>{templateToEdit ? 'Edit Email Template' : 'Create Email Template'}</DialogTitle>
             <DialogDescription>
-              Create a new email template with a name and subject. You can also set it as the default template.
+              {templateToEdit 
+                ? 'Update the email template details. Note: The HTML template cannot be changed during edit.'
+                : 'Create a new email template with a name and subject. You can also set it as the default template.'}
             </DialogDescription>
           </DialogHeader>
 
@@ -167,33 +197,31 @@ export const CreateEmailTemplateModal = ({
                 <Input
                   id="template-name"
                   placeholder="Enter template name"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  value={formData?.email_name || ''}
+                  onChange={(e) => handleInputChange('email_name', e.target.value)}
                   required
                 />
               </div>
-
               <div className="space-y-2">
                 <label htmlFor="template-subject" className="text-sm font-medium mb-2 block">Subject *</label>
                 <Input
                   id="template-subject"
                   placeholder="Enter email subject"
-                  value={formData.subject}
-                  onChange={(e) => handleInputChange('subject', e.target.value)}
+                  value={formData?.email_subject || ''}
+                  onChange={(e) => handleInputChange('email_subject', e.target.value)}
                   required
                 />
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label htmlFor="default-template" className="text-sm font-medium mb-2 block">
                   Default Template
                 </label>
                 <div className="relative">
-                  <Select 
-                    {...(formData.template ? { value: formData.template.toString() } : {})}
-                    onValueChange={(value) => handleInputChange('template', parseInt(value, 10))}
-                    key={formData.template || 'empty'}
+                  <Select
+                    {...(formData?.email_html ? { value: formData?.email_html.toString() } : {})}
+                    onValueChange={(value) => handleInputChange('email_html', parseInt(value, 10))}
+                    key={formData?.email_html || 'empty'}
+                    disabled={!!templateToEdit}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select default template" />
@@ -204,7 +232,7 @@ export const CreateEmailTemplateModal = ({
                       ))}
                     </SelectContent>
                   </Select>
-                  {formData.template && (
+                  {formData?.email_html && !templateToEdit && (
                     <button
                       type="button"
                       onClick={handleClearTemplate}
@@ -215,6 +243,9 @@ export const CreateEmailTemplateModal = ({
                     </button>
                   )}
                 </div>
+                {templateToEdit && (
+                  <p className="text-xs text-muted-foreground">Template HTML cannot be changed during edit.</p>
+                )}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium mb-2 block">Preview</label>
@@ -222,37 +253,59 @@ export const CreateEmailTemplateModal = ({
                   type="button"
                   variant="outline"
                   onClick={handleViewTemplate}
-                  disabled={!formData.template}
+                  disabled={!formData?.email_html}
                   className="w-full"
                 >
                   <Eye className="w-4 h-4 mr-2" />
                   View Template
                 </Button>
               </div>
+              <div className="space-y-2">
+                <label htmlFor="email-type" className="text-sm font-medium mb-2 block">
+                  Email Type
+                </label>
+                <div className="relative">
+                  <Select
+                    {...(formData?.email_type ? { value: formData?.email_type.toString() } : {})}
+                    onValueChange={(value) => handleInputChange('email_type', parseInt(value, 10))}
+                    key={formData?.email_type || 'empty'}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select email type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {EMAIL_TYPES.map((type) => (
+                        <SelectItem key={type.id} value={type.id.toString()}>
+                          {type.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {formData?.email_type && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleInputChange('email_type', undefined);
+                      }}
+                      className="absolute right-9 top-1/2 -translate-y-1/2 z-10 rounded-full p-1 hover:bg-muted transition-colors"
+                      aria-label="Clear selection"
+                    >
+                      <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center space-x-2 pt-2">
-                <Checkbox
-                  id="is-default"
-                  checked={formData.isDefault}
-                  onCheckedChange={(checked) => handleInputChange('isDefault', checked as boolean)}
-                />
-                <label htmlFor="is-default" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Set as default template
-                </label>
-              </div>
-
-              <div className="flex items-center space-x-2 pt-2">
-                <Checkbox
-                  id="is-active"
-                  checked={formData.isActive}
-                  onCheckedChange={(checked) => handleInputChange('isActive', checked as boolean)}
-                />
-                <label htmlFor="is-active" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Make this template active by default
-                </label>
-              </div>
+            <div className="flex items-center space-x-2 pt-2">
+              <Checkbox
+                id="send-ecard"
+                checked={formData?.send_ecard || false}
+                onCheckedChange={(checked) => handleInputChange('send_ecard', checked as boolean)}
+              />
+              <label htmlFor="send-ecard" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Send e-card
+              </label>
             </div>
 
             <DialogFooter>
@@ -260,7 +313,9 @@ export const CreateEmailTemplateModal = ({
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Creating...' : 'Create Template'}
+                {isSubmitting 
+                  ? (templateToEdit ? 'Updating...' : 'Creating...') 
+                  : (templateToEdit ? 'Update Template' : 'Create Template')}
               </Button>
             </DialogFooter>
           </form>
