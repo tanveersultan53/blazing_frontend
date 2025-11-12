@@ -18,6 +18,7 @@ export interface ContactFilters {
   created?: string;
   modified?: string;
   search?: string; // Global search parameter
+  user_id?: string | number;
 }
 
 export const getContacts = ( filters: ContactFilters = {} ): Promise<AxiosResponse<any>> => {
@@ -31,6 +32,10 @@ export const getContacts = ( filters: ContactFilters = {} ): Promise<AxiosRespon
   });
   
   const queryString = params.toString();
+  
+  if(filters.user_id) {
+    return api.get(`/customer/api/contacts/${filters.user_id}${queryString ? '?' + queryString : ''}`);
+  }
   return api.get(`/customer/api/contacts${queryString ? '?' + queryString : ''}`);
 };
 
