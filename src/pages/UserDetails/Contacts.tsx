@@ -1,6 +1,6 @@
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+// import { useState } from "react";
+// import { useSearchParams } from "react-router-dom";
 
 const Contacts = ({
     tab,
@@ -8,7 +8,7 @@ const Contacts = ({
     tab: 'contact' | 'referal_partner';
 
 }) => {
-    const [activeTab, setActiveTab] = useState<'contact' | 'referal_partner'>(tab);
+    // const [activeTab, setActiveTab] = useState<'contact' | 'referal_partner'>(tab);
 
 
 
