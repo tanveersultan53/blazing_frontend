@@ -41,7 +41,7 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
         rep_name: user?.rep_name || '',
         mid: user?.mid || '',
         website: user?.website || '',
-        company_id: user?.company_id.toString() || '',
+        company_id: user?.company_id?.toString() || '',
         branch_id: user?.branch_id || '',
         is_active: user?.is_active || false,
         personal_license: user?.personal_license || '',

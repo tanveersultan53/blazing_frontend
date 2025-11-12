@@ -11,6 +11,7 @@ import CallToAction from "./CallToAction";
 import Settings from "./Settings";
 import Services from "./Services";
 import EmailSettings from "./EmailSettings";
+import Contacts from "./Contacts";
 
 const UserDetails = () => {
     const { user, isLoading, activeTab, setActiveTab, refetch } = useUserDetails();
@@ -42,6 +43,8 @@ const UserDetails = () => {
                         <TabsTrigger value="newsletters">Newsletters Information</TabsTrigger>
                         <TabsTrigger value="email">Email Settings</TabsTrigger>
                         <TabsTrigger value="call">Call to Action</TabsTrigger>
+                        <TabsTrigger value="contact">Contact Details</TabsTrigger>
+                        <TabsTrigger value="referal_partner">Referal Partner Details</TabsTrigger>
                     </TabsList>
                     <TabsContent value="personal"><PersonalInformation user={user} refetch={refetch} /></TabsContent>
                     <TabsContent value="social"><SocialLinksInformation /></TabsContent>
@@ -50,6 +53,8 @@ const UserDetails = () => {
                     <TabsContent value="newsletters"><NewsLetterInformation user={user}/></TabsContent>
                     <TabsContent value="email"><EmailSettings /></TabsContent>
                     <TabsContent value="call"><CallToAction /></TabsContent>
+                    <TabsContent value="contact"><Contacts tab="contact" /></TabsContent>
+                    <TabsContent value="referal_partner"><Contacts tab="referal_partner" /></TabsContent>
                 </Tabs>
             </div>
         </PageHeader>

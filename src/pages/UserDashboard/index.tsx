@@ -4,8 +4,8 @@ import PageHeader from "@/components/PageHeader";
 import { FileDown, UserPlus } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
-import { DataTable } from "@/components/data-table";
 import { useUserDashboard } from "./useUserDashboard";
+import { UserDashboardTable } from "./UserDashboardTable";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -106,10 +106,10 @@ const UserDashboard = () => {
                     <TabsTrigger value="all">All</TabsTrigger>
                 </TabsList>
             </Tabs>
-            <DataTable
+            <UserDashboardTable
                 columns={columns}
                 data={data}
-                searchColumns={[ 'name', 'email', 'company', 'title', 'cell', 'work_phone']}
+                searchColumns={['name', 'email', 'company', 'title', 'cell', 'work_phone']}
                 showActionsColumn={true}
                 onViewDetails={handleViewDetails}
                 actionItems={actionItems}
