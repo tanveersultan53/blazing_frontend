@@ -1,11 +1,11 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { type ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Edit, Eye, Send } from 'lucide-react';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { toast } from 'sonner';
 import type { EmailTemplate, EmailTemplateList } from './interface';
-import { createEmailTemplate, getDefaultEmailTemplate, getEmailTemplates } from '@/services/emailService';
+import { createEmailTemplate, getDefaultEmailTemplate, getEmailTemplates, updateEmailTemplate, deleteEmailTemplate, sendEmail } from '@/services/emailService';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/helpers/constants';
 
@@ -21,6 +21,13 @@ export interface EmailTemplateFilters {
 
 const useEmail = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isSendModalOpen, setIsSendModalOpen] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<EmailTemplateList | null>(null);
+  const [viewingTemplate, setViewingTemplate] = useState<EmailTemplateList | null>(null);
+  const [sendingTemplate, setSendingTemplate] = useState<EmailTemplateList | null>(null);
+  const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view'>('create');
   const [filters, setFilters] = useState<EmailTemplateFilters>({});
   const [globalSearch, setGlobalSearch] = useState<string>("");
   const [debouncedFilters, setDebouncedFilters] = useState<EmailTemplateFilters>({});
@@ -51,9 +58,62 @@ const useEmail = () => {
     },
   });
 
-  // Get templates from API
+  const updateEmailTemplateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<EmailTemplate> }) =>
+      updateEmailTemplate(id, data),
+    onSuccess: () => {
+      toast.success('Email template updated successfully');
+      getEmailTemplatesQuery.refetch();
+    },
+    onError: () => {
+      toast.error('Failed to update email template');
+    },
+  });
+
+  const deleteEmailTemplateMutation = useMutation({
+    mutationFn: deleteEmailTemplate,
+    onSuccess: () => {
+      toast.success('Email template deleted successfully');
+      getEmailTemplatesQuery.refetch();
+    },
+    onError: () => {
+      toast.error('Failed to delete email template');
+    },
+  });
+
+  const sendEmailMutation = useMutation({
+    mutationFn: sendEmail,
+    onSuccess: (response) => {
+      const message = response?.data?.message || 'Email sent successfully';
+      const count = response?.data?.recipients_count || 0;
+      toast.success(`${message} (${count} recipient${count !== 1 ? 's' : ''})`);
+      // Close modal after a short delay to show the success message
+      setTimeout(() => {
+        setIsSendModalOpen(false);
+        setSendingTemplate(null);
+      }, 500);
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.error || error?.response?.data?.message || 'Failed to send email';
+      toast.error(errorMessage);
+      // Don't close modal on error so user can try again
+    },
+  });
+
+  // Get templates from API and transform to frontend format
   const templates: EmailTemplateList[] = useMemo(() => {
-    return getEmailTemplatesQuery.data?.data?.results || [];
+    const backendTemplates = getEmailTemplatesQuery.data?.data?.results || [];
+    console.log('Raw backend templates:', backendTemplates);
+    // Transform backend field names to frontend format
+    const transformed = backendTemplates.map(template => ({
+      ...template,
+      id: template.email_id, // Map email_id to id for compatibility
+      name: template.email_name, // Map email_name to name
+      subject: template.email_subject, // Map email_subject to subject
+      customer: template.rep, // Map rep to customer
+    }));
+    console.log('Transformed templates:', transformed);
+    return transformed;
   }, [getEmailTemplatesQuery.data]);
 
   // Debounce filters to prevent too many operations
@@ -98,15 +158,84 @@ const useEmail = () => {
       is_default: template.is_default,
       customer: template.customer,
       template: template.template,
+      html_content: template.html_content,
+      html_file: template.html_file,
+      design_json: template.design_json,
       is_active: template.is_active,
     });
   }
 
+  // Update template
+  const updateTemplate = useCallback((templateId: number, template: Partial<EmailTemplate>) => {
+    updateEmailTemplateMutation.mutate({ id: templateId, data: template });
+    setIsEditModalOpen(false);
+    setEditingTemplate(null);
+  }, [updateEmailTemplateMutation]);
+
+  // Open edit modal
+  const openEditModal = useCallback((template: EmailTemplateList) => {
+    setEditingTemplate(template);
+    setIsEditModalOpen(true);
+  }, []);
+
+  // Close edit modal
+  const closeEditModal = useCallback(() => {
+    setIsEditModalOpen(false);
+    setEditingTemplate(null);
+  }, []);
+
+  // Open view modal (using editor modal in view mode)
+  const openViewModal = useCallback((template: EmailTemplateList) => {
+    setViewingTemplate(template);
+    setEditingTemplate(template); // Use editingTemplate for view mode
+    setModalMode('view');
+    setIsViewModalOpen(true);
+  }, []);
+
+  // Close view modal
+  const closeViewModal = useCallback(() => {
+    setIsViewModalOpen(false);
+    setViewingTemplate(null);
+    setEditingTemplate(null);
+    setModalMode('create');
+  }, []);
+
+  // Open send modal
+  const openSendModal = useCallback((template: EmailTemplateList) => {
+    setSendingTemplate(template);
+    setIsSendModalOpen(true);
+  }, []);
+
+  // Close send modal
+  const closeSendModal = useCallback(() => {
+    setIsSendModalOpen(false);
+    setSendingTemplate(null);
+  }, []);
+
+  // Send email handler
+  const handleSendEmail = useCallback(async (recipientType: string, customEmails?: string[]) => {
+    if (!sendingTemplate) {
+      toast.error('No template selected');
+      return;
+    }
+
+    try {
+      await sendEmailMutation.mutateAsync({
+        template_id: sendingTemplate.id,
+        recipient_type: recipientType,
+        custom_emails: customEmails,
+        include_attachments: true,
+      });
+    } catch (error) {
+      // Error is already handled by mutation's onError
+      console.error('Failed to send email:', error);
+    }
+  }, [sendingTemplate, sendEmailMutation]);
+
   // Delete template
   const deleteTemplate = useCallback((templateId: number) => {
-    // TODO: Implement delete API call
-    toast.success(`Email template ${templateId} deleted successfully`);
-  }, []);
+    deleteEmailTemplateMutation.mutate(templateId);
+  }, [deleteEmailTemplateMutation]);
 
   // Filter update function
   const updateFilter = useCallback((key: keyof EmailTemplateFilters, value: string) => {
@@ -229,32 +358,6 @@ const useEmail = () => {
       enableColumnFilter: true,
     },
     {
-      accessorKey: "is_default",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Default" />
-      ),
-      cell: ({ row }) => {
-        const isDefault = row.getValue("is_default") as boolean;
-        return (
-          <Badge variant={isDefault ? "default" : "secondary"}>
-            {isDefault ? "Yes" : "No"}
-          </Badge>
-        );
-      },
-      enableColumnFilter: true,
-    },
-    {
-      accessorKey: "template",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Template" />
-      ),
-      cell: ({ row }) => {
-        const templateId = row.getValue("template") as number;
-        return <div className="text-sm">{templateId}</div>;
-      },
-      enableColumnFilter: false,
-    },
-    {
       accessorKey: "is_active",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Status" />
@@ -272,22 +375,36 @@ const useEmail = () => {
     {
       accessorKey: "created_at",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Created At" />
+        <DataTableColumnHeader column={column} title="Created" />
       ),
       cell: ({ row }) => {
-        const date = new Date(row.getValue("created_at"));
-        return <div className="text-sm">{date.toLocaleDateString()}</div>;
+        const dateValue = row.getValue("created_at");
+        if (!dateValue) return <div className="text-sm text-muted-foreground">-</div>;
+        const date = new Date(dateValue as string);
+        return (
+          <div className="text-sm">
+            <div>{date.toLocaleDateString()}</div>
+            <div className="text-xs text-muted-foreground">{date.toLocaleTimeString()}</div>
+          </div>
+        );
       },
       enableColumnFilter: true,
     },
     {
       accessorKey: "updated_at",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Updated At" />
+        <DataTableColumnHeader column={column} title="Last Updated" />
       ),
       cell: ({ row }) => {
-        const date = new Date(row.getValue("updated_at"));
-        return <div className="text-sm">{date.toLocaleDateString()}</div>;
+        const dateValue = row.getValue("updated_at");
+        if (!dateValue) return <div className="text-sm text-muted-foreground">-</div>;
+        const date = new Date(dateValue as string);
+        return (
+          <div className="text-sm">
+            <div>{date.toLocaleDateString()}</div>
+            <div className="text-xs text-muted-foreground">{date.toLocaleTimeString()}</div>
+          </div>
+        );
       },
       enableColumnFilter: true,
     },
@@ -295,6 +412,24 @@ const useEmail = () => {
 
   // Action items for bulk operations
   const actionItems = [
+    {
+      label: 'View',
+      onClick: (row: EmailTemplateList) => openViewModal(row),
+      icon: Eye,
+      className: 'text-gray-600',
+    },
+    {
+      label: 'Edit',
+      onClick: (row: EmailTemplateList) => openEditModal(row),
+      icon: Edit,
+      className: 'text-blue-600',
+    },
+    {
+      label: 'Send',
+      onClick: (row: EmailTemplateList) => openSendModal(row),
+      icon: Send,
+      className: 'text-green-600',
+    },
     {
       label: 'Delete',
       onClick: (row: EmailTemplateList) => deleteTemplate(row.id),
@@ -310,8 +445,24 @@ const useEmail = () => {
     actionItems,
     isCreateModalOpen,
     setIsCreateModalOpen,
+    isEditModalOpen,
+    setIsEditModalOpen,
+    isViewModalOpen,
+    isSendModalOpen,
+    editingTemplate,
+    viewingTemplate,
+    sendingTemplate,
+    modalMode,
     createTemplate,
+    updateTemplate,
     deleteTemplate,
+    openEditModal,
+    closeEditModal,
+    openViewModal,
+    closeViewModal,
+    openSendModal,
+    closeSendModal,
+    handleSendEmail,
     filters,
     updateFilter,
     clearFilter,

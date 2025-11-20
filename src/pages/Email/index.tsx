@@ -5,7 +5,8 @@ import { useBreadcrumbs } from '@/hooks/usePageTitle';
 import type { User } from '@/redux/features/userSlice';
 import { Plus } from 'lucide-react';
 import { DataTable } from '@/components/data-table';
-import { CreateEmailTemplateModal } from './CreateEmailTemplateModal';
+import { EmailTemplateEditorModal } from './EmailTemplateEditorModal';
+import { SendEmailModal } from './SendEmailModal';
 import useEmail from './useEmail';
 import { useNavigate } from 'react-router-dom';
 import type { EmailTemplate } from './interface';
@@ -19,7 +20,19 @@ const Email = () => {
     actionItems,
     isCreateModalOpen,
     setIsCreateModalOpen,
+    isEditModalOpen,
+    isViewModalOpen,
+    isSendModalOpen,
+    editingTemplate,
+    viewingTemplate,
+    sendingTemplate,
+    modalMode,
     createTemplate,
+    updateTemplate,
+    closeEditModal,
+    closeViewModal,
+    closeSendModal,
+    handleSendEmail,
     filters,
     updateFilter,
     clearFilter,
@@ -45,6 +58,12 @@ const Email = () => {
 
   const handleCreateTemplateSubmit = (templateData: EmailTemplate) => {
     createTemplate(templateData);
+  };
+
+  const handleUpdateTemplateSubmit = (templateData: EmailTemplate) => {
+    if (editingTemplate) {
+      updateTemplate(editingTemplate.id, templateData);
+    }
   };
 
   // Column titles mapping for filter placeholders
@@ -93,11 +112,46 @@ const Email = () => {
 
       {/* Create Template Modal */}
       {isCreateModalOpen && (
-        <CreateEmailTemplateModal
+        <EmailTemplateEditorModal
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
-          onCreateTemplate={handleCreateTemplateSubmit}
-          defaultTemplate={defaultTemplate}
+          onSaveTemplate={handleCreateTemplateSubmit}
+          defaultTemplates={defaultTemplate}
+          mode="create"
+        />
+      )}
+
+      {/* Edit Template Modal */}
+      {isEditModalOpen && editingTemplate && (
+        <EmailTemplateEditorModal
+          isOpen={isEditModalOpen}
+          onClose={closeEditModal}
+          onSaveTemplate={handleUpdateTemplateSubmit}
+          defaultTemplates={defaultTemplate}
+          editTemplate={editingTemplate}
+          mode="edit"
+        />
+      )}
+
+      {/* View Template Modal */}
+      {isViewModalOpen && viewingTemplate && (
+        <EmailTemplateEditorModal
+          isOpen={isViewModalOpen}
+          onClose={closeViewModal}
+          onSaveTemplate={() => {}} // No-op since it's view mode
+          defaultTemplates={defaultTemplate}
+          editTemplate={viewingTemplate}
+          mode="view"
+        />
+      )}
+
+      {/* Send Email Modal */}
+      {isSendModalOpen && sendingTemplate && (
+        <SendEmailModal
+          isOpen={isSendModalOpen}
+          onClose={closeSendModal}
+          template={sendingTemplate}
+          onSend={handleSendEmail}
         />
       )}
     </div>

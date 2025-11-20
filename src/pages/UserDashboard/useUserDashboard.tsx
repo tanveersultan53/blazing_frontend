@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Trash2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getContacts, deleteContact, type ContactFilters } from '@/services/contactService';
+import { getEmailTemplates, sendEmail } from '@/services/emailService';
 import { queryKeys } from '@/helpers/constants';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { useSearchParams, useNavigate } from 'react-router-dom';
@@ -36,6 +37,8 @@ export const useUserDashboard = () => {
   const tab = searchParams.get('tab');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [contactToDelete, setContactToDelete] = useState<PersonData | null>(null);
+  const [sendEmailModalOpen, setSendEmailModalOpen] = useState(false);
+  const [selectedContactsForEmail, setSelectedContactsForEmail] = useState<PersonData[]>([]);
   const [filters, setFilters] = useState<ContactFilters>({});
   const [globalSearch, setGlobalSearch] = useState<string>("");
   const [debouncedFilters, setDebouncedFilters] = useState<ContactFilters>({});
@@ -92,14 +95,20 @@ export const useUserDashboard = () => {
         customerType = 'partner';
       }
       // For 'all' tab, don't pass customer_type filter
-      
-      return getContacts({ 
+
+      return getContacts({
         customer_type: customerType,
         ...debouncedFilters,
         search: debouncedGlobalSearch || undefined
       });
     },
     staleTime: 30000, // Consider data fresh for 30 seconds
+  });
+
+  // Get email templates
+  const { data: emailTemplatesData, isLoading: isLoadingTemplates } = useQuery({
+    queryKey: [queryKeys.getEmailTemplates as string],
+    queryFn: getEmailTemplates,
   });
 
   // Delete contact mutation
@@ -115,6 +124,22 @@ export const useUserDashboard = () => {
     onError: (error) => {
       console.error('Error deleting contact:', error);
       toast.error('Failed to delete contact');
+    },
+  });
+
+  // Send email mutation
+  const sendEmailMutation = useMutation({
+    mutationFn: sendEmail,
+    onSuccess: (response) => {
+      const message = response?.data?.message || 'Email sent successfully';
+      const count = response?.data?.recipients_count || 0;
+      toast.success(`${message} (${count} recipient${count !== 1 ? 's' : ''})`);
+      setSendEmailModalOpen(false);
+      setSelectedContactsForEmail([]);
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.error || error?.response?.data?.message || 'Failed to send email';
+      toast.error(errorMessage);
     },
   });
 
