@@ -15,6 +15,7 @@ import Settings from './pages/Settings';
 import Email from './pages/Email';
 import EmailTemplate from './pages/EmailTemplate';
 import ReactQuillEditor from './pages/EmailTemplate/ReactQuill.tsx';
+import EmailSentHistory from './pages/EmailSentHistory';
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
           <Route path="email" element={<Email />} />
           <Route path="email-template-editor" element={<EmailTemplate />} />
           <Route path="react-quill-editor" element={<ReactQuillEditor />} />
+          <Route path="email-sent-history" element={<EmailSentHistory />} />
         </Route>
         <Route path="/login" element={<WithoutAuth><Login /></WithoutAuth>} />
         <Route path="*" element={<Navigate to="/" replace />} />

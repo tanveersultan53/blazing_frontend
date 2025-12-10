@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { AxiosError } from "axios";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryKeys } from "@/helpers/constants";
 import { getUsers, type UserFilters } from "@/services/userManagementService";
 import { toast } from "sonner";
@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import type { IUserList } from "./interface";
 import { formatCellPhone, formatWorkPhone } from "@/lib/phoneFormatter";
 import { useState, useEffect, useRef, useCallback } from "react";
+import { getDefaultEmailTemplate, sendEmail } from "@/services/emailService";
+import type { EmailTemplateList } from "@/pages/Email/interface";
 
 const useUsers = () => {
     const [filters, setFilters] = useState<UserFilters>({});
@@ -17,6 +19,10 @@ const useUsers = () => {
     const [debouncedGlobalSearch, setDebouncedGlobalSearch] = useState<string>("");
     const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const globalSearchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Email modal state
+    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+    const [selectedUsers, setSelectedUsers] = useState<IUserList[]>([]);
 
     // Debounce filters to prevent too many API calls
     useEffect(() => {
@@ -137,7 +143,7 @@ const useUsers = () => {
 
     const { data: users, isLoading, isFetching, error } = useQuery({
         queryKey: [queryKeys.usersList, JSON.stringify(debouncedFilters), debouncedGlobalSearch],
-        queryFn: () => getUsers({ 
+        queryFn: () => getUsers({
             ...debouncedFilters,
             search: debouncedGlobalSearch || undefined
         }),
@@ -147,6 +153,32 @@ const useUsers = () => {
     if (error instanceof AxiosError && error.response) {
         toast.error(error.response?.data?.detail ?? "Error fetching users");
     }
+
+    // Fetch email templates
+    const { data: templatesData, isLoading: isLoadingTemplates } = useQuery({
+        queryKey: [queryKeys.getDefaultEmailTemplate],
+        queryFn: getDefaultEmailTemplate,
+        staleTime: 60000, // Consider data fresh for 1 minute
+    });
+
+    // Send email mutation
+    const sendEmailMutation = useMutation({
+        mutationFn: ({ templateId, contactEmails }: { templateId: number; contactEmails: string[] }) =>
+            sendEmail({
+                template_id: templateId,
+                recipient_type: 'custom',
+                custom_emails: contactEmails,
+                include_attachments: true,
+            }),
+        onSuccess: () => {
+            toast.success("Emails sent successfully!");
+            setIsEmailModalOpen(false);
+            setSelectedUsers([]);
+        },
+        onError: (error: AxiosError<{ detail?: string }>) => {
+            toast.error(error.response?.data?.detail ?? "Failed to send emails");
+        },
+    });
 
     // Filter update function
     const updateFilter = useCallback((key: keyof UserFilters, value: string) => {
@@ -180,7 +212,32 @@ const useUsers = () => {
     const updateGlobalSearch = useCallback((value: string) => {
         setGlobalSearch(value);
     }, []);
-    
+
+    // Email modal handlers
+    const openEmailModal = useCallback((users: IUserList[]) => {
+        setSelectedUsers(users);
+        setIsEmailModalOpen(true);
+    }, []);
+
+    const closeEmailModal = useCallback(() => {
+        setIsEmailModalOpen(false);
+        setSelectedUsers([]);
+    }, []);
+
+    const handleSendEmail = async (
+        templateId: number,
+        contactEmails: string[],
+        emailName: string,
+        emailSubject: string,
+        attachments: File[]
+    ) => {
+        // TODO: Update the sendEmail API call to include emailName, emailSubject, and attachments
+        console.log('Email Name:', emailName);
+        console.log('Email Subject:', emailSubject);
+        console.log('Attachments:', attachments);
+        await sendEmailMutation.mutateAsync({ templateId, contactEmails });
+    };
+
     return {
         columns,
         data: users?.data?.results || [],
@@ -194,6 +251,14 @@ const useUsers = () => {
         clearAllFilters,
         globalSearch,
         updateGlobalSearch,
+        // Email modal state and handlers
+        isEmailModalOpen,
+        selectedUsers,
+        templates: templatesData?.data?.results || [],
+        isLoadingTemplates,
+        openEmailModal,
+        closeEmailModal,
+        handleSendEmail,
     };
 };
 
