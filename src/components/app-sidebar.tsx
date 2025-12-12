@@ -3,7 +3,6 @@ import {
   Users,
   Home,
   UserIcon,
-  Mail,
   ClipboardCheckIcon,
   ArrowDownUp,
   Settings,
@@ -39,13 +38,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       items: [],
     },
     {
-      title: "Email",
-      url: ["/email"],
-      icon: Mail,
-      items: [],
-    },
-    {
-      title: "Email Sent History",
+      title: "Email History",
       url: ["/email-sent-history"],
       icon: History,
       items: [],
@@ -62,12 +55,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Profile",
       url: ["/profile"],
       icon: UserIcon,
-      items: [],
-    },
-    {
-      title: "Email",
-      url: ["/email"],
-      icon: Mail,
       items: [],
     },
     {

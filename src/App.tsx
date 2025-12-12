@@ -12,7 +12,6 @@ import AddPerson from './pages/AddPerson/index.tsx';
 import Contact from './pages/Contact';
 import UserProfile from './pages/UserProfile';
 import Settings from './pages/Settings';
-import Email from './pages/Email';
 import EmailTemplate from './pages/EmailTemplate';
 import ReactQuillEditor from './pages/EmailTemplate/ReactQuill.tsx';
 import EmailSentHistory from './pages/EmailSentHistory';
@@ -30,7 +29,6 @@ function App() {
           <Route path="settings" element={<Settings />} />
           <Route path="add-person" element={<AddPerson />} />
           <Route path="contacts/:id" element={<Contact />} />
-          <Route path="email" element={<Email />} />
           <Route path="email-template-editor" element={<EmailTemplate />} />
           <Route path="react-quill-editor" element={<ReactQuillEditor />} />
           <Route path="email-sent-history" element={<EmailSentHistory />} />
