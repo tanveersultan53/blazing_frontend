@@ -7,6 +7,7 @@ import {
   ArrowDownUp,
   Settings,
   History,
+  FileText,
 } from "lucide-react"
 
 import { NavMain, type NavMainProps } from "@/components/nav-main"
@@ -35,6 +36,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Users",
       url: ["/", "/users"],
       icon: Users,
+      items: [],
+    },
+    {
+      title: "Template Management",
+      url: ["/template-management"],
+      icon: FileText,
       items: [],
     },
     {

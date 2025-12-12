@@ -15,6 +15,9 @@ import Settings from './pages/Settings';
 import EmailTemplate from './pages/EmailTemplate';
 import ReactQuillEditor from './pages/EmailTemplate/ReactQuill.tsx';
 import EmailSentHistory from './pages/EmailSentHistory';
+import TemplateManagement from './pages/TemplateManagement';
+import CreateTemplate from './pages/TemplateManagement/CreateTemplate';
+import ViewTemplate from './pages/TemplateManagement/ViewTemplate';
 
 function App() {
   return (
@@ -29,6 +32,10 @@ function App() {
           <Route path="settings" element={<Settings />} />
           <Route path="add-person" element={<AddPerson />} />
           <Route path="contacts/:id" element={<Contact />} />
+          <Route path="template-management" element={<TemplateManagement />} />
+          <Route path="template-management/create" element={<CreateTemplate />} />
+          <Route path="template-management/edit/:id" element={<CreateTemplate />} />
+          <Route path="template-management/view/:id" element={<ViewTemplate />} />
           <Route path="email-template-editor" element={<EmailTemplate />} />
           <Route path="react-quill-editor" element={<ReactQuillEditor />} />
           <Route path="email-sent-history" element={<EmailSentHistory />} />
