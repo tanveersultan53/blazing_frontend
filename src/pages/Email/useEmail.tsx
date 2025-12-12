@@ -19,7 +19,11 @@ export interface EmailTemplateFilters {
   updated_at?: string;
 }
 
-const useEmail = () => {
+interface UseEmailProps {
+  isAdmin?: boolean;
+}
+
+const useEmail = ({ isAdmin = false }: UseEmailProps = {}) => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -214,7 +218,7 @@ const useEmail = () => {
 
   // Send email handler
   const handleSendEmail = useCallback(async (recipientType: string, customEmails?: string[]) => {
-    if (!sendingTemplate) {
+    if (!sendingTemplate?.id) {
       toast.error('No template selected');
       return;
     }
@@ -277,13 +281,13 @@ const useEmail = () => {
     // Apply column filters
     if (debouncedFilters.name) {
       filtered = filtered.filter(template =>
-        template.name.toLowerCase().includes(debouncedFilters.name!.toLowerCase())
+        template.name?.toLowerCase().includes(debouncedFilters.name!.toLowerCase())
       );
     }
 
     if (debouncedFilters.subject) {
       filtered = filtered.filter(template =>
-        template.subject.toLowerCase().includes(debouncedFilters.subject!.toLowerCase())
+        template.subject?.toLowerCase().includes(debouncedFilters.subject!.toLowerCase())
       );
     }
 
@@ -315,8 +319,8 @@ const useEmail = () => {
     if (debouncedGlobalSearch) {
       const searchTerm = debouncedGlobalSearch.toLowerCase();
       filtered = filtered.filter(template =>
-        template.name.toLowerCase().includes(searchTerm) ||
-        template.subject.toLowerCase().includes(searchTerm)
+        template.name?.toLowerCase().includes(searchTerm) ||
+        template.subject?.toLowerCase().includes(searchTerm)
       );
     }
 
@@ -410,34 +414,43 @@ const useEmail = () => {
     },
   ], []);
 
-  // Action items for bulk operations
-  const actionItems = [
-    {
-      label: 'View',
-      onClick: (row: EmailTemplateList) => openViewModal(row),
-      icon: Eye,
-      className: 'text-gray-600',
-    },
-    {
-      label: 'Edit',
-      onClick: (row: EmailTemplateList) => openEditModal(row),
-      icon: Edit,
-      className: 'text-blue-600',
-    },
-    {
-      label: 'Send',
-      onClick: (row: EmailTemplateList) => openSendModal(row),
-      icon: Send,
-      className: 'text-green-600',
-    },
-    {
-      label: 'Delete',
-      onClick: (row: EmailTemplateList) => deleteTemplate(row.id),
-      icon: Trash2,
-      className: 'text-red-600',
-      disabled: (row: EmailTemplateList) => row.is_default || false,
-    },
-  ];
+  // Action items for bulk operations - filtered based on admin permissions
+  const actionItems = useMemo(() => {
+    const allActions = [
+      {
+        label: 'View',
+        onClick: (row: EmailTemplateList) => openViewModal(row),
+        icon: Eye,
+        className: 'text-gray-600',
+      },
+      {
+        label: 'Edit',
+        onClick: (row: EmailTemplateList) => openEditModal(row),
+        icon: Edit,
+        className: 'text-blue-600',
+        adminOnly: true, // Only admins can edit
+      },
+      {
+        label: 'Send',
+        onClick: (row: EmailTemplateList) => openSendModal(row),
+        icon: Send,
+        className: 'text-green-600',
+      },
+      {
+        label: 'Delete',
+        onClick: (row: EmailTemplateList) => {
+          if (row.id) deleteTemplate(row.id);
+        },
+        icon: Trash2,
+        className: 'text-red-600',
+        disabled: (row: EmailTemplateList) => row.is_default || false,
+        adminOnly: true, // Only admins can delete
+      },
+    ];
+
+    // Filter actions based on admin status
+    return allActions.filter(action => !action.adminOnly || isAdmin);
+  }, [isAdmin, openViewModal, openEditModal, openSendModal, deleteTemplate]);
 
   return {
     templates: filteredTemplates,

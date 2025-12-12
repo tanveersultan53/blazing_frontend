@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import PageHeader from '@/components/PageHeader';
 import { useBreadcrumbs } from '@/hooks/usePageTitle';
@@ -10,9 +10,14 @@ import { SendEmailModal } from './SendEmailModal';
 import useEmail from './useEmail';
 import { useNavigate } from 'react-router-dom';
 import type { EmailTemplate } from './interface';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 const Email = () => {
   const currentUser = useSelector((state: { user: { currentUser: User } }) => state.user.currentUser);
+  const [activeTab, setActiveTab] = useState('templates');
+
+  // Check if user is admin (staff or superuser)
+  const isAdmin = currentUser?.is_staff || currentUser?.is_superuser;
 
   const {
     templates,
@@ -26,7 +31,6 @@ const Email = () => {
     editingTemplate,
     viewingTemplate,
     sendingTemplate,
-    modalMode,
     createTemplate,
     updateTemplate,
     closeEditModal,
@@ -40,7 +44,7 @@ const Email = () => {
     globalSearch,
     updateGlobalSearch,
     defaultTemplate,
-  } = useEmail();
+  } = useEmail({ isAdmin });
 
   const navigate = useNavigate();
 
@@ -61,7 +65,7 @@ const Email = () => {
   };
 
   const handleUpdateTemplateSubmit = (templateData: EmailTemplate) => {
-    if (editingTemplate) {
+    if (editingTemplate?.id) {
       updateTemplate(editingTemplate.id, templateData);
     }
   };
@@ -81,33 +85,53 @@ const Email = () => {
       <PageHeader
         title="Email Management"
         description="Manage your email templates and settings."
-        actions={[
+        actions={isAdmin && activeTab === 'templates' ? [
           {
             label: 'Create Template',
             onClick: handleCreateTemplate,
             variant: 'default',
             icon: Plus,
           },
-        ]}
+        ] : []}
       >
-        <div className="pb-3">
-          <DataTable
-            columns={columns}
-            data={templates}
-            searchColumns={['name', 'subject']}
-            showActionsColumn={true}
-            actionItems={actionItems}
-            columnTitles={columnTitles}
-            enableRowSelection={false}
-            filters={filters as Record<string, string | undefined>}
-            onFilterChange={(key: string, value: string) => updateFilter(key as keyof typeof filters, value)}
-            onClearFilter={(key: string) => clearFilter(key as keyof typeof filters)}
-            onClearAllFilters={clearAllFilters}
-            globalSearch={globalSearch}
-            onGlobalSearchChange={updateGlobalSearch}
-            onViewDetails={() => navigate('/email-template-editor')}
-          />
-        </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="templates">Templates</TabsTrigger>
+            <TabsTrigger value="history">Email History</TabsTrigger>
+          </TabsList>
+
+          {/* Templates Tab Content */}
+          <TabsContent value="templates" className="space-y-4">
+            <div className="pb-3">
+              <DataTable
+                columns={columns}
+                data={templates}
+                searchColumns={['name', 'subject']}
+                showActionsColumn={true}
+                actionItems={actionItems}
+                columnTitles={columnTitles}
+                enableRowSelection={false}
+                filters={filters as Record<string, string | undefined>}
+                onFilterChange={(key: string, value: string) => updateFilter(key as keyof typeof filters, value)}
+                onClearFilter={(key: string) => clearFilter(key as keyof typeof filters)}
+                onClearAllFilters={clearAllFilters}
+                globalSearch={globalSearch}
+                onGlobalSearchChange={updateGlobalSearch}
+                onViewDetails={() => navigate('/email-template-editor')}
+              />
+            </div>
+          </TabsContent>
+
+          {/* Email History Tab Content */}
+          <TabsContent value="history" className="space-y-4">
+            <div className="flex items-center justify-center h-64 border-2 border-dashed rounded-lg">
+              <div className="text-center">
+                <p className="text-lg font-medium text-muted-foreground">Email History</p>
+                <p className="text-sm text-muted-foreground mt-2">Coming soon...</p>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </PageHeader>
 
       {/* Create Template Modal */}

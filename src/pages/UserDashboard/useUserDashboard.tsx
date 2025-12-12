@@ -312,8 +312,46 @@ export const useUserDashboard = () => {
   };
 
   const handleSendEmailSelected = (selectedRows: PersonData[]) => {
-    console.log("Send email to selected rows:", selectedRows);
+    setSelectedContactsForEmail(selectedRows);
+    setSendEmailModalOpen(true);
   };
+
+  const handleSendEmail = async (
+    templateId: number,
+    contactEmails: string[],
+    _emailName: string,
+    _emailSubject: string,
+    _attachments: File[]
+  ) => {
+    if (!templateId || contactEmails.length === 0) {
+      toast.error('Please select a template and ensure contacts have valid emails');
+      return;
+    }
+
+    await sendEmailMutation.mutateAsync({
+      template_id: templateId,
+      recipient_type: 'custom',
+      custom_emails: contactEmails,
+      include_attachments: true,
+    });
+  };
+
+  const closeSendEmailModal = () => {
+    setSendEmailModalOpen(false);
+    setSelectedContactsForEmail([]);
+  };
+
+  // Transform email templates to match the interface
+  const emailTemplates = useMemo(() => {
+    const backendTemplates = emailTemplatesData?.data?.results || [];
+    return backendTemplates.map(template => ({
+      ...template,
+      id: template.email_id,
+      name: template.email_name,
+      subject: template.email_subject,
+      customer: template.rep,
+    }));
+  }, [emailTemplatesData]);
 
   return {
     data: contacts?.data?.results || [],
@@ -338,6 +376,12 @@ export const useUserDashboard = () => {
     globalSearch,
     updateGlobalSearch,
     handleDeleteSelected,
-    handleSendEmailSelected
+    handleSendEmailSelected,
+    sendEmailModalOpen,
+    selectedContactsForEmail,
+    handleSendEmail,
+    closeSendEmailModal,
+    emailTemplates,
+    isLoadingTemplates,
   };
 };

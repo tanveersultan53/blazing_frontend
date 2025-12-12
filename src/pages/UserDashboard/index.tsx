@@ -6,6 +6,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { DataTable } from "@/components/data-table";
 import { useUserDashboard } from "./useUserDashboard";
+import { SendEmailToContactsModal } from "./SendEmailToContactsModal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,13 +30,13 @@ const UserDashboard = () => {
 
 
     // Use the dashboard hook
-    const { 
-        data, 
-        columns, 
-        actionItems, 
-        handleViewDetails, 
-        activeTab, 
-        setActiveTab, 
+    const {
+        data,
+        columns,
+        actionItems,
+        handleViewDetails,
+        activeTab,
+        setActiveTab,
         isLoading,
         isFetching,
         deleteDialogOpen,
@@ -50,7 +51,13 @@ const UserDashboard = () => {
         globalSearch,
         updateGlobalSearch,
         handleDeleteSelected,
-        handleSendEmailSelected
+        handleSendEmailSelected,
+        sendEmailModalOpen,
+        selectedContactsForEmail,
+        handleSendEmail,
+        closeSendEmailModal,
+        emailTemplates,
+        isLoadingTemplates,
     } = useUserDashboard();
 
     const handleTabChange = (value: string) => {
@@ -149,8 +156,8 @@ const UserDashboard = () => {
                     <AlertDialogCancel onClick={handleCancelDelete} disabled={isDeleting}>
                         Cancel
                     </AlertDialogCancel>
-                    <AlertDialogAction 
-                        onClick={handleConfirmDelete} 
+                    <AlertDialogAction
+                        onClick={handleConfirmDelete}
                         disabled={isDeleting}
                         className="bg-red-600 hover:bg-red-700"
                     >
@@ -159,6 +166,16 @@ const UserDashboard = () => {
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
+
+        {/* Send Email Modal */}
+        <SendEmailToContactsModal
+            isOpen={sendEmailModalOpen}
+            onClose={closeSendEmailModal}
+            selectedContacts={selectedContactsForEmail}
+            templates={emailTemplates}
+            onSend={handleSendEmail}
+            isLoadingTemplates={isLoadingTemplates}
+        />
 
     </PageHeader>;
 };
