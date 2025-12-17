@@ -33,7 +33,7 @@ const UserDashboard = () => {
     useBreadcrumbs(breadcrumbs);
 
     // Fetch user's email templates
-    const { data: templatesData, isLoading: isLoadingUserTemplates } = useQuery({
+    const { data: templatesData } = useQuery({
         queryKey: ['customer-email-templates'],
         queryFn: () => getCustomerEmailTemplates({}),
     });

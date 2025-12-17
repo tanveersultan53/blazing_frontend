@@ -16,24 +16,15 @@ const useEmailSentHistory = () => {
   const globalSearchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch sent email history from API
-  const { data, isLoading, isFetching, error } = useQuery({
+  const { data, isLoading, isFetching } = useQuery({
     queryKey: ['sent-emails', debouncedGlobalSearch],
     queryFn: () => getSentEmails({ search: debouncedGlobalSearch }),
   });
-
-  // Debug logging
-  useEffect(() => {
-    console.log('Sent Emails API Response:', data);
-    console.log('Is Loading:', isLoading);
-    console.log('Error:', error);
-  }, [data, isLoading, error]);
 
   // Handle both array response and paginated response formats
   const sentEmails = Array.isArray(data?.data)
     ? data.data
     : (data?.data?.results || []);
-
-  console.log('Processed sentEmails:', sentEmails);
 
   // Debounce filters to prevent too many API calls
   useEffect(() => {

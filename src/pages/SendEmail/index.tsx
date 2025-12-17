@@ -152,7 +152,7 @@ export default function SendEmailPage() {
 
   // Send email mutation
   const sendEmailMutation = useMutation({
-    mutationFn: (data: { template_id: number; recipient_type: string; custom_emails?: string[]; include_attachments?: boolean }) =>
+    mutationFn: (data: { template_id: number; recipient_type: 'contacts' | 'partners' | 'all' | 'custom'; custom_emails?: string[]; include_attachments?: boolean }) =>
       sendEmail(data),
     onSuccess: (response) => {
       const message = response?.data?.message || 'Email sent successfully';
@@ -546,11 +546,11 @@ export default function SendEmailPage() {
             <CardContent className="space-y-3 text-sm">
               <div>
                 <p className="text-muted-foreground">Name</p>
-                <p className="font-medium">{template?.name || template?.email_name}</p>
+                <p className="font-medium">{template?.email_name}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Subject</p>
-                <p className="font-medium">{template?.subject || template?.email_subject}</p>
+                <p className="font-medium">{template?.email_subject}</p>
               </div>
               {template?.attachments && template.attachments.length > 0 && (
                 <div>

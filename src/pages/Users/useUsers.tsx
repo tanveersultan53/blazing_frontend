@@ -10,7 +10,6 @@ import type { IUserList } from "./interface";
 import { formatCellPhone, formatWorkPhone } from "@/lib/phoneFormatter";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { getDefaultEmailTemplate, sendEmail } from "@/services/emailService";
-import type { EmailTemplateList } from "@/pages/Email/interface";
 
 const useUsers = () => {
     const [filters, setFilters] = useState<UserFilters>({});

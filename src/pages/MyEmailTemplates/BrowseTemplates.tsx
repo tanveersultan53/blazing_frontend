@@ -54,7 +54,7 @@ export default function BrowseTemplates() {
   const [isDefault, setIsDefault] = useState(false);
 
   // Fetch available templates for Email Library
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['available-email-templates'],
     queryFn: () => getAvailableTemplates({ is_active: true }),
   });
@@ -67,7 +67,7 @@ export default function BrowseTemplates() {
   // Create template mutation
   const createMutation = useMutation({
     mutationFn: (data: CustomerEmailTemplate) => createCustomerEmailTemplate(data),
-    onSuccess: (response) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customer-email-templates'] });
       queryClient.invalidateQueries({ queryKey: ['available-email-templates'] });
       toast.success(`Email template "${templateName}" created successfully! You can now send emails using this template.`);

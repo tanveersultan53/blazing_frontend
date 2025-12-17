@@ -52,7 +52,7 @@ export default function MyEmailTemplates() {
   const [previewTemplate, setPreviewTemplate] = useState<CustomerEmailTemplate | null>(null);
 
   // Fetch customer email templates (created by the logged-in customer)
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['customer-email-templates', searchQuery],
     queryFn: () => getCustomerEmailTemplates({ search: searchQuery }),
   });

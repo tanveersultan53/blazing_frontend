@@ -13,12 +13,11 @@ import {
   type CustomerEmailTemplate
 } from '@/services/emailService';
 import PageHeader from '@/components/PageHeader';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Save, ArrowLeft, Upload, X } from 'lucide-react';
+import { Save, ArrowLeft, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 
@@ -71,7 +70,7 @@ export default function CreateTemplate() {
   });
 
   // Fetch system template if creating from base template
-  const { data: baseTemplateData, isLoading: loadingBaseTemplate } = useQuery({
+  const { data: baseTemplateData } = useQuery({
     queryKey: ['system-template', baseTemplateId],
     queryFn: () => getSystemTemplateById(Number(baseTemplateId)),
     enabled: !!baseTemplateId && !isEditMode,

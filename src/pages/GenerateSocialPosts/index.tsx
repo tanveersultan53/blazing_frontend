@@ -131,7 +131,6 @@ const GenerateSocialPosts = () => {
 
   const characterCount = getCharacterCount(generatedContent);
   const platformLimit = getPlatformLimit();
-  const isOverLimit = platformLimit && characterCount > platformLimit;
 
   return (
     <div className="space-y-6">

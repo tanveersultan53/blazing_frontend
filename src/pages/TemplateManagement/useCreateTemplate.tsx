@@ -80,7 +80,7 @@ const useCreateTemplate = ({ templateId, templateData, isAdmin = false }: UseCre
     if (template && emailEditorRef.current?.editor) {
       // Load design JSON if available
       if (template.design_json) {
-        emailEditorRef.current.editor.loadDesign(template.design_json);
+        emailEditorRef.current.editor.loadDesign(template.design_json as any);
       } else if (template.html_content) {
         // Otherwise load HTML as a basic design
         const basicDesign: any = {
