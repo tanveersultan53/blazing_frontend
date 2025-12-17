@@ -1,11 +1,13 @@
 export interface ITemplate {
     id: number;
     name: string;
-    assigned_user: string;
-    assigned_user_id: number;
-    created_at: string;
-    updated_at?: string;
+    type: string;
+    html_file: string;
     html_content?: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+    customer: number | null;
     design_json?: object;
 }
 
@@ -22,8 +24,9 @@ export interface ITemplateAttachment {
 export interface CreateTemplateFormData {
     name: string;
     assigned_user_id: number;
+    type: string;
+    is_active: boolean;
     html_file?: FileList;
-    attachments?: FileList;
     html_content?: string;
     design_json?: object;
 }

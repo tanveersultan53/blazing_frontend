@@ -8,6 +8,7 @@ import {
   Settings,
   History,
   FileText,
+  Mail,
 } from "lucide-react"
 
 import { NavMain, type NavMainProps } from "@/components/nav-main"
@@ -39,7 +40,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       items: [],
     },
     {
-      title: "Template Management",
+      title: "Email Library",
       url: ["/template-management"],
       icon: FileText,
       items: [],
@@ -62,6 +63,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Profile",
       url: ["/profile"],
       icon: UserIcon,
+      items: [],
+    },
+    {
+      title: "Email Templates",
+      url: ["/my-email-templates"],
+      icon: Mail,
       items: [],
     },
     {

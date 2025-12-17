@@ -12,7 +12,8 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { getCustomerEmailTemplate, sendEmail } from '@/services/emailService';
+import { getCustomerEmailTemplate, getCustomerEmailTemplates, sendEmail } from '@/services/emailService';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 
 interface Contact {
@@ -34,12 +35,23 @@ export default function SendEmailPage() {
   const [includeAttachments, setIncludeAttachments] = useState(true);
   const [selectedContacts, setSelectedContacts] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>(templateId || '');
 
-  // Fetch template details
+  // Fetch all customer templates
+  const { data: templatesData, isLoading: loadingTemplates } = useQuery({
+    queryKey: ['customer-email-templates'],
+    queryFn: () => getCustomerEmailTemplates({ is_active: true }),
+  });
+
+  const templates = Array.isArray(templatesData?.data)
+    ? templatesData.data
+    : (templatesData?.data?.results || []);
+
+  // Fetch selected template details
   const { data: templateData, isLoading: loadingTemplate, error: templateError } = useQuery({
-    queryKey: ['email-template', templateId],
-    queryFn: () => getCustomerEmailTemplate(Number(templateId)),
-    enabled: !!templateId,
+    queryKey: ['email-template', selectedTemplateId],
+    queryFn: () => getCustomerEmailTemplate(Number(selectedTemplateId)),
+    enabled: !!selectedTemplateId,
   });
 
   const template = templateData?.data;
@@ -117,7 +129,7 @@ export default function SendEmailPage() {
     if (templateError) {
       console.error('Error loading template:', templateError);
       toast.error('Failed to load email template');
-      navigate('/email');
+      navigate('/my-email-templates');
     }
   }, [templateError, navigate]);
 
@@ -146,7 +158,7 @@ export default function SendEmailPage() {
       const message = response?.data?.message || 'Email sent successfully';
       const count = response?.data?.recipients_count || 0;
       toast.success(`${message} (${count} recipient${count !== 1 ? 's' : ''})`);
-      navigate('/email');
+      navigate('/my-email-templates');
     },
     onError: (error: any) => {
       console.error('Send email error:', error);
@@ -155,8 +167,13 @@ export default function SendEmailPage() {
   });
 
   const handleSend = async () => {
+    if (!selectedTemplateId) {
+      toast.error('Please select a template');
+      return;
+    }
+
     if (!template) {
-      toast.error('No template selected');
+      toast.error('Template not loaded');
       return;
     }
 
@@ -174,7 +191,7 @@ export default function SendEmailPage() {
           .filter(email => email);
 
         await sendEmailMutation.mutateAsync({
-          template_id: Number(templateId),
+          template_id: Number(selectedTemplateId),
           recipient_type: 'custom',
           custom_emails: selectedEmails,
           include_attachments: includeAttachments,
@@ -182,7 +199,7 @@ export default function SendEmailPage() {
       } else {
         // Send to all of selected type
         await sendEmailMutation.mutateAsync({
-          template_id: Number(templateId),
+          template_id: Number(selectedTemplateId),
           recipient_type: recipientType,
           include_attachments: includeAttachments,
         });
@@ -225,7 +242,7 @@ export default function SendEmailPage() {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <p className="text-red-500 font-semibold mb-2">Template not found</p>
-            <Button onClick={() => navigate('/email')}>Back to Email Management</Button>
+            <Button onClick={() => navigate('/my-email-templates')}>Back to My Templates</Button>
           </div>
         </div>
       </div>
@@ -238,7 +255,7 @@ export default function SendEmailPage() {
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/email">Email Management</BreadcrumbLink>
+            <BreadcrumbLink href="/my-email-templates">My Email Templates</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
@@ -253,7 +270,7 @@ export default function SendEmailPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/email')}
+            onClick={() => navigate('/my-email-templates')}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
@@ -264,7 +281,7 @@ export default function SendEmailPage() {
               Send Email
             </h1>
             <p className="text-muted-foreground mt-1">
-              Configure and send "{template?.name || template?.email_name}" to your recipients
+              Select a template and configure your email recipients
             </p>
           </div>
         </div>
@@ -281,6 +298,46 @@ export default function SendEmailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Template Selection Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Select Email Template</CardTitle>
+              <CardDescription>Choose the email template you want to send</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Label htmlFor="template-select">Email Template</Label>
+                <Select
+                  value={selectedTemplateId}
+                  onValueChange={setSelectedTemplateId}
+                >
+                  <SelectTrigger id="template-select">
+                    <SelectValue placeholder="Choose a template..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {loadingTemplates ? (
+                      <SelectItem value="loading" disabled>Loading templates...</SelectItem>
+                    ) : templates.length === 0 ? (
+                      <SelectItem value="empty" disabled>No templates available</SelectItem>
+                    ) : (
+                      templates.map((tmpl: any) => (
+                        <SelectItem key={tmpl.email_id} value={String(tmpl.email_id)}>
+                          {tmpl.email_name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                {template && (
+                  <div className="mt-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                    <p className="text-sm font-medium">{template.email_name}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Subject: {template.email_subject}</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Selection Mode Card */}
           <Card>
             <CardHeader>

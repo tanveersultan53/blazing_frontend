@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Trash2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getContacts, deleteContact, type ContactFilters } from '@/services/contactService';
-import { getEmailTemplates, sendEmail } from '@/services/emailService';
+import { getCustomerEmailTemplates, sendEmail } from '@/services/emailService';
 import { queryKeys } from '@/helpers/constants';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { useSearchParams, useNavigate } from 'react-router-dom';
@@ -105,10 +105,10 @@ export const useUserDashboard = () => {
     staleTime: 30000, // Consider data fresh for 30 seconds
   });
 
-  // Get email templates
+  // Get customer email templates (created by the logged-in user)
   const { data: emailTemplatesData, isLoading: isLoadingTemplates } = useQuery({
-    queryKey: [queryKeys.getEmailTemplates as string],
-    queryFn: getEmailTemplates,
+    queryKey: ['customer-email-templates'],
+    queryFn: () => getCustomerEmailTemplates(),
   });
 
   // Delete contact mutation

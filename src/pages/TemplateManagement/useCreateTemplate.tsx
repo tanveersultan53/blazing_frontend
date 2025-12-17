@@ -5,17 +5,22 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import type { EditorRef } from "react-email-editor";
-import type { CreateTemplateFormData } from "./interface";
-import { createTemplate } from "@/services/templateManagementService";
+import type { CreateTemplateFormData, ITemplate } from "./interface";
+import { createTemplate, getTemplateById } from "@/services/templateManagementService";
 import { getUsers } from "@/services/userManagementService";
 
-const useCreateTemplate = () => {
+interface UseCreateTemplateProps {
+  templateId?: string;
+  templateData?: ITemplate;
+  isAdmin?: boolean;
+}
+
+const useCreateTemplate = ({ templateId, templateData, isAdmin = false }: UseCreateTemplateProps = {}) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [htmlContent, setHtmlContent] = useState<string>("");
   const [designJson, setDesignJson] = useState<object | null>(null);
   const [uploadedHtmlFile, setUploadedHtmlFile] = useState<File | null>(null);
   const [htmlPreview, setHtmlPreview] = useState<string>("");
-  const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
   const emailEditorRef = useRef<EditorRef>(null);
   const navigate = useNavigate();
 
@@ -23,17 +28,87 @@ const useCreateTemplate = () => {
     defaultValues: {
       name: "",
       assigned_user_id: 0,
+      type: "newsletter",
+      is_active: true,
     },
     mode: "onChange",
   });
 
-  // Fetch users for dropdown
+  // Fetch template data if in edit mode and only ID is provided
+  const { data: fetchedTemplateData, isLoading: isLoadingTemplate } = useQuery({
+    queryKey: ["template", templateId],
+    queryFn: () => getTemplateById(Number(templateId)),
+    enabled: !!templateId && !templateData,
+  });
+
+  const template = templateData || fetchedTemplateData?.data;
+
+  // Fetch users for dropdown - only if admin
   const { data: usersData, isLoading: isLoadingUsers } = useQuery({
     queryKey: ["users"],
     queryFn: () => getUsers({}),
+    enabled: isAdmin, // Only fetch if user is admin
   });
 
   const users = usersData?.data?.results || [];
+
+  // Populate form with template data in edit mode
+  useEffect(() => {
+    if (template) {
+      form.reset({
+        name: template.name,
+        assigned_user_id: template.customer || 0,
+        type: template.type,
+        is_active: template.is_active,
+      });
+
+      // Set HTML content and preview if available
+      if (template.html_content) {
+        setHtmlContent(template.html_content);
+        setHtmlPreview(template.html_content);
+      }
+
+      // Set design JSON if available
+      if (template.design_json) {
+        setDesignJson(template.design_json);
+      }
+    }
+  }, [template, form]);
+
+  // Load design/HTML into editor when available
+  useEffect(() => {
+    if (template && emailEditorRef.current?.editor) {
+      // Load design JSON if available
+      if (template.design_json) {
+        emailEditorRef.current.editor.loadDesign(template.design_json);
+      } else if (template.html_content) {
+        // Otherwise load HTML as a basic design
+        const basicDesign: any = {
+          counters: {},
+          body: {
+            rows: [
+              {
+                cells: [1],
+                columns: [
+                  {
+                    contents: [
+                      {
+                        type: "html",
+                        values: {
+                          html: template.html_content,
+                        },
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        };
+        emailEditorRef.current.editor.loadDesign(basicDesign);
+      }
+    }
+  }, [template, emailEditorRef.current]);
 
   // Create template mutation
   const { mutate: createTemplateMutation } = useMutation({
@@ -84,35 +159,6 @@ const useCreateTemplate = () => {
       };
       reader.readAsText(file);
     }
-  };
-
-  // Handle attachment uploads
-  const handleAttachmentUpload = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const files = event.target.files;
-    if (files) {
-      const allowedTypes = [".png", ".jpeg", ".jpg", ".pdf", ".doc", ".docx"];
-      const validFiles: File[] = [];
-
-      Array.from(files).forEach((file) => {
-        const fileExtension = "." + file.name.split(".").pop()?.toLowerCase();
-        if (allowedTypes.includes(fileExtension)) {
-          validFiles.push(file);
-        } else {
-          toast.error(
-            `File ${file.name} has invalid type. Only .png, .jpeg, .pdf, .doc, .docx are allowed.`
-          );
-        }
-      });
-
-      setAttachmentFiles((prev) => [...prev, ...validFiles]);
-    }
-  };
-
-  // Remove attachment
-  const removeAttachment = (index: number) => {
-    setAttachmentFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   // Load HTML into email editor
@@ -205,7 +251,9 @@ const useCreateTemplate = () => {
       // Create FormData
       const formData = new FormData();
       formData.append("name", data.name);
-      formData.append("assigned_user_id", data.assigned_user_id.toString());
+      formData.append("customer", data.assigned_user_id.toString());
+      formData.append("type", data.type);
+      formData.append("is_active", data.is_active.toString());
 
       // Add HTML content
       if (uploadedHtmlFile) {
@@ -218,11 +266,6 @@ const useCreateTemplate = () => {
       if (finalDesign) {
         formData.append("design_json", JSON.stringify(finalDesign));
       }
-
-      // Add attachments
-      attachmentFiles.forEach((file) => {
-        formData.append(`attachments`, file);
-      });
 
       console.log("=============================formDate========",formData)
       createTemplateMutation(formData);
@@ -247,15 +290,14 @@ const useCreateTemplate = () => {
     isSubmitting,
     users,
     isLoadingUsers,
+    isLoadingTemplate,
     emailEditorRef,
     handleHtmlFileUpload,
-    handleAttachmentUpload,
-    removeAttachment,
-    attachmentFiles,
     uploadedHtmlFile,
     htmlPreview,
     loadHtmlIntoEditor,
     exportHtmlFromEditor,
+    template,
   };
 };
 

@@ -8,7 +8,6 @@ import {
   Upload,
   FileText,
   Eye,
-  Paperclip,
   Loader2,
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
@@ -32,6 +31,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 import EmailEditor from "react-email-editor";
 import useCreateTemplate from "./useCreateTemplate";
 
@@ -47,21 +47,27 @@ const CreateTemplate = () => {
   // Determine if we're in edit mode
   const isEditMode = !!id;
 
+  // Check if user is admin
+  const isAdmin = currentUser?.is_staff || currentUser?.is_superuser;
+
   const {
     form,
     onSubmit,
     isSubmitting,
     users,
     isLoadingUsers,
+    isLoadingTemplate,
     emailEditorRef,
     handleHtmlFileUpload,
-    handleAttachmentUpload,
-    removeAttachment,
-    attachmentFiles,
     uploadedHtmlFile,
     htmlPreview,
     loadHtmlIntoEditor,
-  } = useCreateTemplate();
+    template,
+  } = useCreateTemplate({
+    templateId: id,
+    templateData: templateData,
+    isAdmin: isAdmin,
+  });
 
   const {
     register,
@@ -70,9 +76,6 @@ const CreateTemplate = () => {
     formState: { errors },
   } = form;
 
-  // Check if user is admin
-  const isAdmin = currentUser?.is_staff || currentUser?.is_superuser;
-
   // Breadcrumbs
   const breadcrumbs = useMemo(
     () => [
@@ -80,7 +83,7 @@ const CreateTemplate = () => {
         label: "Dashboard",
         path: currentUser?.is_superuser ? "/" : "/user-dashboard",
       },
-      { label: "Template Management", path: "/template-management" },
+      { label: "Email Library", path: "/template-management" },
       { label: isEditMode ? "Edit Template" : "Create Template" },
     ],
     [currentUser?.is_superuser, isEditMode]
@@ -95,6 +98,20 @@ const CreateTemplate = () => {
   }
 
   const selectedUserId = watch("assigned_user_id");
+  const selectedType = watch("type");
+  const isActive = watch("is_active");
+
+  // Show loading state while fetching template data in edit mode
+  if (isEditMode && isLoadingTemplate) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Loading template...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -102,7 +119,7 @@ const CreateTemplate = () => {
         title={isEditMode ? "Edit Template" : "Create Template"}
         description={
           isEditMode
-            ? `Edit the email template: ${templateData?.name || ""}`
+            ? `Edit the email template: ${template?.name || ""}`
             : "Create a new email template with custom HTML and attachments."
         }
         actions={[
@@ -182,149 +199,117 @@ const CreateTemplate = () => {
                   </p>
                 )}
               </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* HTML Template Upload */}
-        <Card>
-          <CardHeader>
-            <CardTitle>HTML Template</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="html_file">Upload HTML File</Label>
-              <div className="relative">
-                <Input
-                  id="html_file"
-                  type="file"
-                  accept=".html,.htm"
-                  onChange={handleHtmlFileUpload}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-                <div className="flex items-center justify-between w-full px-3 py-2 text-sm border border-input bg-background rounded-md hover:bg-accent">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">
-                      {uploadedHtmlFile
-                        ? uploadedHtmlFile.name
-                        : "No file chosen"}
-                    </span>
-                  </div>
-                  <Button type="button" variant="outline" size="sm">
-                    <Upload className="h-4 w-4 mr-1" />
-                    Choose File
-                  </Button>
-                </div>
-              </div>
-              <p className="text-xs text-gray-500">
-                Upload an HTML file for your email template
-              </p>
-            </div>
-
-            {/* Preview and Load Buttons */}
-            {uploadedHtmlFile && htmlPreview && (
-              <div className="flex gap-2">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button type="button" variant="outline" size="sm">
-                      <Eye className="h-4 w-4 mr-1" />
-                      Preview HTML
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="!max-w-[98vw] w-[98vw] max-h-[95vh] sm:!max-w-[98vw]">
-                    <DialogHeader>
-                      <DialogTitle>HTML Preview</DialogTitle>
-                    </DialogHeader>
-                    <iframe
-                      srcDoc={htmlPreview}
-                      className="w-full h-[calc(100vh-150px)] border rounded"
-                      title="HTML Preview"
-                    />
-                  </DialogContent>
-                </Dialog>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={loadHtmlIntoEditor}
-                >
-                  <Upload className="h-4 w-4 mr-1" />
-                  Load into Editor
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Attachments Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Attachments</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="attachments">Upload Attachments</Label>
-              <div className="relative">
-                <Input
-                  id="attachments"
-                  type="file"
-                  accept=".png,.jpeg,.jpg,.pdf,.doc,.docx"
-                  multiple
-                  onChange={handleAttachmentUpload}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-                <div className="flex items-center justify-between w-full px-3 py-2 text-sm border border-input bg-background rounded-md hover:bg-accent">
-                  <div className="flex items-center gap-2">
-                    <Paperclip className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">
-                      {attachmentFiles.length > 0
-                        ? `${attachmentFiles.length} file(s) selected`
-                        : "No files chosen"}
-                    </span>
-                  </div>
-                  <Button type="button" variant="outline" size="sm">
-                    <Upload className="h-4 w-4 mr-1" />
-                    Choose Files
-                  </Button>
-                </div>
-              </div>
-              <p className="text-xs text-gray-500">
-                Supported formats: .png, .jpeg, .pdf, .doc, .docx
-              </p>
-            </div>
-
-            {/* List of Uploaded Files */}
-            {attachmentFiles.length > 0 && (
+              {/* Template Type */}
               <div className="space-y-2">
-                <Label>Uploaded Files</Label>
-                <div className="space-y-2">
-                  {attachmentFiles.map((file, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-2 border rounded-md bg-muted/50"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Paperclip className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{file.name}</span>
-                        <span className="text-xs text-muted-foreground">
-                          ({(file.size / 1024).toFixed(2)} KB)
-                        </span>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeAttachment(index)}
-                      >
-                        <X className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </div>
-                  ))}
+                <Label htmlFor="type">
+                  Template Type <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={selectedType || "newsletter"}
+                  onValueChange={(value) => setValue("type", value)}
+                >
+                  <SelectTrigger
+                    className={
+                      errors.type ? "border-red-500 w-full" : "w-full"
+                    }
+                  >
+                    <SelectValue placeholder="Select template type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newsletter">Newsletter</SelectItem>
+                    <SelectItem value="promotional">Promotional</SelectItem>
+                    <SelectItem value="transactional">Transactional</SelectItem>
+                    <SelectItem value="announcement">Announcement</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.type && (
+                  <p className="text-sm text-red-500">{errors.type.message}</p>
+                )}
+              </div>
+
+              {/* Is Active Toggle */}
+              <div className="space-y-2">
+                <Label htmlFor="is_active">Active Status</Label>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="is_active"
+                    checked={isActive}
+                    onCheckedChange={(checked) => setValue("is_active", checked)}
+                  />
+                  <Label htmlFor="is_active" className="font-normal cursor-pointer">
+                    {isActive ? "Template is active" : "Template is inactive"}
+                  </Label>
                 </div>
               </div>
-            )}
+
+              {/* HTML File Upload */}
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="html_file">Upload HTML File</Label>
+                <div className="relative">
+                  <Input
+                    id="html_file"
+                    type="file"
+                    accept=".html,.htm"
+                    onChange={handleHtmlFileUpload}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <div className="flex items-center justify-between w-full px-3 py-2 text-sm border border-input bg-background rounded-md hover:bg-accent">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">
+                        {uploadedHtmlFile
+                          ? uploadedHtmlFile.name
+                          : "No file chosen"}
+                      </span>
+                    </div>
+                    <Button type="button" variant="outline" size="sm">
+                      <Upload className="h-4 w-4 mr-1" />
+                      Choose File
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Upload an HTML file for your email template
+                </p>
+              </div>
+
+              {/* Preview and Load Buttons */}
+              {uploadedHtmlFile && htmlPreview && (
+                <div className="md:col-span-2">
+                  <div className="flex gap-2">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button type="button" variant="outline" size="sm">
+                          <Eye className="h-4 w-4 mr-1" />
+                          Preview HTML
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="!max-w-[98vw] w-[98vw] max-h-[95vh] sm:!max-w-[98vw]">
+                        <DialogHeader>
+                          <DialogTitle>HTML Preview</DialogTitle>
+                        </DialogHeader>
+                        <iframe
+                          srcDoc={htmlPreview}
+                          className="w-full h-[calc(100vh-150px)] border rounded"
+                          title="HTML Preview"
+                        />
+                      </DialogContent>
+                    </Dialog>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={loadHtmlIntoEditor}
+                    >
+                      <Upload className="h-4 w-4 mr-1" />
+                      Load into Editor
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
 

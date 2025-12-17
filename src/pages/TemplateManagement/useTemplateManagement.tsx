@@ -1,38 +1,23 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
+import { Badge } from "@/components/ui/badge";
 import type { ITemplate } from "./interface";
+import { getTemplates } from "@/services/templateManagementService";
 import { format } from "date-fns";
 
 const useTemplateManagement = () => {
     const [filters, setFilters] = useState<Record<string, string>>({});
     const [globalSearch, setGlobalSearch] = useState<string>("");
 
-    // Mock data - replace with actual API call
-    const mockTemplates: ITemplate[] = [
-        {
-            id: 1,
-            name: "Welcome Email Template",
-            assigned_user: "John Doe",
-            assigned_user_id: 1,
-            created_at: "2024-01-15T10:30:00Z",
-            updated_at: "2024-01-20T14:45:00Z",
-        },
-        {
-            id: 2,
-            name: "Newsletter Template",
-            assigned_user: "Jane Smith",
-            assigned_user_id: 2,
-            created_at: "2024-02-10T09:15:00Z",
-        },
-        {
-            id: 3,
-            name: "Promotion Email",
-            assigned_user: "Mike Johnson",
-            assigned_user_id: 3,
-            created_at: "2024-03-05T16:20:00Z",
-        },
-    ];
+    // Fetch templates from API
+    const { data: templatesData, isLoading, isFetching } = useQuery({
+        queryKey: ["templates", filters, globalSearch],
+        queryFn: () => getTemplates({ ...filters, search: globalSearch }),
+    });
+
+    const templates = templatesData?.data?.results || [];
 
     const columns: ColumnDef<ITemplate>[] = [
         {
@@ -43,11 +28,55 @@ const useTemplateManagement = () => {
             enableColumnFilter: true,
         },
         {
-            accessorKey: "assigned_user",
+            accessorKey: "type",
             header: ({ column }) => (
-                <DataTableColumnHeader column={column} title="Assigned User" />
+                <DataTableColumnHeader column={column} title="Type" />
             ),
+            cell: ({ row }) => {
+                const type = row.getValue("type") as string;
+                const getTypeColor = (type: string) => {
+                    switch (type) {
+                        case "newsletter":
+                            return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
+                        case "promotional":
+                            return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
+                        case "transactional":
+                            return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300";
+                        case "announcement":
+                            return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300";
+                        default:
+                            return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
+                    }
+                };
+                return (
+                    <Badge variant="outline" className={getTypeColor(type)}>
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </Badge>
+                );
+            },
             enableColumnFilter: true,
+        },
+        {
+            accessorKey: "is_active",
+            header: ({ column }) => (
+                <DataTableColumnHeader column={column} title="Status" />
+            ),
+            cell: ({ row }) => {
+                const isActive = row.getValue("is_active") as boolean;
+                return (
+                    <Badge
+                        variant="outline"
+                        className={
+                            isActive
+                                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                                : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
+                        }
+                    >
+                        {isActive ? "Active" : "Inactive"}
+                    </Badge>
+                );
+            },
+            enableColumnFilter: false,
         },
         {
             accessorKey: "created_at",
@@ -95,37 +124,11 @@ const useTemplateManagement = () => {
         setGlobalSearch(value);
     }, []);
 
-    // Filter templates based on filters and global search
-    const filteredTemplates = mockTemplates.filter(template => {
-        // Apply global search
-        if (globalSearch) {
-            const searchLower = globalSearch.toLowerCase();
-            const matchesGlobalSearch =
-                template.name.toLowerCase().includes(searchLower) ||
-                template.assigned_user.toLowerCase().includes(searchLower);
-            if (!matchesGlobalSearch) return false;
-        }
-
-        // Apply column filters
-        for (const [key, value] of Object.entries(filters)) {
-            if (value) {
-                const templateValue = template[key as keyof ITemplate];
-                if (typeof templateValue === 'string') {
-                    if (!templateValue.toLowerCase().includes(value.toLowerCase())) {
-                        return false;
-                    }
-                }
-            }
-        }
-
-        return true;
-    });
-
     return {
         columns,
-        data: filteredTemplates,
-        isLoading: false,
-        isFetching: false,
+        data: templates,
+        isLoading,
+        isFetching,
         filters,
         updateFilter,
         clearFilter,

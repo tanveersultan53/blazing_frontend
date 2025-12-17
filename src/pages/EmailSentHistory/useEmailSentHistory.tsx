@@ -2,84 +2,10 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
 import type { IEmailSentHistory, EmailSentHistoryFilters } from "./interface";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { format } from "date-fns";
-
-// Dummy data for email sent history
-const dummyEmailHistory: IEmailSentHistory[] = [
-  {
-    id: 1,
-    email_name: "Welcome Campaign",
-    subject: "Welcome to Blazing Social!",
-    recipient_email: "john.doe@example.com",
-    date_sent: "2024-12-08T10:30:00",
-    status: "sent",
-    template_name: "Welcome Template",
-  },
-  {
-    id: 2,
-    email_name: "Monthly Newsletter",
-    subject: "December Newsletter - Top Updates",
-    recipient_email: "jane.smith@example.com",
-    date_sent: "2024-12-07T14:15:00",
-    status: "sent",
-    template_name: "Newsletter Template",
-  },
-  {
-    id: 3,
-    email_name: "Product Announcement",
-    subject: "New Feature Launch!",
-    recipient_email: "bob.johnson@example.com",
-    date_sent: "2024-12-06T09:00:00",
-    status: "failed",
-    template_name: "Announcement Template",
-  },
-  {
-    id: 4,
-    email_name: "Customer Follow-up",
-    subject: "Thank you for your purchase",
-    recipient_email: "alice.williams@example.com",
-    date_sent: "2024-12-05T16:45:00",
-    status: "sent",
-    template_name: "Follow-up Template",
-  },
-  {
-    id: 5,
-    email_name: "Event Invitation",
-    subject: "You're invited to our Webinar!",
-    recipient_email: "charlie.brown@example.com",
-    date_sent: "2024-12-04T11:20:00",
-    status: "sent",
-    template_name: "Event Template",
-  },
-  {
-    id: 6,
-    email_name: "Password Reset",
-    subject: "Reset your password",
-    recipient_email: "david.miller@example.com",
-    date_sent: "2024-12-03T08:30:00",
-    status: "pending",
-    template_name: "Security Template",
-  },
-  {
-    id: 7,
-    email_name: "Survey Request",
-    subject: "We'd love your feedback!",
-    recipient_email: "emma.davis@example.com",
-    date_sent: "2024-12-02T13:10:00",
-    status: "sent",
-    template_name: "Survey Template",
-  },
-  {
-    id: 8,
-    email_name: "Promotional Campaign",
-    subject: "Special Offer - 50% Off!",
-    recipient_email: "frank.wilson@example.com",
-    date_sent: "2024-12-01T15:00:00",
-    status: "sent",
-    template_name: "Promotional Template",
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import { getSentEmails } from "@/services/emailService";
 
 const useEmailSentHistory = () => {
   const [filters, setFilters] = useState<EmailSentHistoryFilters>({});
@@ -88,6 +14,26 @@ const useEmailSentHistory = () => {
   const [debouncedGlobalSearch, setDebouncedGlobalSearch] = useState<string>("");
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const globalSearchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Fetch sent email history from API
+  const { data, isLoading, isFetching, error } = useQuery({
+    queryKey: ['sent-emails', debouncedGlobalSearch],
+    queryFn: () => getSentEmails({ search: debouncedGlobalSearch }),
+  });
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Sent Emails API Response:', data);
+    console.log('Is Loading:', isLoading);
+    console.log('Error:', error);
+  }, [data, isLoading, error]);
+
+  // Handle both array response and paginated response formats
+  const sentEmails = Array.isArray(data?.data)
+    ? data.data
+    : (data?.data?.results || []);
+
+  console.log('Processed sentEmails:', sentEmails);
 
   // Debounce filters to prevent too many API calls
   useEffect(() => {
@@ -123,28 +69,44 @@ const useEmailSentHistory = () => {
     };
   }, [globalSearch]);
 
-  const columns: ColumnDef<IEmailSentHistory>[] = [
+  const columns: ColumnDef<IEmailSentHistory>[] = useMemo(() => [
     {
-      accessorKey: "email_name",
+      accessorKey: "contact_name",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Email Name" />
+        <DataTableColumnHeader column={column} title="Contact Name" />
+      ),
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue("contact_name") || "N/A"}</div>
       ),
       enableColumnFilter: true,
     },
     {
-      accessorKey: "subject",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Subject" />
-      ),
-      enableColumnFilter: true,
-    },
-    {
-      accessorKey: "recipient_email",
+      accessorKey: "email",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Recipient Email" />
       ),
       cell: ({ row }) => (
-        <div className="text-blue-600">{row.getValue("recipient_email")}</div>
+        <div className="text-blue-600">{row.getValue("email")}</div>
+      ),
+      enableColumnFilter: true,
+    },
+    {
+      accessorKey: "template_name",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Template Name" />
+      ),
+      cell: ({ row }) => (
+        <div className="text-sm">{row.getValue("template_name") || "N/A"}</div>
+      ),
+      enableColumnFilter: true,
+    },
+    {
+      accessorKey: "rep_name",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Sent By" />
+      ),
+      cell: ({ row }) => (
+        <div className="text-sm text-gray-600">{row.getValue("rep_name") || "N/A"}</div>
       ),
       enableColumnFilter: true,
     },
@@ -155,10 +117,12 @@ const useEmailSentHistory = () => {
       ),
       cell: ({ row }) => {
         const date = row.getValue("date_sent") as string;
-        return (
+        return date ? (
           <div className="text-sm">
             {format(new Date(date), "MMM dd, yyyy hh:mm a")}
           </div>
+        ) : (
+          <div className="text-sm text-gray-400">N/A</div>
         );
       },
       enableColumnFilter: false,
@@ -169,8 +133,8 @@ const useEmailSentHistory = () => {
         <DataTableColumnHeader column={column} title="Status" />
       ),
       cell: ({ row }) => {
-        const status = row.getValue("status") as string;
-        return (
+        const status = row.getValue("status") as string | undefined;
+        return status ? (
           <Badge
             variant={
               status === "sent"
@@ -182,39 +146,27 @@ const useEmailSentHistory = () => {
           >
             {status.charAt(0).toUpperCase() + status.slice(1)}
           </Badge>
+        ) : (
+          <Badge variant="default">Sent</Badge>
         );
       },
-      enableColumnFilter: true,
-    },
-    {
-      accessorKey: "template_name",
-      header: "Template",
-      cell: ({ row }) => (
-        <div className="text-sm text-gray-600">
-          {row.getValue("template_name") || "N/A"}
-        </div>
-      ),
       enableColumnFilter: false,
     },
-  ];
+  ], []);
 
-  // Filter data based on debounced filters and global search
-  const filteredData = dummyEmailHistory.filter((item) => {
-    // Apply column-specific filters
-    const matchesFilters = Object.entries(debouncedFilters).every(([key, value]) => {
-      if (!value) return true;
-      const itemValue = item[key as keyof IEmailSentHistory]?.toString().toLowerCase() || "";
-      return itemValue.includes(value.toLowerCase());
+  // Filter data based on debounced filters (client-side filtering)
+  const filteredData = useMemo(() => {
+    return sentEmails.filter((item) => {
+      // Apply column-specific filters
+      const matchesFilters = Object.entries(debouncedFilters).every(([key, value]) => {
+        if (!value) return true;
+        const itemValue = item[key as keyof IEmailSentHistory]?.toString().toLowerCase() || "";
+        return itemValue.includes(value.toLowerCase());
+      });
+
+      return matchesFilters;
     });
-
-    // Apply global search
-    const matchesGlobalSearch = !debouncedGlobalSearch ||
-      Object.values(item).some(value =>
-        value?.toString().toLowerCase().includes(debouncedGlobalSearch.toLowerCase())
-      );
-
-    return matchesFilters && matchesGlobalSearch;
-  });
+  }, [sentEmails, debouncedFilters]);
 
   // Filter update function
   const updateFilter = useCallback((key: keyof EmailSentHistoryFilters, value: string) => {
@@ -252,8 +204,8 @@ const useEmailSentHistory = () => {
   return {
     columns,
     data: filteredData,
-    isLoading: false,
-    isFetching: false,
+    isLoading,
+    isFetching,
     filters,
     updateFilter,
     clearFilter,

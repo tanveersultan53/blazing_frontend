@@ -44,7 +44,7 @@ const TemplateManagement = () => {
   // Memoize breadcrumbs to prevent infinite loops
   const breadcrumbs = useMemo(() => [
     { label: 'Dashboard', path: currentUser?.is_superuser ? '/' : '/user-dashboard' },
-    { label: 'Template Management' }
+    { label: 'Email Library' }
   ], [currentUser?.is_superuser]);
 
   useBreadcrumbs(breadcrumbs);
@@ -102,7 +102,7 @@ const TemplateManagement = () => {
   // Column titles mapping for filter placeholders
   const columnTitles = {
     'name': 'Template Name',
-    'assigned_user': 'Assigned User',
+    'type': 'Type',
     'created_at': 'Created Date',
   };
 
@@ -115,7 +115,7 @@ const TemplateManagement = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Template Management"
+        title="Email Library"
         description="Manage your templates and their assignments."
         actions={[
           {
@@ -131,7 +131,7 @@ const TemplateManagement = () => {
         <DataTable
           columns={columns}
           data={data}
-          searchColumns={['name', 'assigned_user']}
+          searchColumns={['name', 'type']}
           showActionsColumn={true}
           actionItems={actionItems}
           columnTitles={columnTitles}

@@ -37,7 +37,7 @@ const ViewTemplate = () => {
         label: "Dashboard",
         path: currentUser?.is_superuser ? "/" : "/user-dashboard",
       },
-      { label: "Template Management", path: "/template-management" },
+      { label: "Email Library", path: "/template-management" },
       { label: "View Template" },
     ],
     [currentUser?.is_superuser]
