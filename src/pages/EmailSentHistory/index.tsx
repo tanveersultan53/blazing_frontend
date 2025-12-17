@@ -9,6 +9,7 @@ import { useMemo } from "react";
 import { useSelector } from "react-redux";
 import type { User } from "@/redux/features/userSlice";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 const EmailSentHistory = () => {
   const {
@@ -25,6 +26,7 @@ const EmailSentHistory = () => {
   } = useEmailSentHistory();
 
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const currentUser = useSelector(
     (state: { user: { currentUser: User } }) => state.user.currentUser
   );
@@ -42,16 +44,15 @@ const EmailSentHistory = () => {
 
   // Handle refresh functionality
   const handleRefresh = () => {
-    console.log("Refresh email history clicked");
-    // TODO: Implement refresh logic
+    queryClient.invalidateQueries({ queryKey: ['sent-emails'] });
   };
 
   // Column titles mapping for filter placeholders
   const columnTitles = {
-    email_name: "Email Name",
-    subject: "Subject",
-    recipient_email: "Recipient Email",
-    status: "Status",
+    contact_name: "Contact Name",
+    email: "Recipient Email",
+    template_name: "Template Name",
+    rep_name: "Sent By",
   };
 
   // Redirect non-admin users
@@ -85,7 +86,7 @@ const EmailSentHistory = () => {
         <DataTable
           columns={columns}
           data={data}
-          searchColumns={["email_name", "subject", "recipient_email", "status"]}
+          searchColumns={["contact_name", "email", "template_name", "rep_name"]}
           showActionsColumn
           onViewDetails={(row: IEmailSentHistory) =>
             console.log("View email details:", row.id)

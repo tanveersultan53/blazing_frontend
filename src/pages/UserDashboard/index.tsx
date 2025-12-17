@@ -1,12 +1,16 @@
 import { useMemo } from "react";
 import { useBreadcrumbs } from "@/hooks/usePageTitle";
 import PageHeader from "@/components/PageHeader";
-import { FileDown, UserPlus } from "lucide-react";
+import { FileDown, UserPlus, Mail, FileText, ArrowRight } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { DataTable } from "@/components/data-table";
 import { useUserDashboard } from "./useUserDashboard";
 import { SendEmailToContactsModal } from "./SendEmailToContactsModal";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { getCustomerEmailTemplates } from "@/services/emailService";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,6 +31,15 @@ const UserDashboard = () => {
     ], []);
 
     useBreadcrumbs(breadcrumbs);
+
+    // Fetch user's email templates
+    const { data: templatesData } = useQuery({
+        queryKey: ['customer-email-templates'],
+        queryFn: () => getCustomerEmailTemplates({}),
+    });
+
+    const userTemplates = templatesData?.data?.results || [];
+    const activeTemplates = userTemplates.filter(t => t.is_active);
 
 
     // Use the dashboard hook
@@ -89,7 +102,7 @@ const UserDashboard = () => {
 
     return <PageHeader
         title="Dashboard"
-        description="Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos."
+        description="Manage your contacts and browse email templates from the library"
         actions={[
             ...(getButtonName() ? [{
                 label: getButtonName() as string,
@@ -106,33 +119,95 @@ const UserDashboard = () => {
         ]}
     >
         <div className="flex w-full flex-col gap-6">
-            <Tabs defaultValue={activeTab} onValueChange={handleTabChange}>
-                <TabsList>
-                    <TabsTrigger value="contact">Contact</TabsTrigger>
-                    <TabsTrigger value="referal_partner">Referal Partner</TabsTrigger>
-                    <TabsTrigger value="all">All</TabsTrigger>
-                </TabsList>
-            </Tabs>
-            <DataTable
-                columns={columns}
-                data={data}
-                searchColumns={[ 'name', 'email', 'company', 'title', 'cell', 'work_phone']}
-                showActionsColumn={true}
-                onViewDetails={handleViewDetails}
-                actionItems={actionItems}
-                filters={filters as Record<string, string | undefined>}
-                onFilterChange={(key: string, value: string) => updateFilter(key as keyof typeof filters, value)}
-                onClearFilter={(key: string) => clearFilter(key as keyof typeof filters)}
-                onClearAllFilters={clearAllFilters}
-                columnTitles={columnTitles}
-                isFetching={isFetching}
-                isLoading={isLoading}
-                globalSearch={globalSearch}
-                onGlobalSearchChange={updateGlobalSearch}
-                enableRowSelection={true}
-                onDeleteSelected={handleDeleteSelected}
-                onSendEmailSelected={handleSendEmailSelected}
-            />
+            {/* Email Templates Section */}
+            <div className="grid gap-4 md:grid-cols-2">
+                {/* Template Stats */}
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">
+                            Email Templates
+                        </CardTitle>
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{userTemplates.length}</div>
+                        <p className="text-xs text-muted-foreground">
+                            {activeTemplates.length} active templates
+                        </p>
+                        <Button
+                            variant="link"
+                            className="mt-2 p-0 h-auto"
+                            onClick={() => navigate('/my-email-templates')}
+                        >
+                            View all templates
+                            <ArrowRight className="ml-1 h-3 w-3" />
+                        </Button>
+                    </CardContent>
+                </Card>
+
+                {/* Browse Templates Action */}
+                <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">
+                            Create Email Template
+                        </CardTitle>
+                        <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    </CardHeader>
+                    <CardContent>
+                        <CardDescription className="text-xs mb-3">
+                            Choose from professional templates in our library
+                        </CardDescription>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            onClick={() => navigate('/my-email-templates/browse')}
+                        >
+                            <FileText className="mr-2 h-4 w-4" />
+                            Create Template
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Contacts Section */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>My Contacts</CardTitle>
+                    <CardDescription>Manage your contacts and referral partners</CardDescription>
+                </CardHeader>
+                <CardContent className="p-0">
+                    <Tabs defaultValue={activeTab} onValueChange={handleTabChange} className="px-6 pt-6">
+                        <TabsList>
+                            <TabsTrigger value="contact">Contact</TabsTrigger>
+                            <TabsTrigger value="referal_partner">Referal Partner</TabsTrigger>
+                            <TabsTrigger value="all">All</TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+                    <div className="px-6 pb-6">
+                        <DataTable
+                            columns={columns}
+                            data={data}
+                            searchColumns={[ 'name', 'email', 'company', 'title', 'cell', 'work_phone']}
+                            showActionsColumn={true}
+                            onViewDetails={handleViewDetails}
+                            actionItems={actionItems}
+                            filters={filters as Record<string, string | undefined>}
+                            onFilterChange={(key: string, value: string) => updateFilter(key as keyof typeof filters, value)}
+                            onClearFilter={(key: string) => clearFilter(key as keyof typeof filters)}
+                            onClearAllFilters={clearAllFilters}
+                            columnTitles={columnTitles}
+                            isFetching={isFetching}
+                            isLoading={isLoading}
+                            globalSearch={globalSearch}
+                            onGlobalSearchChange={updateGlobalSearch}
+                            enableRowSelection={true}
+                            onDeleteSelected={handleDeleteSelected}
+                            onSendEmailSelected={handleSendEmailSelected}
+                        />
+                    </div>
+                </CardContent>
+            </Card>
         </div>
 
         {/* Delete Confirmation Dialog */}

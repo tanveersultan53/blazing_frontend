@@ -3,11 +3,12 @@ import {
   Users,
   Home,
   UserIcon,
-  Mail,
   ClipboardCheckIcon,
   ArrowDownUp,
   Settings,
   History,
+  FileText,
+  Mail,
 } from "lucide-react"
 
 import { NavMain, type NavMainProps } from "@/components/nav-main"
@@ -39,13 +40,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       items: [],
     },
     {
-      title: "Email",
-      url: ["/email"],
-      icon: Mail,
+      title: "Email Library",
+      url: ["/template-management"],
+      icon: FileText,
       items: [],
     },
     {
-      title: "Email Sent History",
+      title: "Email History",
       url: ["/email-sent-history"],
       icon: History,
       items: [],
@@ -65,8 +66,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       items: [],
     },
     {
-      title: "Email",
-      url: ["/email"],
+      title: "Email Templates",
+      url: ["/my-email-templates"],
       icon: Mail,
       items: [],
     },

@@ -19,14 +19,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { EmailTemplateList } from "@/pages/Email/interface";
 import type { PersonData } from "./useUserDashboard";
 
 interface SendEmailToContactsModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedContacts: PersonData[];
-  templates: EmailTemplateList[];
+  templates: any[];
   onSend: (
     templateId: number,
     contactEmails: string[],
@@ -54,8 +53,6 @@ export const SendEmailToContactsModal = ({
   const [previewRecipient, setPreviewRecipient] = useState<PersonData | null>(
     null
   );
-  const [customHtmlContent, setCustomHtmlContent] = useState<string>("");
-  const [customHtmlFileName, setCustomHtmlFileName] = useState<string>("");
 
   // Update email name and subject when template is selected
   useEffect(() => {
@@ -102,37 +99,10 @@ export const SendEmailToContactsModal = ({
     setIsPreviewOpen(true);
   };
 
-  const handleHtmlFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.name.endsWith('.html') && !file.name.endsWith('.htm')) {
-      toast.error('Please upload only HTML files (.html or .htm)');
-      return;
-    }
-
-    // Read file content
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const content = event.target?.result as string;
-      setCustomHtmlContent(content);
-      setCustomHtmlFileName(file.name);
-      setSelectedTemplateId(''); // Clear template selection
-      toast.success(`HTML file "${file.name}" loaded successfully`);
-    };
-    reader.onerror = () => {
-      toast.error('Failed to read HTML file');
-    };
-    reader.readAsText(file);
-
-    // Reset the input
-    e.target.value = '';
-  };
 
   const handleSend = async () => {
-    if (!selectedTemplateId && !customHtmlContent) {
-      toast.error("Please select an email template or load a custom HTML file");
+    if (!selectedTemplateId) {
+      toast.error("Please select an email template");
       return;
     }
 
@@ -178,8 +148,6 @@ export const SendEmailToContactsModal = ({
     setEmailName("");
     setEmailSubject("");
     setAttachments([]);
-    setCustomHtmlContent("");
-    setCustomHtmlFileName("");
     onClose();
   };
 
@@ -193,8 +161,7 @@ export const SendEmailToContactsModal = ({
 
   // Replace placeholders in HTML content with recipient information
   const getPersonalizedHtmlContent = () => {
-    // Use custom HTML if available, otherwise use template
-    const htmlContent = customHtmlContent || selectedTemplate?.html_content || '';
+    const htmlContent = selectedTemplate?.html_content || '';
 
     if (!htmlContent || !previewRecipient) {
       return htmlContent;
@@ -271,7 +238,13 @@ export const SendEmailToContactsModal = ({
                       ? "Loading templates..."
                       : "Choose a template"
                   }
-                />
+                >
+                  {selectedTemplateId && selectedTemplate ? (
+                    <span className="font-medium">
+                      {selectedTemplate.name || selectedTemplate.email_name}
+                    </span>
+                  ) : null}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {templates.map((template) => (
@@ -305,7 +278,7 @@ export const SendEmailToContactsModal = ({
           </div>
 
           {/* Email Name and Subject Fields in One Row */}
-          {(selectedTemplateId || customHtmlContent) && (
+          {selectedTemplateId && (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="email-name" className="text-base font-semibold">
@@ -338,7 +311,7 @@ export const SendEmailToContactsModal = ({
           )}
 
           {/* Attachments Section */}
-          {(selectedTemplateId || customHtmlContent) && (
+          {selectedTemplateId && (
             <div className="space-y-2">
               <Label className="text-base font-semibold">
                 Attachments (Optional)
@@ -427,7 +400,7 @@ export const SendEmailToContactsModal = ({
                         <span className="text-orange-600"> - No email</span>
                       )}
                     </div>
-                    {contact.email && (selectedTemplateId || customHtmlContent) && (
+                    {contact.email && selectedTemplateId && (
                       <Button
                         type="button"
                         variant="ghost"
@@ -446,57 +419,30 @@ export const SendEmailToContactsModal = ({
           )}
         </div>
 
-        <DialogFooter className="flex-col sm:flex-row gap-2">
-          <div className="flex-1 flex items-center gap-2">
-            <Input
-              id="html-file-upload"
-              type="file"
-              accept=".html,.htm"
-              onChange={handleHtmlFileUpload}
-              disabled={isSending}
-              className="hidden"
-            />
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => document.getElementById('html-file-upload')?.click()}
-              disabled={isSending}
-              className="text-xs"
-            >
-              Load Your Own HTML
-            </Button>
-            {customHtmlFileName && (
-              <span className="text-xs text-muted-foreground truncate">
-                {customHtmlFileName}
-              </span>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              disabled={isSending}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSend}
-              disabled={
-                isSending ||
-                (!selectedTemplateId && !customHtmlContent) ||
-                validContactsCount === 0 ||
-                isLoadingTemplates
-              }
-            >
-              {isSending
-                ? "Sending..."
-                : `Send Email to ${validContactsCount} Contact${
-                    validContactsCount !== 1 ? "s" : ""
-                  }`}
-            </Button>
-          </div>
+        <DialogFooter className="flex gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleClose}
+            disabled={isSending}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSend}
+            disabled={
+              isSending ||
+              !selectedTemplateId ||
+              validContactsCount === 0 ||
+              isLoadingTemplates
+            }
+          >
+            {isSending
+              ? "Sending..."
+              : `Send Email to ${validContactsCount} Contact${
+                  validContactsCount !== 1 ? "s" : ""
+                }`}
+          </Button>
         </DialogFooter>
       </DialogContent>
 
@@ -521,9 +467,9 @@ export const SendEmailToContactsModal = ({
 
           <div className="flex-1 overflow-y-auto py-4">
             {/* Template Content Preview */}
-            {(customHtmlContent || (selectedTemplate && (selectedTemplate.html_content || selectedTemplate.html_file))) ? (
+            {(selectedTemplate && (selectedTemplate.html_content || selectedTemplate.html_file)) ? (
               <div className="border rounded-md p-4 bg-white h-full overflow-y-auto">
-                {(customHtmlContent || selectedTemplate?.html_content) ? (
+                {selectedTemplate?.html_content ? (
                   <div
                     dangerouslySetInnerHTML={{
                       __html: getPersonalizedHtmlContent(),
