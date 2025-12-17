@@ -9,6 +9,7 @@ import {
   History,
   FileText,
   Mail,
+  Newspaper,
 } from "lucide-react"
 
 import { NavMain, type NavMainProps } from "@/components/nav-main"
@@ -43,6 +44,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Email Library",
       url: ["/template-management"],
       icon: FileText,
+      items: [],
+    },
+    {
+      title: "Newsletters",
+      url: ["/newsletters"],
+      icon: Newspaper,
       items: [],
     },
     {
