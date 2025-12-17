@@ -28,6 +28,7 @@ import type { User as UserType } from '@/redux/features/userSlice';
 import BlazingIcon from '@/assets/blazing-icon.png';
 
 export default function NewsletterManagement() {
+    //@ts-ignore
   const queryClient = useQueryClient();
   const currentUser = useSelector((state: { user: { currentUser: UserType } }) => state.user.currentUser);
 
