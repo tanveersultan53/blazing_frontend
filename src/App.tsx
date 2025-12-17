@@ -22,6 +22,7 @@ import MyEmailTemplates from './pages/MyEmailTemplates';
 import CreateCustomerTemplate from './pages/MyEmailTemplates/CreateTemplate';
 import BrowseTemplates from './pages/MyEmailTemplates/BrowseTemplates';
 import SendEmail from './pages/SendEmail';
+import NewsletterManagement from './pages/NewsletterManagement';
 
 function App() {
   return (
@@ -49,6 +50,7 @@ function App() {
           <Route path="email-template-editor" element={<EmailTemplate />} />
           <Route path="react-quill-editor" element={<ReactQuillEditor />} />
           <Route path="email-sent-history" element={<EmailSentHistory />} />
+          <Route path="newsletters" element={<NewsletterManagement />} />
         </Route>
         <Route path="/login" element={<WithoutAuth><Login /></WithoutAuth>} />
         <Route path="*" element={<Navigate to="/" replace />} />
