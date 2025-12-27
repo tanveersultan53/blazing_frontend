@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
@@ -29,12 +28,10 @@ import {
   Upload,
   FileText
 } from 'lucide-react';
-import BlazingIcon from '@/assets/blazing-icon.png';
 import { useNewsletterManagement } from './useNewsletterManagement';
 
 export default function NewsletterManagement() {
   const {
-    currentUser,
     formData,
     scheduleDate,
     setScheduleDate,
@@ -46,8 +43,18 @@ export default function NewsletterManagement() {
     handleTemplateSelect,
     handleUserPhotoUpload,
     handleCompanyLogoUpload,
+    handleEconomicNewsImageUpload,
+    handleInterestRateImageUpload,
+    handleRealEstateNewsImageUpload,
+    handleArticle1ImageUpload,
+    handleArticle2ImageUpload,
     userPhotoPreview,
     companyLogoPreview,
+    economicNewsImagePreview,
+    interestRateImagePreview,
+    realEstateNewsImagePreview,
+    article1ImagePreview,
+    article2ImagePreview,
     newsletterTemplates,
     isLoadingTemplates,
   } = useNewsletterManagement();
@@ -312,7 +319,7 @@ export default function NewsletterManagement() {
                     variant="outline"
                     disabled={createMutation.isPending}
                   >
-                    Save Process
+                    Save
                   </Button>
                   <Button
                     type="button"
@@ -428,41 +435,126 @@ export default function NewsletterManagement() {
                   {/* Image 1 - Economic News */}
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Economic News Image</Label>
-                    <div className="w-full h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-3xl shadow-md">
-                      📈
-                    </div>
+                    <Input
+                      id="economic_news_image"
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        handleEconomicNewsImageUpload(file);
+                      }}
+                      className="cursor-pointer"
+                    />
+                    {economicNewsImagePreview && (
+                      <div className="w-full p-4 border rounded-lg bg-white dark:bg-gray-800">
+                        <img
+                          src={economicNewsImagePreview}
+                          alt="Economic News Preview"
+                          className="w-full h-24 object-cover rounded-lg"
+                        />
+                        <p className="text-xs text-muted-foreground mt-2">{formData.economic_news_image?.name}</p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Image 2 - Interest Rate */}
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Interest Rate Image</Label>
-                    <div className="w-full h-24 bg-gradient-to-br from-green-500 to-teal-600 rounded-lg flex items-center justify-center text-white text-3xl shadow-md">
-                      💹
-                    </div>
+                    <Input
+                      id="interest_rate_image"
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        handleInterestRateImageUpload(file);
+                      }}
+                      className="cursor-pointer"
+                    />
+                    {interestRateImagePreview && (
+                      <div className="w-full p-4 border rounded-lg bg-white dark:bg-gray-800">
+                        <img
+                          src={interestRateImagePreview}
+                          alt="Interest Rate Preview"
+                          className="w-full h-24 object-cover rounded-lg"
+                        />
+                        <p className="text-xs text-muted-foreground mt-2">{formData.interest_rate_image?.name}</p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Image 3 - Real Estate News */}
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Real Estate News Image</Label>
-                    <div className="w-full h-24 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center text-white text-3xl shadow-md">
-                      🏘️
-                    </div>
+                    <Input
+                      id="real_estate_news_image"
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        handleRealEstateNewsImageUpload(file);
+                      }}
+                      className="cursor-pointer"
+                    />
+                    {realEstateNewsImagePreview && (
+                      <div className="w-full p-4 border rounded-lg bg-white dark:bg-gray-800">
+                        <img
+                          src={realEstateNewsImagePreview}
+                          alt="Real Estate News Preview"
+                          className="w-full h-24 object-cover rounded-lg"
+                        />
+                        <p className="text-xs text-muted-foreground mt-2">{formData.real_estate_news_image?.name}</p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Image 4 - Article 1 */}
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Article 1 Image</Label>
-                    <div className="w-full h-24 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-lg flex items-center justify-center text-white text-3xl shadow-md">
-                      📰
-                    </div>
+                    <Input
+                      id="article_1_image"
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        handleArticle1ImageUpload(file);
+                      }}
+                      className="cursor-pointer"
+                    />
+                    {article1ImagePreview && (
+                      <div className="w-full p-4 border rounded-lg bg-white dark:bg-gray-800">
+                        <img
+                          src={article1ImagePreview}
+                          alt="Article 1 Preview"
+                          className="w-full h-24 object-cover rounded-lg"
+                        />
+                        <p className="text-xs text-muted-foreground mt-2">{formData.article_1_image?.name}</p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Image 5 - Article 2 */}
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Article 2 Image</Label>
-                    <div className="w-full h-24 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-3xl shadow-md">
-                      📄
-                    </div>
+                    <Input
+                      id="article_2_image"
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        handleArticle2ImageUpload(file);
+                      }}
+                      className="cursor-pointer"
+                    />
+                    {article2ImagePreview && (
+                      <div className="w-full p-4 border rounded-lg bg-white dark:bg-gray-800">
+                        <img
+                          src={article2ImagePreview}
+                          alt="Article 2 Preview"
+                          className="w-full h-24 object-cover rounded-lg"
+                        />
+                        <p className="text-xs text-muted-foreground mt-2">{formData.article_2_image?.name}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

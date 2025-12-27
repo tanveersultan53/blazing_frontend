@@ -19,6 +19,11 @@ export const useNewsletterManagement = () => {
     html_file: null,
     user_photo: null,
     company_logo: null,
+    economic_news_image: null,
+    interest_rate_image: null,
+    real_estate_news_image: null,
+    article_1_image: null,
+    article_2_image: null,
     economic_news_text: '',
     interest_rate_text: '',
     real_estate_news_text: '',
@@ -30,6 +35,12 @@ export const useNewsletterManagement = () => {
   const [scheduleDate, setScheduleDate] = useState<Date>();
   const [userPhotoPreview, setUserPhotoPreview] = useState<string | null>(null);
   const [companyLogoPreview, setCompanyLogoPreview] = useState<string | null>(null);
+  const [economicNewsImagePreview, setEconomicNewsImagePreview] = useState<string | null>(null);
+  const [interestRateImagePreview, setInterestRateImagePreview] = useState<string | null>(null);
+  const [realEstateNewsImagePreview, setRealEstateNewsImagePreview] = useState<string | null>(null);
+  const [article1ImagePreview, setArticle1ImagePreview] = useState<string | null>(null);
+  const [article2ImagePreview, setArticle2ImagePreview] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Fetch newsletter templates
   const { data: templatesData, isLoading: isLoadingTemplates } = useQuery({
@@ -53,6 +64,11 @@ export const useNewsletterManagement = () => {
         html_file: null,
         user_photo: null,
         company_logo: null,
+        economic_news_image: null,
+        interest_rate_image: null,
+        real_estate_news_image: null,
+        article_1_image: null,
+        article_2_image: null,
         economic_news_text: '',
         interest_rate_text: '',
         real_estate_news_text: '',
@@ -64,6 +80,11 @@ export const useNewsletterManagement = () => {
       setScheduleDate(undefined);
       setUserPhotoPreview(null);
       setCompanyLogoPreview(null);
+      setEconomicNewsImagePreview(null);
+      setInterestRateImagePreview(null);
+      setRealEstateNewsImagePreview(null);
+      setArticle1ImagePreview(null);
+      setArticle2ImagePreview(null);
     },
     onError: (error: any) => {
       console.error('Create newsletter error:', error);
@@ -83,6 +104,7 @@ export const useNewsletterManagement = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    debugger
 
     // Validation
     if (formData.template_type === 'existing' && !formData.template_id) {
@@ -181,6 +203,91 @@ export const useNewsletterManagement = () => {
     }
   };
 
+  const handleEconomicNewsImageUpload = (file: File | null) => {
+    setFormData(prev => ({
+      ...prev,
+      economic_news_image: file,
+    }));
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEconomicNewsImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setEconomicNewsImagePreview(null);
+    }
+  };
+
+  const handleInterestRateImageUpload = (file: File | null) => {
+    setFormData(prev => ({
+      ...prev,
+      interest_rate_image: file,
+    }));
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setInterestRateImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setInterestRateImagePreview(null);
+    }
+  };
+
+  const handleRealEstateNewsImageUpload = (file: File | null) => {
+    setFormData(prev => ({
+      ...prev,
+      real_estate_news_image: file,
+    }));
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setRealEstateNewsImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setRealEstateNewsImagePreview(null);
+    }
+  };
+
+  const handleArticle1ImageUpload = (file: File | null) => {
+    setFormData(prev => ({
+      ...prev,
+      article_1_image: file,
+    }));
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setArticle1ImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setArticle1ImagePreview(null);
+    }
+  };
+
+  const handleArticle2ImageUpload = (file: File | null) => {
+    setFormData(prev => ({
+      ...prev,
+      article_2_image: file,
+    }));
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setArticle2ImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setArticle2ImagePreview(null);
+    }
+  };
+
   return {
     currentUser,
     formData,
@@ -194,8 +301,18 @@ export const useNewsletterManagement = () => {
     handleTemplateSelect,
     handleUserPhotoUpload,
     handleCompanyLogoUpload,
+    handleEconomicNewsImageUpload,
+    handleInterestRateImageUpload,
+    handleRealEstateNewsImageUpload,
+    handleArticle1ImageUpload,
+    handleArticle2ImageUpload,
     userPhotoPreview,
     companyLogoPreview,
+    economicNewsImagePreview,
+    interestRateImagePreview,
+    realEstateNewsImagePreview,
+    article1ImagePreview,
+    article2ImagePreview,
     newsletterTemplates,
     isLoadingTemplates,
   };

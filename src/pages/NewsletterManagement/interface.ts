@@ -5,6 +5,11 @@ export interface INewsletter {
   html_file?: File | null;
   user_photo?: File | null;
   company_logo?: File | null;
+  economic_news_image?: File | null;
+  interest_rate_image?: File | null;
+  real_estate_news_image?: File | null;
+  article_1_image?: File | null;
+  article_2_image?: File | null;
   economic_news_text: string;
   interest_rate_text: string;
   real_estate_news_text: string;
