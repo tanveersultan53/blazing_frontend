@@ -73,7 +73,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       items: [],
     },
     {
-      title: "Email Templates",
+      title: "Email Library",
       url: ["/my-email-templates"],
       icon: Mail,
       items: [],
@@ -84,18 +84,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: Settings,
       items: [],
     },
-    {
-      title: "Reports",
-      url: ["/reports"],
-      icon: ClipboardCheckIcon,
-      items: [],
-    },
-    {
-      title: "Import/Export",
-      url: ["/import-export"],
-      icon: ArrowDownUp,
-      items: [],
-    }
+    // {
+    //   title: "Reports",
+    //   url: ["/reports"],
+    //   icon: ClipboardCheckIcon,
+    //   items: [],
+    // },
+    // {
+    //   title: "Import/Export",
+    //   url: ["/import-export"],
+    //   icon: ArrowDownUp,
+    //   items: [],
+    // }
 
   ]
 
@@ -105,16 +105,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: ["/settings"],
       icon: IconSettings,
     },
-    {
-      title: "Get Help",
-      url: ["/help"],
-      icon: IconHelp,
-    },
-    {
-      title: "Search",
-      url: ["/search"],
-      icon: IconSearch,
-    }
+    // {
+    //   title: "Get Help",
+    //   url: ["/help"],
+    //   icon: IconHelp,
+    // },
+    // {
+    //   title: "Search",
+    //   url: ["/search"],
+    //   icon: IconSearch,
+    // }
   ]
   const userNavSecondary= [
     {
@@ -148,7 +148,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />

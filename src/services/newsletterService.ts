@@ -20,7 +20,7 @@ export const getNewsletter = (id: number): Promise<AxiosResponse<INewsletter>> =
   api.get(`/newsletters/${id}`);
 
 // Create newsletter
-export const createNewsletter = (data: INewsletter): Promise<AxiosResponse<INewsletter>> =>
+export const createNewsletter = (data: FormData): Promise<AxiosResponse<INewsletter>> =>
   api.post('/newsletters', data);
 
 // Update newsletter

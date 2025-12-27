@@ -1,22 +1,32 @@
-import { format } from 'date-fns';
-import PageHeader from '@/components/PageHeader';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Input } from '@/components/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { format } from "date-fns";
+import PageHeader from "@/components/PageHeader";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import {
   Newspaper,
   Send,
@@ -26,9 +36,9 @@ import {
   User,
   Building2,
   Upload,
-  FileText
-} from 'lucide-react';
-import { useNewsletterManagement } from './useNewsletterManagement';
+  FileText,
+} from "lucide-react";
+import { useNewsletterManagement } from "./useNewsletterManagement";
 
 export default function NewsletterManagement() {
   const {
@@ -63,17 +73,17 @@ export default function NewsletterManagement() {
     isLoadingTemplates,
   } = useNewsletterManagement();
 
-  const templateType = watch('template_type');
-  const templateId = watch('template_id');
-  const htmlFile = watch('html_file');
-  const userPhoto = watch('user_photo');
-  const companyLogo = watch('company_logo');
-  const economicNewsImage = watch('economic_news_image');
-  const interestRateImage = watch('interest_rate_image');
-  const realEstateNewsImage = watch('real_estate_news_image');
-  const article1Image = watch('article_1_image');
-  const article2Image = watch('article_2_image');
-  const scheduleTime = watch('schedule_time');
+  const templateType = watch("template_type");
+  const templateId = watch("template_id");
+  const htmlFile = watch("html_file");
+  const userPhoto = watch("user_photo");
+  const companyLogo = watch("company_logo");
+  const economicNewsImage = watch("economic_news_image");
+  const interestRateImage = watch("interest_rate_image");
+  const realEstateNewsImage = watch("real_estate_news_image");
+  const article1Image = watch("article_1_image");
+  const article2Image = watch("article_2_image");
+  const scheduleTime = watch("schedule_time");
 
   return (
     <PageHeader
@@ -99,7 +109,8 @@ export default function NewsletterManagement() {
                 <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
                   <Info className="h-4 w-4 text-blue-600" />
                   <AlertDescription className="text-sm">
-                    All fields marked with * are required. The newsletter will be sent to all active subscribers on the scheduled date.
+                    All fields marked with * are required. The newsletter will
+                    be sent to all active subscribers on the scheduled date.
                   </AlertDescription>
                 </Alert>
 
@@ -111,42 +122,66 @@ export default function NewsletterManagement() {
 
                   <RadioGroup
                     value={templateType}
-                    onValueChange={(value) => handleTemplateTypeChange(value as 'existing' | 'upload')}
+                    onValueChange={(value) =>
+                      handleTemplateTypeChange(value as "existing" | "upload")
+                    }
                     className="flex gap-4 mt-3"
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="existing" id="existing" />
-                      <Label htmlFor="existing" className="font-normal cursor-pointer">
+                      <Label
+                        htmlFor="existing"
+                        className="font-normal cursor-pointer"
+                      >
                         Choose Existing Template
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="upload" id="upload" />
-                      <Label htmlFor="upload" className="font-normal cursor-pointer">
+                      <Label
+                        htmlFor="upload"
+                        className="font-normal cursor-pointer"
+                      >
                         Upload HTML Template
                       </Label>
                     </div>
                   </RadioGroup>
 
                   {/* Existing Template Selection */}
-                  {templateType === 'existing' && (
+                  {templateType === "existing" && (
                     <div className="space-y-2 w-full">
-                      <Label htmlFor="template_select">Select Template <span className="text-red-500">*</span></Label>
+                      <Label htmlFor="template_select">
+                        Select Template <span className="text-red-500">*</span>
+                      </Label>
                       <Select
                         value={templateId?.toString()}
-                        onValueChange={(value) => handleTemplateSelect(parseInt(value))}
+                        onValueChange={(value) =>
+                          handleTemplateSelect(parseInt(value))
+                        }
                         disabled={isLoadingTemplates}
                       >
                         <SelectTrigger
                           id="template_select"
-                          className={cn("w-full", templateError && "border-red-500")}
+                          className={cn(
+                            "w-full",
+                            templateError && "border-red-500"
+                          )}
                         >
-                          <SelectValue placeholder={isLoadingTemplates ? "Loading templates..." : "Select a newsletter template"} />
+                          <SelectValue
+                            placeholder={
+                              isLoadingTemplates
+                                ? "Loading templates..."
+                                : "Select a newsletter template"
+                            }
+                          />
                         </SelectTrigger>
                         <SelectContent>
                           {newsletterTemplates.length > 0 ? (
                             newsletterTemplates.map((template) => (
-                              <SelectItem key={template.id} value={template.id.toString()}>
+                              <SelectItem
+                                key={template.id}
+                                value={template.id.toString()}
+                              >
                                 <div className="flex items-center gap-2">
                                   <FileText className="h-4 w-4" />
                                   {template.name}
@@ -167,9 +202,11 @@ export default function NewsletterManagement() {
                   )}
 
                   {/* Upload Template */}
-                  {templateType === 'upload' && (
+                  {templateType === "upload" && (
                     <div className="space-y-2">
-                      <Label htmlFor="html_file">Upload HTML File <span className="text-red-500">*</span></Label>
+                      <Label htmlFor="html_file">
+                        Upload HTML File <span className="text-red-500">*</span>
+                      </Label>
                       <div className="flex items-center gap-2">
                         <Input
                           id="html_file"
@@ -179,7 +216,10 @@ export default function NewsletterManagement() {
                             const file = e.target.files?.[0] || null;
                             handleFileUpload(file);
                           }}
-                          className={cn("cursor-pointer", htmlFileError && "border-red-500")}
+                          className={cn(
+                            "cursor-pointer",
+                            htmlFileError && "border-red-500"
+                          )}
                         />
                         <Upload className="h-5 w-5 text-muted-foreground" />
                       </div>
@@ -205,15 +245,23 @@ export default function NewsletterManagement() {
                     <Textarea
                       id="economic_news_text"
                       placeholder="Enter economic news content..."
-                      {...register('economic_news_text', {
-                        required: 'Economic News Text is required',
-                        minLength: { value: 10, message: 'Minimum 10 characters required' }
+                      {...register("economic_news_text", {
+                        required: "Economic News Text is required",
+                        minLength: {
+                          value: 10,
+                          message: "Minimum 10 characters required",
+                        },
                       })}
                       rows={4}
-                      className={cn("resize-none", errors.economic_news_text && "border-red-500")}
+                      className={cn(
+                        "resize-none",
+                        errors.economic_news_text && "border-red-500"
+                      )}
                     />
                     {errors.economic_news_text && (
-                      <p className="text-sm text-red-500">{errors.economic_news_text.message}</p>
+                      <p className="text-sm text-red-500">
+                        {errors.economic_news_text.message}
+                      </p>
                     )}
                   </div>
 
@@ -225,15 +273,23 @@ export default function NewsletterManagement() {
                     <Textarea
                       id="interest_rate_text"
                       placeholder="Enter interest rate information..."
-                      {...register('interest_rate_text', {
-                        required: 'Interest Rate Text is required',
-                        minLength: { value: 10, message: 'Minimum 10 characters required' }
+                      {...register("interest_rate_text", {
+                        required: "Interest Rate Text is required",
+                        minLength: {
+                          value: 10,
+                          message: "Minimum 10 characters required",
+                        },
                       })}
                       rows={4}
-                      className={cn("resize-none", errors.interest_rate_text && "border-red-500")}
+                      className={cn(
+                        "resize-none",
+                        errors.interest_rate_text && "border-red-500"
+                      )}
                     />
                     {errors.interest_rate_text && (
-                      <p className="text-sm text-red-500">{errors.interest_rate_text.message}</p>
+                      <p className="text-sm text-red-500">
+                        {errors.interest_rate_text.message}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -243,20 +299,29 @@ export default function NewsletterManagement() {
                   {/* Real Estate News Text */}
                   <div className="space-y-2">
                     <Label htmlFor="real_estate_news_text">
-                      Real Estate News Text <span className="text-red-500">*</span>
+                      Real Estate News Text{" "}
+                      <span className="text-red-500">*</span>
                     </Label>
                     <Textarea
                       id="real_estate_news_text"
                       placeholder="Enter real estate news..."
-                      {...register('real_estate_news_text', {
-                        required: 'Real Estate News Text is required',
-                        minLength: { value: 10, message: 'Minimum 10 characters required' }
+                      {...register("real_estate_news_text", {
+                        required: "Real Estate News Text is required",
+                        minLength: {
+                          value: 10,
+                          message: "Minimum 10 characters required",
+                        },
                       })}
                       rows={4}
-                      className={cn("resize-none", errors.real_estate_news_text && "border-red-500")}
+                      className={cn(
+                        "resize-none",
+                        errors.real_estate_news_text && "border-red-500"
+                      )}
                     />
                     {errors.real_estate_news_text && (
-                      <p className="text-sm text-red-500">{errors.real_estate_news_text.message}</p>
+                      <p className="text-sm text-red-500">
+                        {errors.real_estate_news_text.message}
+                      </p>
                     )}
                   </div>
 
@@ -268,15 +333,23 @@ export default function NewsletterManagement() {
                     <Textarea
                       id="article_1"
                       placeholder="Enter first article content..."
-                      {...register('article_1', {
-                        required: 'Article 1 is required',
-                        minLength: { value: 10, message: 'Minimum 10 characters required' }
+                      {...register("article_1", {
+                        required: "Article 1 is required",
+                        minLength: {
+                          value: 10,
+                          message: "Minimum 10 characters required",
+                        },
                       })}
                       rows={4}
-                      className={cn("resize-none", errors.article_1 && "border-red-500")}
+                      className={cn(
+                        "resize-none",
+                        errors.article_1 && "border-red-500"
+                      )}
                     />
                     {errors.article_1 && (
-                      <p className="text-sm text-red-500">{errors.article_1.message}</p>
+                      <p className="text-sm text-red-500">
+                        {errors.article_1.message}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -289,15 +362,23 @@ export default function NewsletterManagement() {
                   <Textarea
                     id="article_2"
                     placeholder="Enter second article content..."
-                    {...register('article_2', {
-                      required: 'Article 2 is required',
-                      minLength: { value: 10, message: 'Minimum 10 characters required' }
+                    {...register("article_2", {
+                      required: "Article 2 is required",
+                      minLength: {
+                        value: 10,
+                        message: "Minimum 10 characters required",
+                      },
                     })}
                     rows={4}
-                    className={cn("resize-none", errors.article_2 && "border-red-500")}
+                    className={cn(
+                      "resize-none",
+                      errors.article_2 && "border-red-500"
+                    )}
                   />
                   {errors.article_2 && (
-                    <p className="text-sm text-red-500">{errors.article_2.message}</p>
+                    <p className="text-sm text-red-500">
+                      {errors.article_2.message}
+                    </p>
                   )}
                 </div>
 
@@ -305,21 +386,21 @@ export default function NewsletterManagement() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Schedule Date */}
                   <div className="space-y-2">
-                    <Label htmlFor="schedule_date">
-                      Schedule Date
-                    </Label>
+                    <Label htmlFor="schedule_date">Schedule Date</Label>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
                           type="button"
                           variant="outline"
                           className={cn(
-                            'w-full justify-start text-left font-normal',
-                            !scheduleDate && 'text-muted-foreground'
+                            "w-full justify-start text-left font-normal",
+                            !scheduleDate && "text-muted-foreground"
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {scheduleDate ? format(scheduleDate, 'PPP') : 'Pick a date'}
+                          {scheduleDate
+                            ? format(scheduleDate, "PPP")
+                            : "Pick a date"}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
@@ -329,7 +410,10 @@ export default function NewsletterManagement() {
                           onSelect={(date) => {
                             setScheduleDate(date);
                             if (date) {
-                              setValue('schedule_date', format(date, 'yyyy-MM-dd HH:mm:ss'));
+                              setValue(
+                                "schedule_date",
+                                format(date, "yyyy-MM-dd HH:mm:ss")
+                              );
                             }
                           }}
                           initialFocus
@@ -338,20 +422,18 @@ export default function NewsletterManagement() {
                     </Popover>
                     {scheduleDate && (
                       <p className="text-xs text-muted-foreground">
-                        Scheduled for: {format(scheduleDate, 'MMMM dd, yyyy')}
+                        Scheduled for: {format(scheduleDate, "MMMM dd, yyyy")}
                       </p>
                     )}
                   </div>
 
                   {/* Schedule Time */}
                   <div className="space-y-2">
-                    <Label htmlFor="schedule_time">
-                      Schedule Time
-                    </Label>
+                    <Label htmlFor="schedule_time">Schedule Time</Label>
                     <Input
                       id="schedule_time"
                       type="time"
-                      {...register('schedule_time')}
+                      {...register("schedule_time")}
                       className="w-full"
                     />
                     {scheduleTime && (
@@ -376,7 +458,28 @@ export default function NewsletterManagement() {
                     variant="outline"
                     disabled={createMutation.isPending}
                   >
-                    Verify Clear
+                    Process
+                  </Button>
+                   <Button
+                    type="button"
+                    variant="outline"
+                    disabled={createMutation.isPending}
+                  >
+                    Add HTML Codes
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={createMutation.isPending}
+                  >
+                    Verify
+                  </Button>
+                   <Button
+                    type="button"
+                    variant="outline"
+                    disabled={createMutation.isPending}
+                  >
+                    Done
                   </Button>
                   <Button
                     type="button"
@@ -385,21 +488,11 @@ export default function NewsletterManagement() {
                   >
                     Distribute
                   </Button>
-                  <Button
-                    type="submit"
-                    disabled={createMutation.isPending}
-                  >
-                    {createMutation.isPending ? (
-                      <>
-                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                        Creating...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="mr-2 h-4 w-4" />
-                        Schedule Newsletter
-                      </>
-                    )}
+                  <Button type="submit" disabled={createMutation.isPending}>
+                    <>
+                      <Send className="mr-2 h-4 w-4" />
+                      Schedule Newsletter
+                    </>
                   </Button>
                 </div>
               </div>
@@ -436,7 +529,9 @@ export default function NewsletterManagement() {
                           />
                           <div>
                             <p className="font-semibold text-sm">Preview</p>
-                            <p className="text-xs text-muted-foreground">{userPhoto?.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {userPhoto?.name}
+                            </p>
                           </div>
                         </div>
                       )}
@@ -469,7 +564,9 @@ export default function NewsletterManagement() {
                           />
                           <div>
                             <p className="font-semibold text-sm">Preview</p>
-                            <p className="text-xs text-muted-foreground">{companyLogo?.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {companyLogo?.name}
+                            </p>
                           </div>
                         </div>
                       )}
@@ -480,11 +577,15 @@ export default function NewsletterManagement() {
                 {/* Newsletter Images */}
                 <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-900">
                   <h3 className="text-lg font-semibold">Newsletter Images</h3>
-                  <p className="text-sm text-muted-foreground">5 images for each section</p>
+                  <p className="text-sm text-muted-foreground">
+                    5 images for each section
+                  </p>
 
                   {/* Image 1 - Economic News */}
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">Economic News Image</Label>
+                    <Label className="text-sm font-medium">
+                      Economic News Image
+                    </Label>
                     <Input
                       id="economic_news_image"
                       type="file"
@@ -502,14 +603,18 @@ export default function NewsletterManagement() {
                           alt="Economic News Preview"
                           className="w-full h-24 object-cover rounded-lg"
                         />
-                        <p className="text-xs text-muted-foreground mt-2">{economicNewsImage?.name}</p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {economicNewsImage?.name}
+                        </p>
                       </div>
                     )}
                   </div>
 
                   {/* Image 2 - Interest Rate */}
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">Interest Rate Image</Label>
+                    <Label className="text-sm font-medium">
+                      Interest Rate Image
+                    </Label>
                     <Input
                       id="interest_rate_image"
                       type="file"
@@ -527,14 +632,18 @@ export default function NewsletterManagement() {
                           alt="Interest Rate Preview"
                           className="w-full h-24 object-cover rounded-lg"
                         />
-                        <p className="text-xs text-muted-foreground mt-2">{interestRateImage?.name}</p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {interestRateImage?.name}
+                        </p>
                       </div>
                     )}
                   </div>
 
                   {/* Image 3 - Real Estate News */}
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">Real Estate News Image</Label>
+                    <Label className="text-sm font-medium">
+                      Real Estate News Image
+                    </Label>
                     <Input
                       id="real_estate_news_image"
                       type="file"
@@ -552,14 +661,18 @@ export default function NewsletterManagement() {
                           alt="Real Estate News Preview"
                           className="w-full h-24 object-cover rounded-lg"
                         />
-                        <p className="text-xs text-muted-foreground mt-2">{realEstateNewsImage?.name}</p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {realEstateNewsImage?.name}
+                        </p>
                       </div>
                     )}
                   </div>
 
                   {/* Image 4 - Article 1 */}
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">Article 1 Image</Label>
+                    <Label className="text-sm font-medium">
+                      Article 1 Image
+                    </Label>
                     <Input
                       id="article_1_image"
                       type="file"
@@ -577,14 +690,18 @@ export default function NewsletterManagement() {
                           alt="Article 1 Preview"
                           className="w-full h-24 object-cover rounded-lg"
                         />
-                        <p className="text-xs text-muted-foreground mt-2">{article1Image?.name}</p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {article1Image?.name}
+                        </p>
                       </div>
                     )}
                   </div>
 
                   {/* Image 5 - Article 2 */}
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">Article 2 Image</Label>
+                    <Label className="text-sm font-medium">
+                      Article 2 Image
+                    </Label>
                     <Input
                       id="article_2_image"
                       type="file"
@@ -602,7 +719,9 @@ export default function NewsletterManagement() {
                           alt="Article 2 Preview"
                           className="w-full h-24 object-cover rounded-lg"
                         />
-                        <p className="text-xs text-muted-foreground mt-2">{article2Image?.name}</p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {article2Image?.name}
+                        </p>
                       </div>
                     )}
                   </div>

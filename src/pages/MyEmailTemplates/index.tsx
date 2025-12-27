@@ -97,7 +97,7 @@ export default function MyEmailTemplates() {
     {
       accessorKey: "email_name",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Template Name" />
+        <DataTableColumnHeader column={column} title="Name" />
       ),
       cell: ({ row }) => {
         const name = row.getValue("email_name") as string;
@@ -180,7 +180,7 @@ export default function MyEmailTemplates() {
   // Action items for each row
   const actionItems = [
     {
-      label: 'Preview Template',
+      label: 'Preview',
       icon: Eye,
       onClick: (row: CustomerEmailTemplate) => handlePreview(row),
     },
@@ -190,7 +190,7 @@ export default function MyEmailTemplates() {
       onClick: (row: CustomerEmailTemplate) => navigate(`/send-email/${row.email_id}`),
     },
     {
-      label: 'Delete Template',
+      label: 'Delete',
       icon: Trash2,
       className: 'text-red-600',
       onClick: (row: CustomerEmailTemplate) => handleDelete(row),
@@ -199,18 +199,18 @@ export default function MyEmailTemplates() {
 
   // Column titles for filter placeholders
   const columnTitles = {
-    'email_name': 'Template Name',
+    'email_name': 'Name',
     'email_subject': 'Subject',
   };
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Email Templates"
+        title="Email Library"
         description="View and manage your email templates. Use these templates to send emails to your contacts."
         actions={[
           {
-            label: 'Create Email Template',
+            label: 'Create Email',
             onClick: () => navigate('/my-email-templates/browse'),
             variant: 'default',
             icon: FileText,

@@ -120,55 +120,7 @@ const UserDashboard = () => {
     >
         <div className="flex w-full flex-col gap-6">
             {/* Email Templates Section */}
-            <div className="grid gap-4 md:grid-cols-2">
-                {/* Template Stats */}
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            Email Templates
-                        </CardTitle>
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{userTemplates.length}</div>
-                        <p className="text-xs text-muted-foreground">
-                            {activeTemplates.length} active templates
-                        </p>
-                        <Button
-                            variant="link"
-                            className="mt-2 p-0 h-auto"
-                            onClick={() => navigate('/my-email-templates')}
-                        >
-                            View all templates
-                            <ArrowRight className="ml-1 h-3 w-3" />
-                        </Button>
-                    </CardContent>
-                </Card>
-
-                {/* Browse Templates Action */}
-                <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            Create Email Template
-                        </CardTitle>
-                        <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                    </CardHeader>
-                    <CardContent>
-                        <CardDescription className="text-xs mb-3">
-                            Choose from professional templates in our library
-                        </CardDescription>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full"
-                            onClick={() => navigate('/my-email-templates/browse')}
-                        >
-                            <FileText className="mr-2 h-4 w-4" />
-                            Create Template
-                        </Button>
-                    </CardContent>
-                </Card>
-            </div>
+           
 
             {/* Contacts Section */}
             <Card>
