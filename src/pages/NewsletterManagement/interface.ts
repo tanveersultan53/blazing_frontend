@@ -1,11 +1,15 @@
 export interface INewsletter {
   id?: number;
+  template_type: 'existing' | 'upload';
+  template_id?: number;
+  html_file?: File | null;
   economic_news_text: string;
   interest_rate_text: string;
   real_estate_news_text: string;
   article_1: string;
   article_2: string;
   schedule_date: string;
+  schedule_time: string;
   status?: 'draft' | 'scheduled' | 'sent';
   created_at?: string;
   updated_at?: string;
