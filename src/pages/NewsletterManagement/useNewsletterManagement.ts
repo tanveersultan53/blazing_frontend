@@ -17,6 +17,8 @@ export const useNewsletterManagement = () => {
     template_type: 'existing',
     template_id: undefined,
     html_file: null,
+    user_photo: null,
+    company_logo: null,
     economic_news_text: '',
     interest_rate_text: '',
     real_estate_news_text: '',
@@ -26,6 +28,8 @@ export const useNewsletterManagement = () => {
     schedule_time: '',
   });
   const [scheduleDate, setScheduleDate] = useState<Date>();
+  const [userPhotoPreview, setUserPhotoPreview] = useState<string | null>(null);
+  const [companyLogoPreview, setCompanyLogoPreview] = useState<string | null>(null);
 
   // Fetch newsletter templates
   const { data: templatesData, isLoading: isLoadingTemplates } = useQuery({
@@ -47,6 +51,8 @@ export const useNewsletterManagement = () => {
         template_type: 'existing',
         template_id: undefined,
         html_file: null,
+        user_photo: null,
+        company_logo: null,
         economic_news_text: '',
         interest_rate_text: '',
         real_estate_news_text: '',
@@ -56,6 +62,8 @@ export const useNewsletterManagement = () => {
         schedule_time: '',
       });
       setScheduleDate(undefined);
+      setUserPhotoPreview(null);
+      setCompanyLogoPreview(null);
     },
     onError: (error: any) => {
       console.error('Create newsletter error:', error);
@@ -139,6 +147,40 @@ export const useNewsletterManagement = () => {
     }));
   };
 
+  const handleUserPhotoUpload = (file: File | null) => {
+    setFormData(prev => ({
+      ...prev,
+      user_photo: file,
+    }));
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setUserPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setUserPhotoPreview(null);
+    }
+  };
+
+  const handleCompanyLogoUpload = (file: File | null) => {
+    setFormData(prev => ({
+      ...prev,
+      company_logo: file,
+    }));
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCompanyLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setCompanyLogoPreview(null);
+    }
+  };
+
   return {
     currentUser,
     formData,
@@ -150,6 +192,10 @@ export const useNewsletterManagement = () => {
     handleFileUpload,
     handleTemplateTypeChange,
     handleTemplateSelect,
+    handleUserPhotoUpload,
+    handleCompanyLogoUpload,
+    userPhotoPreview,
+    companyLogoPreview,
     newsletterTemplates,
     isLoadingTemplates,
   };

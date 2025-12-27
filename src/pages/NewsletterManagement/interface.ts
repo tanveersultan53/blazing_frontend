@@ -3,6 +3,8 @@ export interface INewsletter {
   template_type: 'existing' | 'upload';
   template_id?: number;
   html_file?: File | null;
+  user_photo?: File | null;
+  company_logo?: File | null;
   economic_news_text: string;
   interest_rate_text: string;
   real_estate_news_text: string;

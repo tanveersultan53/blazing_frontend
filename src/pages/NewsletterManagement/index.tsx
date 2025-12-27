@@ -44,6 +44,10 @@ export default function NewsletterManagement() {
     handleFileUpload,
     handleTemplateTypeChange,
     handleTemplateSelect,
+    handleUserPhotoUpload,
+    handleCompanyLogoUpload,
+    userPhotoPreview,
+    companyLogoPreview,
     newsletterTemplates,
     isLoadingTemplates,
   } = useNewsletterManagement();
@@ -355,17 +359,30 @@ export default function NewsletterManagement() {
                       <User className="h-4 w-4" />
                       User Photo
                     </Label>
-                    <div className="flex items-center gap-4 p-4 border rounded-lg bg-white dark:bg-gray-800">
-                      <Avatar className="h-16 w-16">
-                        <AvatarImage src="https://www.tadpole.co.nz/wp-content/uploads/2021/02/team-1.jpg" alt={`${currentUser?.first_name} ${currentUser?.last_name}`} />
-                        <AvatarFallback className="text-xl">
-                          {currentUser?.first_name?.[0]}{currentUser?.last_name?.[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-semibold text-sm">{currentUser?.first_name} {currentUser?.last_name}</p>
-                        <p className="text-xs text-muted-foreground">{currentUser?.email}</p>
-                      </div>
+                    <div className="space-y-3">
+                      <Input
+                        id="user_photo"
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          handleUserPhotoUpload(file);
+                        }}
+                        className="cursor-pointer"
+                      />
+                      {userPhotoPreview && (
+                        <div className="flex items-center gap-4 p-4 border rounded-lg bg-white dark:bg-gray-800">
+                          <img
+                            src={userPhotoPreview}
+                            alt="User Photo Preview"
+                            className="h-16 w-16 object-cover rounded-full"
+                          />
+                          <div>
+                            <p className="font-semibold text-sm">Preview</p>
+                            <p className="text-xs text-muted-foreground">{formData.user_photo?.name}</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -375,16 +392,30 @@ export default function NewsletterManagement() {
                       <Building2 className="h-4 w-4" />
                       Company Logo
                     </Label>
-                    <div className="flex items-center gap-4 p-4 border rounded-lg bg-white dark:bg-gray-800">
-                      <img
-                        src={BlazingIcon}
-                        alt="Blazing Social Logo"
-                        className="h-12 w-12 object-contain"
+                    <div className="space-y-3">
+                      <Input
+                        id="company_logo"
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          handleCompanyLogoUpload(file);
+                        }}
+                        className="cursor-pointer"
                       />
-                      <div>
-                        <p className="font-semibold text-sm">Blazing Social</p>
-                        <p className="text-xs text-muted-foreground">Digital Mortgage Marketing</p>
-                      </div>
+                      {companyLogoPreview && (
+                        <div className="flex items-center gap-4 p-4 border rounded-lg bg-white dark:bg-gray-800">
+                          <img
+                            src={companyLogoPreview}
+                            alt="Company Logo Preview"
+                            className="h-12 w-12 object-contain"
+                          />
+                          <div>
+                            <p className="font-semibold text-sm">Preview</p>
+                            <p className="text-xs text-muted-foreground">{formData.company_logo?.name}</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
