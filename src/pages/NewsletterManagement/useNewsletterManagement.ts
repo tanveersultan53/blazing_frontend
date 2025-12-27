@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { format } from 'date-fns';
+import { useState } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
 import { useSelector } from 'react-redux';
 import { toast } from 'sonner';
 import { createNewsletter } from '@/services/newsletterService';
@@ -9,29 +9,40 @@ import type { INewsletter } from './interface';
 import type { User as UserType } from '@/redux/features/userSlice';
 
 export const useNewsletterManagement = () => {
-  //@ts-ignore
-  const queryClient = useQueryClient();
   const currentUser = useSelector((state: { user: { currentUser: UserType } }) => state.user.currentUser);
 
-  const [formData, setFormData] = useState<INewsletter>({
-    template_type: 'existing',
-    template_id: undefined,
-    html_file: null,
-    user_photo: null,
-    company_logo: null,
-    economic_news_image: null,
-    interest_rate_image: null,
-    real_estate_news_image: null,
-    article_1_image: null,
-    article_2_image: null,
-    economic_news_text: '',
-    interest_rate_text: '',
-    real_estate_news_text: '',
-    article_1: '',
-    article_2: '',
-    schedule_date: '',
-    schedule_time: '',
+  // React Hook Form
+  const {
+    register,
+    handleSubmit: hookFormSubmit,
+    watch,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm<INewsletter>({
+    defaultValues: {
+      template_type: 'existing',
+      template_id: undefined,
+      html_file: null,
+      user_photo: null,
+      company_logo: null,
+      economic_news_image: null,
+      interest_rate_image: null,
+      real_estate_news_image: null,
+      article_1_image: null,
+      article_2_image: null,
+      economic_news_text: '',
+      interest_rate_text: '',
+      real_estate_news_text: '',
+      article_1: '',
+      article_2: '',
+      schedule_date: '',
+      schedule_time: '',
+    },
+    mode: 'onChange',
   });
+
+  // Image preview states
   const [scheduleDate, setScheduleDate] = useState<Date>();
   const [userPhotoPreview, setUserPhotoPreview] = useState<string | null>(null);
   const [companyLogoPreview, setCompanyLogoPreview] = useState<string | null>(null);
@@ -40,12 +51,15 @@ export const useNewsletterManagement = () => {
   const [realEstateNewsImagePreview, setRealEstateNewsImagePreview] = useState<string | null>(null);
   const [article1ImagePreview, setArticle1ImagePreview] = useState<string | null>(null);
   const [article2ImagePreview, setArticle2ImagePreview] = useState<string | null>(null);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Conditional validation errors
+  const [templateError, setTemplateError] = useState<string>('');
+  const [htmlFileError, setHtmlFileError] = useState<string>('');
 
   // Fetch newsletter templates
   const { data: templatesData, isLoading: isLoadingTemplates } = useQuery({
     queryKey: ['templates'],
-    queryFn: () => getTemplates({ }),
+    queryFn: () => getTemplates({}),
   });
 
   const newsletterTemplates = templatesData?.data?.results?.filter(
@@ -58,25 +72,7 @@ export const useNewsletterManagement = () => {
     onSuccess: () => {
       toast.success('Newsletter scheduled successfully!');
       // Reset form
-      setFormData({
-        template_type: 'existing',
-        template_id: undefined,
-        html_file: null,
-        user_photo: null,
-        company_logo: null,
-        economic_news_image: null,
-        interest_rate_image: null,
-        real_estate_news_image: null,
-        article_1_image: null,
-        article_2_image: null,
-        economic_news_text: '',
-        interest_rate_text: '',
-        real_estate_news_text: '',
-        article_1: '',
-        article_2: '',
-        schedule_date: '',
-        schedule_time: '',
-      });
+      reset();
       setScheduleDate(undefined);
       setUserPhotoPreview(null);
       setCompanyLogoPreview(null);
@@ -92,88 +88,49 @@ export const useNewsletterManagement = () => {
     },
   });
 
-  // Update schedule date when calendar date changes
-  useEffect(() => {
-    if (scheduleDate) {
-      setFormData(prev => ({
-        ...prev,
-        schedule_date: format(scheduleDate, 'yyyy-MM-dd HH:mm:ss'),
-      }));
-    }
-  }, [scheduleDate]);
+  const onSubmit = (data: INewsletter) => {
+    // Clear previous errors
+    setTemplateError('');
+    setHtmlFileError('');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    debugger
-
-    // Validation
-    if (formData.template_type === 'existing' && !formData.template_id) {
+    // Manual validation for conditional fields
+    if (data.template_type === 'existing' && !data.template_id) {
+      setTemplateError('Please select a template');
       toast.error('Please select a template');
       return;
     }
-    if (formData.template_type === 'upload' && !formData.html_file) {
+    if (data.template_type === 'upload' && !data.html_file) {
+      setHtmlFileError('Please upload an HTML template file');
       toast.error('Please upload an HTML template file');
       return;
     }
-    if (!formData.economic_news_text.trim()) {
-      toast.error('Please enter Economic News Text');
-      return;
-    }
-    if (!formData.interest_rate_text.trim()) {
-      toast.error('Please enter Interest Rate Text');
-      return;
-    }
-    if (!formData.real_estate_news_text.trim()) {
-      toast.error('Please enter Real Estate News Text');
-      return;
-    }
-    if (!formData.article_1.trim()) {
-      toast.error('Please enter Article 1');
-      return;
-    }
-    if (!formData.article_2.trim()) {
-      toast.error('Please enter Article 2');
-      return;
-    }
 
-    createMutation.mutate(formData);
-  };
-
-  const handleInputChange = (field: keyof INewsletter, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const handleFileUpload = (file: File | null) => {
-    setFormData(prev => ({
-      ...prev,
-      html_file: file,
-    }));
+    createMutation.mutate(data);
   };
 
   const handleTemplateTypeChange = (type: 'existing' | 'upload') => {
-    setFormData(prev => ({
-      ...prev,
-      template_type: type,
-      template_id: type === 'existing' ? prev.template_id : undefined,
-      html_file: type === 'upload' ? prev.html_file : null,
-    }));
+    setValue('template_type', type);
+    setTemplateError('');
+    setHtmlFileError('');
+    if (type === 'existing') {
+      setValue('html_file', null);
+    } else {
+      setValue('template_id', undefined);
+    }
   };
 
   const handleTemplateSelect = (templateId: number) => {
-    setFormData(prev => ({
-      ...prev,
-      template_id: templateId,
-    }));
+    setValue('template_id', templateId);
+    setTemplateError('');
+  };
+
+  const handleFileUpload = (file: File | null) => {
+    setValue('html_file', file);
+    setHtmlFileError('');
   };
 
   const handleUserPhotoUpload = (file: File | null) => {
-    setFormData(prev => ({
-      ...prev,
-      user_photo: file,
-    }));
+    setValue('user_photo', file);
 
     if (file) {
       const reader = new FileReader();
@@ -187,10 +144,7 @@ export const useNewsletterManagement = () => {
   };
 
   const handleCompanyLogoUpload = (file: File | null) => {
-    setFormData(prev => ({
-      ...prev,
-      company_logo: file,
-    }));
+    setValue('company_logo', file);
 
     if (file) {
       const reader = new FileReader();
@@ -204,10 +158,7 @@ export const useNewsletterManagement = () => {
   };
 
   const handleEconomicNewsImageUpload = (file: File | null) => {
-    setFormData(prev => ({
-      ...prev,
-      economic_news_image: file,
-    }));
+    setValue('economic_news_image', file);
 
     if (file) {
       const reader = new FileReader();
@@ -221,10 +172,7 @@ export const useNewsletterManagement = () => {
   };
 
   const handleInterestRateImageUpload = (file: File | null) => {
-    setFormData(prev => ({
-      ...prev,
-      interest_rate_image: file,
-    }));
+    setValue('interest_rate_image', file);
 
     if (file) {
       const reader = new FileReader();
@@ -238,10 +186,7 @@ export const useNewsletterManagement = () => {
   };
 
   const handleRealEstateNewsImageUpload = (file: File | null) => {
-    setFormData(prev => ({
-      ...prev,
-      real_estate_news_image: file,
-    }));
+    setValue('real_estate_news_image', file);
 
     if (file) {
       const reader = new FileReader();
@@ -255,10 +200,7 @@ export const useNewsletterManagement = () => {
   };
 
   const handleArticle1ImageUpload = (file: File | null) => {
-    setFormData(prev => ({
-      ...prev,
-      article_1_image: file,
-    }));
+    setValue('article_1_image', file);
 
     if (file) {
       const reader = new FileReader();
@@ -272,10 +214,7 @@ export const useNewsletterManagement = () => {
   };
 
   const handleArticle2ImageUpload = (file: File | null) => {
-    setFormData(prev => ({
-      ...prev,
-      article_2_image: file,
-    }));
+    setValue('article_2_image', file);
 
     if (file) {
       const reader = new FileReader();
@@ -290,15 +229,19 @@ export const useNewsletterManagement = () => {
 
   return {
     currentUser,
-    formData,
+    register,
+    handleSubmit: hookFormSubmit(onSubmit),
+    watch,
+    setValue,
+    errors,
+    templateError,
+    htmlFileError,
     scheduleDate,
     setScheduleDate,
     createMutation,
-    handleSubmit,
-    handleInputChange,
-    handleFileUpload,
     handleTemplateTypeChange,
     handleTemplateSelect,
+    handleFileUpload,
     handleUserPhotoUpload,
     handleCompanyLogoUpload,
     handleEconomicNewsImageUpload,

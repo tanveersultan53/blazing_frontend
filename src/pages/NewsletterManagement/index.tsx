@@ -32,15 +32,19 @@ import { useNewsletterManagement } from './useNewsletterManagement';
 
 export default function NewsletterManagement() {
   const {
-    formData,
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    errors,
+    templateError,
+    htmlFileError,
     scheduleDate,
     setScheduleDate,
     createMutation,
-    handleSubmit,
-    handleInputChange,
-    handleFileUpload,
     handleTemplateTypeChange,
     handleTemplateSelect,
+    handleFileUpload,
     handleUserPhotoUpload,
     handleCompanyLogoUpload,
     handleEconomicNewsImageUpload,
@@ -58,6 +62,18 @@ export default function NewsletterManagement() {
     newsletterTemplates,
     isLoadingTemplates,
   } = useNewsletterManagement();
+
+  const templateType = watch('template_type');
+  const templateId = watch('template_id');
+  const htmlFile = watch('html_file');
+  const userPhoto = watch('user_photo');
+  const companyLogo = watch('company_logo');
+  const economicNewsImage = watch('economic_news_image');
+  const interestRateImage = watch('interest_rate_image');
+  const realEstateNewsImage = watch('real_estate_news_image');
+  const article1Image = watch('article_1_image');
+  const article2Image = watch('article_2_image');
+  const scheduleTime = watch('schedule_time');
 
   return (
     <PageHeader
@@ -83,7 +99,7 @@ export default function NewsletterManagement() {
                 <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
                   <Info className="h-4 w-4 text-blue-600" />
                   <AlertDescription className="text-sm">
-                    All fields are required. The newsletter will be sent to all active subscribers on the scheduled date.
+                    All fields marked with * are required. The newsletter will be sent to all active subscribers on the scheduled date.
                   </AlertDescription>
                 </Alert>
 
@@ -94,7 +110,7 @@ export default function NewsletterManagement() {
                   </Label>
 
                   <RadioGroup
-                    value={formData.template_type}
+                    value={templateType}
                     onValueChange={(value) => handleTemplateTypeChange(value as 'existing' | 'upload')}
                     className="flex gap-4 mt-3"
                   >
@@ -113,15 +129,18 @@ export default function NewsletterManagement() {
                   </RadioGroup>
 
                   {/* Existing Template Selection */}
-                  {formData.template_type === 'existing' && (
+                  {templateType === 'existing' && (
                     <div className="space-y-2 w-full">
-                      <Label htmlFor="template_select">Select Template</Label>
+                      <Label htmlFor="template_select">Select Template <span className="text-red-500">*</span></Label>
                       <Select
-                        value={formData.template_id?.toString()}
+                        value={templateId?.toString()}
                         onValueChange={(value) => handleTemplateSelect(parseInt(value))}
                         disabled={isLoadingTemplates}
                       >
-                        <SelectTrigger id="template_select" className="w-full">
+                        <SelectTrigger
+                          id="template_select"
+                          className={cn("w-full", templateError && "border-red-500")}
+                        >
                           <SelectValue placeholder={isLoadingTemplates ? "Loading templates..." : "Select a newsletter template"} />
                         </SelectTrigger>
                         <SelectContent>
@@ -141,18 +160,16 @@ export default function NewsletterManagement() {
                           )}
                         </SelectContent>
                       </Select>
-                      {formData.template_id && (
-                        <p className="text-xs text-muted-foreground">
-                          Selected template will be used for this newsletter
-                        </p>
+                      {templateError && (
+                        <p className="text-sm text-red-500">{templateError}</p>
                       )}
                     </div>
                   )}
 
                   {/* Upload Template */}
-                  {formData.template_type === 'upload' && (
+                  {templateType === 'upload' && (
                     <div className="space-y-2">
-                      <Label htmlFor="html_file">Upload HTML File</Label>
+                      <Label htmlFor="html_file">Upload HTML File <span className="text-red-500">*</span></Label>
                       <div className="flex items-center gap-2">
                         <Input
                           id="html_file"
@@ -162,14 +179,17 @@ export default function NewsletterManagement() {
                             const file = e.target.files?.[0] || null;
                             handleFileUpload(file);
                           }}
-                          className="cursor-pointer"
+                          className={cn("cursor-pointer", htmlFileError && "border-red-500")}
                         />
                         <Upload className="h-5 w-5 text-muted-foreground" />
                       </div>
-                      {formData.html_file && (
+                      {htmlFile && (
                         <p className="text-xs text-muted-foreground">
-                          Selected file: {formData.html_file.name}
+                          Selected file: {htmlFile.name}
                         </p>
+                      )}
+                      {htmlFileError && (
+                        <p className="text-sm text-red-500">{htmlFileError}</p>
                       )}
                     </div>
                   )}
@@ -185,11 +205,16 @@ export default function NewsletterManagement() {
                     <Textarea
                       id="economic_news_text"
                       placeholder="Enter economic news content..."
-                      value={formData.economic_news_text}
-                      onChange={(e) => handleInputChange('economic_news_text', e.target.value)}
+                      {...register('economic_news_text', {
+                        required: 'Economic News Text is required',
+                        minLength: { value: 10, message: 'Minimum 10 characters required' }
+                      })}
                       rows={4}
-                      className="resize-none"
+                      className={cn("resize-none", errors.economic_news_text && "border-red-500")}
                     />
+                    {errors.economic_news_text && (
+                      <p className="text-sm text-red-500">{errors.economic_news_text.message}</p>
+                    )}
                   </div>
 
                   {/* Interest Rate Text */}
@@ -200,11 +225,16 @@ export default function NewsletterManagement() {
                     <Textarea
                       id="interest_rate_text"
                       placeholder="Enter interest rate information..."
-                      value={formData.interest_rate_text}
-                      onChange={(e) => handleInputChange('interest_rate_text', e.target.value)}
+                      {...register('interest_rate_text', {
+                        required: 'Interest Rate Text is required',
+                        minLength: { value: 10, message: 'Minimum 10 characters required' }
+                      })}
                       rows={4}
-                      className="resize-none"
+                      className={cn("resize-none", errors.interest_rate_text && "border-red-500")}
                     />
+                    {errors.interest_rate_text && (
+                      <p className="text-sm text-red-500">{errors.interest_rate_text.message}</p>
+                    )}
                   </div>
                 </div>
 
@@ -218,11 +248,16 @@ export default function NewsletterManagement() {
                     <Textarea
                       id="real_estate_news_text"
                       placeholder="Enter real estate news..."
-                      value={formData.real_estate_news_text}
-                      onChange={(e) => handleInputChange('real_estate_news_text', e.target.value)}
+                      {...register('real_estate_news_text', {
+                        required: 'Real Estate News Text is required',
+                        minLength: { value: 10, message: 'Minimum 10 characters required' }
+                      })}
                       rows={4}
-                      className="resize-none"
+                      className={cn("resize-none", errors.real_estate_news_text && "border-red-500")}
                     />
+                    {errors.real_estate_news_text && (
+                      <p className="text-sm text-red-500">{errors.real_estate_news_text.message}</p>
+                    )}
                   </div>
 
                   {/* Article 1 */}
@@ -233,11 +268,16 @@ export default function NewsletterManagement() {
                     <Textarea
                       id="article_1"
                       placeholder="Enter first article content..."
-                      value={formData.article_1}
-                      onChange={(e) => handleInputChange('article_1', e.target.value)}
+                      {...register('article_1', {
+                        required: 'Article 1 is required',
+                        minLength: { value: 10, message: 'Minimum 10 characters required' }
+                      })}
                       rows={4}
-                      className="resize-none"
+                      className={cn("resize-none", errors.article_1 && "border-red-500")}
                     />
+                    {errors.article_1 && (
+                      <p className="text-sm text-red-500">{errors.article_1.message}</p>
+                    )}
                   </div>
                 </div>
 
@@ -249,11 +289,16 @@ export default function NewsletterManagement() {
                   <Textarea
                     id="article_2"
                     placeholder="Enter second article content..."
-                    value={formData.article_2}
-                    onChange={(e) => handleInputChange('article_2', e.target.value)}
+                    {...register('article_2', {
+                      required: 'Article 2 is required',
+                      minLength: { value: 10, message: 'Minimum 10 characters required' }
+                    })}
                     rows={4}
-                    className="resize-none"
+                    className={cn("resize-none", errors.article_2 && "border-red-500")}
                   />
+                  {errors.article_2 && (
+                    <p className="text-sm text-red-500">{errors.article_2.message}</p>
+                  )}
                 </div>
 
                 {/* Row 4: Schedule Date & Schedule Time */}
@@ -266,6 +311,7 @@ export default function NewsletterManagement() {
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
+                          type="button"
                           variant="outline"
                           className={cn(
                             'w-full justify-start text-left font-normal',
@@ -280,7 +326,12 @@ export default function NewsletterManagement() {
                         <Calendar
                           mode="single"
                           selected={scheduleDate}
-                          onSelect={setScheduleDate}
+                          onSelect={(date) => {
+                            setScheduleDate(date);
+                            if (date) {
+                              setValue('schedule_date', format(date, 'yyyy-MM-dd HH:mm:ss'));
+                            }
+                          }}
                           initialFocus
                         />
                       </PopoverContent>
@@ -300,13 +351,12 @@ export default function NewsletterManagement() {
                     <Input
                       id="schedule_time"
                       type="time"
-                      value={formData.schedule_time}
-                      onChange={(e) => handleInputChange('schedule_time', e.target.value)}
+                      {...register('schedule_time')}
                       className="w-full"
                     />
-                    {formData.schedule_time && (
+                    {scheduleTime && (
                       <p className="text-xs text-muted-foreground">
-                        Time: {formData.schedule_time}
+                        Time: {scheduleTime}
                       </p>
                     )}
                   </div>
@@ -386,7 +436,7 @@ export default function NewsletterManagement() {
                           />
                           <div>
                             <p className="font-semibold text-sm">Preview</p>
-                            <p className="text-xs text-muted-foreground">{formData.user_photo?.name}</p>
+                            <p className="text-xs text-muted-foreground">{userPhoto?.name}</p>
                           </div>
                         </div>
                       )}
@@ -419,7 +469,7 @@ export default function NewsletterManagement() {
                           />
                           <div>
                             <p className="font-semibold text-sm">Preview</p>
-                            <p className="text-xs text-muted-foreground">{formData.company_logo?.name}</p>
+                            <p className="text-xs text-muted-foreground">{companyLogo?.name}</p>
                           </div>
                         </div>
                       )}
@@ -452,7 +502,7 @@ export default function NewsletterManagement() {
                           alt="Economic News Preview"
                           className="w-full h-24 object-cover rounded-lg"
                         />
-                        <p className="text-xs text-muted-foreground mt-2">{formData.economic_news_image?.name}</p>
+                        <p className="text-xs text-muted-foreground mt-2">{economicNewsImage?.name}</p>
                       </div>
                     )}
                   </div>
@@ -477,7 +527,7 @@ export default function NewsletterManagement() {
                           alt="Interest Rate Preview"
                           className="w-full h-24 object-cover rounded-lg"
                         />
-                        <p className="text-xs text-muted-foreground mt-2">{formData.interest_rate_image?.name}</p>
+                        <p className="text-xs text-muted-foreground mt-2">{interestRateImage?.name}</p>
                       </div>
                     )}
                   </div>
@@ -502,7 +552,7 @@ export default function NewsletterManagement() {
                           alt="Real Estate News Preview"
                           className="w-full h-24 object-cover rounded-lg"
                         />
-                        <p className="text-xs text-muted-foreground mt-2">{formData.real_estate_news_image?.name}</p>
+                        <p className="text-xs text-muted-foreground mt-2">{realEstateNewsImage?.name}</p>
                       </div>
                     )}
                   </div>
@@ -527,7 +577,7 @@ export default function NewsletterManagement() {
                           alt="Article 1 Preview"
                           className="w-full h-24 object-cover rounded-lg"
                         />
-                        <p className="text-xs text-muted-foreground mt-2">{formData.article_1_image?.name}</p>
+                        <p className="text-xs text-muted-foreground mt-2">{article1Image?.name}</p>
                       </div>
                     )}
                   </div>
@@ -552,7 +602,7 @@ export default function NewsletterManagement() {
                           alt="Article 2 Preview"
                           className="w-full h-24 object-cover rounded-lg"
                         />
-                        <p className="text-xs text-muted-foreground mt-2">{formData.article_2_image?.name}</p>
+                        <p className="text-xs text-muted-foreground mt-2">{article2Image?.name}</p>
                       </div>
                     )}
                   </div>
