@@ -1,253 +1,338 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { toast } from 'sonner';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Mail, Users, UserCheck, Globe, Search, User, ArrowLeft, Send } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { getContacts } from '@/services/contactService';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { getCustomerEmailTemplate, getCustomerEmailTemplates, sendEmail } from '@/services/emailService';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
+import { Label } from "@/components/ui/label";
+import { Mail, Send } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { getCustomerEmailTemplates, sendEmail } from "@/services/emailService";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { DataTable } from "@/components/data-table";
+import { getContacts, type ContactFilters } from "@/services/contactService";
+import { queryKeys } from "@/helpers/constants";
+import { type ColumnDef } from "@tanstack/react-table";
+import { Badge } from "@/components/ui/badge";
+import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
+import { formatCellPhone, formatWorkPhone } from "@/lib/phoneFormatter";
 
-interface Contact {
+interface PersonData {
   id: number;
   first_name: string;
   last_name: string;
   email: string;
+  title: string;
+  company: string;
   customer_type: string;
   send_status: string;
+  newsletter_version: string;
+  status: string;
   optout: boolean;
+  created: string;
+  modified: string;
+  cell: string;
+  work_phone: string;
+  work_ext: string;
 }
 
 export default function SendEmailPage() {
   const { templateId } = useParams<{ templateId: string }>();
   const navigate = useNavigate();
 
-  const [selectionMode, setSelectionMode] = useState<'all' | 'select'>('all');
-  const [recipientType, setRecipientType] = useState<'contacts' | 'partners' | 'all'>('all');
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>(
+    templateId || ""
+  );
   const [includeAttachments, setIncludeAttachments] = useState(true);
-  const [selectedContacts, setSelectedContacts] = useState<number[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>(templateId || '');
+  const [selectedContacts, setSelectedContacts] = useState<PersonData[]>([]);
+  const [filters, setFilters] = useState<ContactFilters>({});
+  const [globalSearch, setGlobalSearch] = useState<string>("");
+  const [debouncedFilters, setDebouncedFilters] = useState<ContactFilters>({});
+  const [debouncedGlobalSearch, setDebouncedGlobalSearch] =
+    useState<string>("");
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const globalSearchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounce filters to prevent too many API calls
+  useEffect(() => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    debounceTimeoutRef.current = setTimeout(() => {
+      setDebouncedFilters(filters);
+    }, 500);
+
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, [filters]);
+
+  // Debounce global search to prevent too many API calls
+  useEffect(() => {
+    if (globalSearchTimeoutRef.current) {
+      clearTimeout(globalSearchTimeoutRef.current);
+    }
+
+    globalSearchTimeoutRef.current = setTimeout(() => {
+      setDebouncedGlobalSearch(globalSearch);
+    }, 500);
+
+    return () => {
+      if (globalSearchTimeoutRef.current) {
+        clearTimeout(globalSearchTimeoutRef.current);
+      }
+    };
+  }, [globalSearch]);
 
   // Fetch all customer templates
   const { data: templatesData, isLoading: loadingTemplates } = useQuery({
-    queryKey: ['customer-email-templates'],
+    queryKey: ["customer-email-templates"],
     queryFn: () => getCustomerEmailTemplates({ is_active: true }),
   });
 
   const templates = Array.isArray(templatesData?.data)
     ? templatesData.data
-    : (templatesData?.data?.results || []);
+    : templatesData?.data?.results || [];
 
-  // Fetch selected template details
-  const { data: templateData, isLoading: loadingTemplate, error: templateError } = useQuery({
-    queryKey: ['email-template', selectedTemplateId],
-    queryFn: () => getCustomerEmailTemplate(Number(selectedTemplateId)),
-    enabled: !!selectedTemplateId,
-  });
-
-  const template = templateData?.data;
-
-  // Fetch contacts only when in "Select Specific" mode
-  const { data: contactsData, isLoading: loadingContacts, error: contactsError } = useQuery({
-    queryKey: ['contacts-for-email', selectionMode, recipientType],
+  // Fetch contacts
+  const {
+    data: contactsData,
+    isLoading: loadingContacts,
+    isFetching,
+  } = useQuery({
+    queryKey: [
+      queryKeys.contacts,
+      "all",
+      JSON.stringify(debouncedFilters),
+      debouncedGlobalSearch,
+    ],
     queryFn: () => {
-      // Map recipientType to customer_type for API
-      let customerType = undefined;
-      if (selectionMode === 'select') {
-        if (recipientType === 'contacts') {
-          customerType = 'contact';
-        } else if (recipientType === 'partners') {
-          customerType = 'partner';
-        }
-        // For 'all', don't pass customer_type filter
-      }
-
       return getContacts({
-        customer_type: customerType,
+        ...debouncedFilters,
+        search: debouncedGlobalSearch || undefined,
       });
     },
-    enabled: selectionMode === 'select',
+    staleTime: 30000,
   });
 
-  // Handle both paginated and non-paginated responses
-  const contacts: Contact[] = contactsData?.data?.results || contactsData?.data || [];
+  const contacts = contactsData?.data?.results || [];
 
-  // Filter contacts based on recipient type and search
-  const filteredContacts = useMemo(() => {
-    return contacts.filter((contact) => {
-      // Filter out opted-out contacts and those marked as don't send
-      if (contact.optout === true) return false;
-      if (contact.send_status === 'dont_send') return false;
-
-      // Filter by search query
-      const searchLower = searchQuery.toLowerCase();
-      const matchesSearch = !searchQuery ||
-        contact.first_name?.toLowerCase().includes(searchLower) ||
-        contact.last_name?.toLowerCase().includes(searchLower) ||
-        contact.email?.toLowerCase().includes(searchLower);
-
-      if (!matchesSearch) return false;
-
-      // Filter by recipient type - only when in "Send to All" mode
-      if (selectionMode === 'all') {
-        if (recipientType === 'contacts') {
-          return contact.customer_type === 'contact' || contact.customer_type === 'both';
-        } else if (recipientType === 'partners') {
-          return contact.customer_type === 'partner' || contact.customer_type === 'both';
-        }
-      }
-
-      // For "Select Specific" mode or "all" type, show everyone
-      return true;
-    });
-  }, [contacts, selectionMode, recipientType, searchQuery]);
-
-  // Get contacts by type for tabs
-  const contactsByType = useMemo(() => ({
-    all: filteredContacts,
-    contacts: filteredContacts.filter(c => c.customer_type === 'contact' || c.customer_type === 'both'),
-    partners: filteredContacts.filter(c => c.customer_type === 'partner' || c.customer_type === 'both'),
-  }), [filteredContacts]);
-
-  useEffect(() => {
-    if (contactsError) {
-      console.error('Error loading contacts:', contactsError);
-      toast.error('Failed to load contacts');
-    }
-  }, [contactsError]);
-
-  useEffect(() => {
-    if (templateError) {
-      console.error('Error loading template:', templateError);
-      toast.error('Failed to load email template');
-      navigate('/my-email-templates');
-    }
-  }, [templateError, navigate]);
-
-  const handleSelectAll = (type: 'all' | 'contacts' | 'partners') => {
-    const contactIds = contactsByType[type].map(c => c.id);
-    setSelectedContacts(contactIds);
-  };
-
-  const handleDeselectAll = () => {
-    setSelectedContacts([]);
-  };
-
-  const handleToggleContact = (contactId: number) => {
-    setSelectedContacts(prev =>
-      prev.includes(contactId)
-        ? prev.filter(id => id !== contactId)
-        : [...prev, contactId]
-    );
-  };
+  // Define columns for the contacts table
+  const columns: ColumnDef<PersonData>[] = useMemo(() => {
+    return [
+      {
+        id: "name",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Name" />
+        ),
+        accessorFn: (row) => `${row.first_name} ${row.last_name}`,
+        enableColumnFilter: true,
+      },
+      {
+        accessorKey: "email",
+        header: "Email",
+        cell: ({ row }) => (
+          <div className="text-blue-600">{row.getValue("email")}</div>
+        ),
+        enableColumnFilter: true,
+      },
+      {
+        accessorKey: "cell",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Cell Phone" />
+        ),
+        cell: ({ row }) => {
+          const phoneNumber = row.getValue("cell") as string;
+          return <div className="text-sm">{formatCellPhone(phoneNumber)}</div>;
+        },
+        enableColumnFilter: true,
+      },
+      {
+        accessorKey: "work_phone",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Work Phone" />
+        ),
+        cell: ({ row }) => {
+          const phoneNumber = row.getValue("work_phone") as string;
+          const extension = row.original.work_ext;
+          return (
+            <div className="text-sm">
+              {formatWorkPhone(phoneNumber, extension)}
+            </div>
+          );
+        },
+        enableColumnFilter: true,
+      },
+      {
+        accessorKey: "company",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Company" />
+        ),
+        enableColumnFilter: true,
+      },
+      {
+        accessorKey: "title",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Title" />
+        ),
+        enableColumnFilter: true,
+      },
+      {
+        header: "Status",
+        accessorKey: "send_status",
+        cell: ({ row }) => {
+          const sendStatus = row.getValue("send_status") as string;
+          const variant = sendStatus === "send" ? "default" : "destructive";
+          const displayText = sendStatus === "send" ? "Send" : "Don't Send";
+          return <Badge variant={variant}>{displayText}</Badge>;
+        },
+        enableColumnFilter: true,
+      },
+      {
+        header: "Created",
+        accessorKey: "created",
+        cell: ({ row }) => {
+          const date = new Date(row.getValue("created"));
+          return <div>{date.toLocaleDateString()}</div>;
+        },
+        enableColumnFilter: true,
+      },
+      {
+        header: "Modified",
+        accessorKey: "modified",
+        cell: ({ row }) => {
+          const date = new Date(row.getValue("modified"));
+          return <div>{date.toLocaleDateString()}</div>;
+        },
+        enableColumnFilter: true,
+      },
+    ];
+  }, []);
 
   // Send email mutation
   const sendEmailMutation = useMutation({
-    mutationFn: (data: { template_id: number; recipient_type: 'contacts' | 'partners' | 'all' | 'custom'; custom_emails?: string[]; include_attachments?: boolean }) =>
-      sendEmail(data),
+    mutationFn: (data: {
+      template_id: number;
+      recipient_type: "contacts" | "partners" | "all" | "custom";
+      custom_emails?: string[];
+      include_attachments?: boolean;
+    }) => sendEmail(data),
     onSuccess: (response) => {
-      const message = response?.data?.message || 'Email sent successfully';
+      const message = response?.data?.message || "Email sent successfully";
       const count = response?.data?.recipients_count || 0;
-      toast.success(`${message} (${count} recipient${count !== 1 ? 's' : ''})`);
-      navigate('/my-email-templates');
+      toast.success(`${message} (${count} recipient${count !== 1 ? "s" : ""})`);
+      navigate("/my-email-templates");
     },
     onError: (error: any) => {
-      console.error('Send email error:', error);
-      toast.error(error.response?.data?.error || 'Failed to send email');
+      console.error("Send email error:", error);
+      toast.error(error.response?.data?.error || "Failed to send email");
     },
   });
 
   const handleSend = async () => {
     if (!selectedTemplateId) {
-      toast.error('Please select a template');
+      toast.error("Please select a template");
       return;
     }
 
-    if (!template) {
-      toast.error('Template not loaded');
+    if (selectedContacts.length === 0) {
+      toast.error("Please select at least one contact");
+      return;
+    }
+
+    const selectedEmails = selectedContacts
+      .map((c) => c.email)
+      .filter((email) => email && email.trim() !== "");
+
+    if (selectedEmails.length === 0) {
+      toast.error("Selected contacts have no valid email addresses");
       return;
     }
 
     try {
-      if (selectionMode === 'select') {
-        // Send to selected contacts only
-        if (selectedContacts.length === 0) {
-          toast.error('Please select at least one contact');
-          return;
-        }
-
-        const selectedEmails = contacts
-          .filter(c => selectedContacts.includes(c.id))
-          .map(c => c.email)
-          .filter(email => email);
-
-        await sendEmailMutation.mutateAsync({
-          template_id: Number(selectedTemplateId),
-          recipient_type: 'custom',
-          custom_emails: selectedEmails,
-          include_attachments: includeAttachments,
-        });
-      } else {
-        // Send to all of selected type
-        await sendEmailMutation.mutateAsync({
-          template_id: Number(selectedTemplateId),
-          recipient_type: recipientType,
-          include_attachments: includeAttachments,
-        });
-      }
+      await sendEmailMutation.mutateAsync({
+        template_id: Number(selectedTemplateId),
+        recipient_type: "custom",
+        custom_emails: selectedEmails,
+        include_attachments: includeAttachments,
+      });
     } catch (error) {
       // Error handled by mutation
     }
   };
 
-  const getRecipientCount = () => {
-    if (selectionMode === 'select') {
-      return `${selectedContacts.length} selected contact${selectedContacts.length !== 1 ? 's' : ''}`;
-    }
-
-    switch (recipientType) {
-      case 'contacts':
-        return `${contactsByType.contacts.length} contact${contactsByType.contacts.length !== 1 ? 's' : ''}`;
-      case 'partners':
-        return `${contactsByType.partners.length} partner${contactsByType.partners.length !== 1 ? 's' : ''}`;
-      case 'all':
-        return `${contactsByType.all.length} contact${contactsByType.all.length !== 1 ? 's' : ''} and partner${contactsByType.all.length !== 1 ? 's' : ''}`;
-      default:
-        return '';
-    }
+  const handleSendEmailSelected = (selectedRows: PersonData[]) => {
+    setSelectedContacts(selectedRows);
   };
 
-  if (loadingTemplate) {
-    return (
-      <div className="container mx-auto py-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-pulse text-muted-foreground">Loading template...</div>
-        </div>
-      </div>
-    );
-  }
+  const updateFilter = useCallback(
+    (key: keyof ContactFilters, value: string) => {
+      setFilters((prev) => {
+        const newFilters = { ...prev };
 
-  if (!template) {
-    return (
-      <div className="container mx-auto py-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <p className="text-red-500 font-semibold mb-2">Template not found</p>
-            <Button onClick={() => navigate('/my-email-templates')}>Back to My Templates</Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+        if (value && value.trim() !== "") {
+          newFilters[key] = value;
+        } else {
+          delete newFilters[key];
+        }
+
+        return newFilters;
+      });
+    },
+    []
+  );
+
+  const clearFilter = (key: keyof ContactFilters) => {
+    setFilters((prev) => {
+      const newFilters = { ...prev };
+      delete newFilters[key];
+      return newFilters;
+    });
+  };
+
+  const clearAllFilters = () => {
+    setFilters({});
+    setGlobalSearch("");
+  };
+
+  const updateGlobalSearch = useCallback((value: string) => {
+    setGlobalSearch(value);
+  }, []);
+
+  const columnTitles = {
+    name: "Name",
+    email: "Email",
+    cell: "Cell Phone",
+    work_phone: "Work Phone",
+    company: "Company",
+    title: "Title",
+    send_status: "Status",
+    created: "Created Date",
+    modified: "Modified Date",
+  };
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -255,7 +340,9 @@ export default function SendEmailPage() {
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/my-email-templates">My Email Templates</BreadcrumbLink>
+            <BreadcrumbLink href="/my-email-templates">
+              My Email Templates
+            </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
@@ -267,336 +354,191 @@ export default function SendEmailPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/my-email-templates')}
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <Mail className="w-8 h-8" />
               Send Email
             </h1>
             <p className="text-muted-foreground mt-1">
-              Select a template and configure your email recipients
+              Select a template and recipients to send
             </p>
           </div>
         </div>
         <Button
           onClick={handleSend}
-          disabled={sendEmailMutation.isPending}
+          disabled={
+            sendEmailMutation.isPending || selectedContacts.length === 0
+          }
           size="lg"
         >
           <Send className="w-4 h-4 mr-2" />
-          {sendEmailMutation.isPending ? 'Sending...' : 'Send Email'}
+          {sendEmailMutation.isPending
+            ? "Sending..."
+            : `Send to ${selectedContacts.length} Contact${
+                selectedContacts.length !== 1 ? "s" : ""
+              }`}
         </Button>
       </div>
 
+      {/* Template Selection and Options */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Template Selection Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Select Email Template</CardTitle>
-              <CardDescription>Choose the email template you want to send</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Label htmlFor="template-select">Email Template</Label>
-                <Select
-                  value={selectedTemplateId}
-                  onValueChange={setSelectedTemplateId}
-                >
-                  <SelectTrigger id="template-select">
-                    <SelectValue placeholder="Choose a template..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {loadingTemplates ? (
-                      <SelectItem value="loading" disabled>Loading templates...</SelectItem>
-                    ) : templates.length === 0 ? (
-                      <SelectItem value="empty" disabled>No templates available</SelectItem>
-                    ) : (
-                      templates.map((tmpl: any) => (
-                        <SelectItem key={tmpl.email_id} value={String(tmpl.email_id)}>
-                          {tmpl.email_name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-                {template && (
-                  <div className="mt-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
-                    <p className="text-sm font-medium">{template.email_name}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Subject: {template.email_subject}</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Select Email Template</CardTitle>
+            <CardDescription>
+              Choose the email template you want to send
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <Label htmlFor="template-select">Email Template</Label>
+              <Select
+                value={selectedTemplateId}
+                onValueChange={setSelectedTemplateId}
+              >
+                <SelectTrigger id="template-select">
+                  <SelectValue placeholder="Choose a template..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {loadingTemplates ? (
+                    <SelectItem value="loading" disabled>
+                      Loading templates...
+                    </SelectItem>
+                  ) : templates.length === 0 ? (
+                    <SelectItem value="empty" disabled>
+                      No templates available
+                    </SelectItem>
+                  ) : (
+                    templates.map((tmpl: any) => (
+                      <SelectItem
+                        key={tmpl.email_id}
+                        value={String(tmpl.email_id)}
+                      >
+                        {tmpl.email_name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
 
-          {/* Selection Mode Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>How would you like to send?</CardTitle>
-              <CardDescription>Choose between sending to all recipients or selecting specific contacts</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <RadioGroup value={selectionMode} onValueChange={(value: any) => {
-                setSelectionMode(value);
-                setSelectedContacts([]);
-              }}>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-3 border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
-                    <RadioGroupItem value="all" id="mode-all" />
-                    <Label htmlFor="mode-all" className="cursor-pointer flex-1">
-                      <div className="font-medium">Send to All</div>
-                      <div className="text-xs text-muted-foreground">Send to all contacts/partners based on type</div>
-                    </Label>
-                  </div>
-
-                  <div className="flex items-center space-x-3 border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
-                    <RadioGroupItem value="select" id="mode-select" />
-                    <Label htmlFor="mode-select" className="cursor-pointer flex-1">
-                      <div className="font-medium">Select Specific</div>
-                      <div className="text-xs text-muted-foreground">Choose specific contacts from list</div>
-                    </Label>
-                  </div>
-                </div>
-              </RadioGroup>
-            </CardContent>
-          </Card>
-
-          {/* Recipient Type Selection for "Send to All" mode */}
-          {selectionMode === 'all' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Recipient Type</CardTitle>
-                <CardDescription>Select which type of recipients to send to</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {loadingContacts ? (
-                  <div className="text-center py-4 text-muted-foreground">
-                    <div className="animate-pulse">Loading contact counts...</div>
-                  </div>
-                ) : (
-                  <RadioGroup value={recipientType} onValueChange={(value: any) => setRecipientType(value)}>
-                    <div className="grid gap-3">
-                      <div className="flex items-center space-x-3 border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
-                        <RadioGroupItem value="all" id="type-all" />
-                        <Label htmlFor="type-all" className="flex items-center gap-2 cursor-pointer flex-1">
-                          <Globe className="w-4 h-4 text-purple-600" />
+              {selectedTemplateId && templates.length > 0 && (
+                <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-md space-y-2">
+                  <h3 className="font-semibold text-sm">Template Information</h3>
+                  {(() => {
+                    const selectedTemplate = templates.find(
+                      (tmpl: any) => String(tmpl.email_id) === selectedTemplateId
+                    );
+                    return selectedTemplate ? (
+                      <div className="space-y-1 text-sm">
+                        <div>
+                          <span className="font-medium">Name: </span>
+                          <span className="text-gray-700">{selectedTemplate.email_name}</span>
+                        </div>
+                        {selectedTemplate.email_subject && (
                           <div>
-                            <div className="font-medium">All ({contactsByType.all.length})</div>
-                            <div className="text-xs text-muted-foreground">Send to all contacts and partners</div>
+                            <span className="font-medium">Subject: </span>
+                            <span className="text-gray-700">{selectedTemplate.email_subject}</span>
                           </div>
-                        </Label>
-                      </div>
-
-                      <div className="flex items-center space-x-3 border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
-                        <RadioGroupItem value="contacts" id="type-contacts" />
-                        <Label htmlFor="type-contacts" className="flex items-center gap-2 cursor-pointer flex-1">
-                          <Users className="w-4 h-4 text-blue-600" />
+                        )}
+                        {selectedTemplate.email_from && (
                           <div>
-                            <div className="font-medium">Contacts ({contactsByType.contacts.length})</div>
-                            <div className="text-xs text-muted-foreground">Send to all contacts only</div>
+                            <span className="font-medium">From: </span>
+                            <span className="text-gray-700">{selectedTemplate.email_from}</span>
                           </div>
-                        </Label>
-                      </div>
-
-                      <div className="flex items-center space-x-3 border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
-                        <RadioGroupItem value="partners" id="type-partners" />
-                        <Label htmlFor="type-partners" className="flex items-center gap-2 cursor-pointer flex-1">
-                          <UserCheck className="w-4 h-4 text-green-600" />
+                        )}
+                        {selectedTemplate.created && (
                           <div>
-                            <div className="font-medium">Partners ({contactsByType.partners.length})</div>
-                            <div className="text-xs text-muted-foreground">Send to all partners only</div>
+                            <span className="font-medium">Created: </span>
+                            <span className="text-gray-700">
+                              {new Date(selectedTemplate.created).toLocaleDateString()}
+                            </span>
                           </div>
-                        </Label>
+                        )}
                       </div>
-                    </div>
-                  </RadioGroup>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Contact Selection List for "Select Specific" mode */}
-          {selectionMode === 'select' && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Select Contacts</CardTitle>
-                    <CardDescription>Choose specific contacts to send the email to</CardDescription>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleDeselectAll}
-                  >
-                    Deselect All
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Search */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    placeholder="Search contacts by name or email..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-
-                {/* Tabs for contact types */}
-                <Tabs defaultValue="all" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="all" onClick={() => setRecipientType('all')}>
-                      All ({contactsByType.all.length})
-                    </TabsTrigger>
-                    <TabsTrigger value="contacts" onClick={() => setRecipientType('contacts')}>
-                      Contacts ({contactsByType.contacts.length})
-                    </TabsTrigger>
-                    <TabsTrigger value="partners" onClick={() => setRecipientType('partners')}>
-                      Partners ({contactsByType.partners.length})
-                    </TabsTrigger>
-                  </TabsList>
-
-                  {(['all', 'contacts', 'partners'] as const).map((type) => (
-                    <TabsContent key={type} value={type} className="space-y-2">
-                      <div className="flex justify-end mb-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleSelectAll(type)}
-                        >
-                          Select All {type === 'all' ? '' : type.charAt(0).toUpperCase() + type.slice(1)}
-                        </Button>
-                      </div>
-
-                      {loadingContacts ? (
-                        <div className="text-center py-8 text-muted-foreground">
-                          <div className="animate-pulse">Loading contacts...</div>
-                        </div>
-                      ) : contactsError ? (
-                        <div className="text-center py-8 text-red-500">
-                          <p>Failed to load contacts</p>
-                          <p className="text-sm mt-2">Please try again or contact support</p>
-                        </div>
-                      ) : contacts.length === 0 ? (
-                        <div className="text-center py-8 text-muted-foreground">
-                          <p className="font-medium">No contacts found in your account</p>
-                          <p className="text-sm mt-2">Add contacts first before sending emails</p>
-                        </div>
-                      ) : contactsByType[type].length === 0 ? (
-                        <div className="text-center py-8 text-muted-foreground">
-                          <p>No {type === 'all' ? 'contacts' : type} found</p>
-                          {searchQuery && <p className="text-sm mt-2">Try adjusting your search</p>}
-                        </div>
-                      ) : (
-                        <div className="border rounded-lg max-h-[400px] overflow-y-auto">
-                          {contactsByType[type].map((contact) => (
-                            <div
-                              key={contact.id}
-                              className="flex items-center space-x-3 p-3 hover:bg-gray-50 border-b last:border-b-0 cursor-pointer"
-                              onClick={() => handleToggleContact(contact.id)}
-                            >
-                              <Checkbox
-                                checked={selectedContacts.includes(contact.id)}
-                                onCheckedChange={() => handleToggleContact(contact.id)}
-                              />
-                              <User className="w-4 h-4 text-gray-400" />
-                              <div className="flex-1 min-w-0">
-                                <div className="font-medium truncate">
-                                  {contact.first_name} {contact.last_name}
-                                </div>
-                                <div className="text-sm text-muted-foreground truncate">
-                                  {contact.email}
-                                </div>
-                              </div>
-                              <Badge variant="outline" className="capitalize">
-                                {contact.customer_type}
-                              </Badge>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </TabsContent>
-                  ))}
-                </Tabs>
-              </CardContent>
-            </Card>
-          )}
-
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Template Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Template Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div>
-                <p className="text-muted-foreground">Name</p>
-                <p className="font-medium">{template?.email_name}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Subject</p>
-                <p className="font-medium">{template?.email_subject}</p>
-              </div>
-              {template?.attachments && template.attachments.length > 0 && (
-                <div>
-                  <p className="text-muted-foreground">Attachments</p>
-                  <p className="font-medium">{template.attachments.length} file(s)</p>
+                    ) : null;
+                  })()}
                 </div>
               )}
-            </CardContent>
-          </Card>
 
-          {/* Options */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Options</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="include-attachments"
-                  checked={includeAttachments}
-                  onCheckedChange={(checked) => setIncludeAttachments(checked as boolean)}
-                  disabled={!template?.attachments || template.attachments.length === 0}
-                />
-                <Label
-                  htmlFor="include-attachments"
-                  className="text-sm font-normal cursor-pointer"
-                >
-                  Include attachments ({template?.attachments?.length || 0} file(s))
-                </Label>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Options Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Options</CardTitle>
+            <CardDescription>Configure email settings</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="include-attachments"
+                checked={includeAttachments}
+                onCheckedChange={(checked) =>
+                  setIncludeAttachments(checked as boolean)
+                }
+              />
+              <Label
+                htmlFor="include-attachments"
+                className="text-sm font-normal cursor-pointer"
+              >
+                Include attachments
+              </Label>
+            </div>
+            {selectedContacts.length > 0 && (
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <p className="text-sm font-medium">
+                  {selectedContacts.length} contact
+                  {selectedContacts.length !== 1 ? "s" : ""} selected
+                </p>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Summary */}
-          <Card className="border-green-200 bg-green-50">
-            <CardHeader>
-              <CardTitle className="text-lg">Ready to Send</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm">
-                <strong>Recipients:</strong> {getRecipientCount()}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Contacts Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Select Recipients</CardTitle>
+          <CardDescription>
+            Choose contacts to send the email to
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="px-6 pb-6">
+            <DataTable
+              columns={columns}
+              data={contacts}
+              searchColumns={[
+                "name",
+                "email",
+                "company",
+                "title",
+                "cell",
+                "work_phone",
+              ]}
+              showActionsColumn={false}
+              filters={filters as Record<string, string | undefined>}
+              onFilterChange={(key: string, value: string) =>
+                updateFilter(key as keyof typeof filters, value)
+              }
+              onClearFilter={(key: string) =>
+                clearFilter(key as keyof typeof filters)
+              }
+              onClearAllFilters={clearAllFilters}
+              columnTitles={columnTitles}
+              isFetching={isFetching}
+              isLoading={loadingContacts}
+              globalSearch={globalSearch}
+              onGlobalSearchChange={updateGlobalSearch}
+              enableRowSelection={true}
+              onSendEmailSelected={handleSendEmailSelected}
+            />
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
