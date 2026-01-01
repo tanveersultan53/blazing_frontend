@@ -1,4 +1,4 @@
-import * as React from "react"
+import * as React from "react";
 import {
   type ColumnDef,
   flexRender,
@@ -10,7 +10,7 @@ import {
   useReactTable,
   getFilteredRowModel,
   type VisibilityState,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 
 import {
   Table,
@@ -19,11 +19,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Input } from "./ui/input"
-import { DataTablePagination } from "./ui/data-table-pagination"
-import { DataTableViewOptions } from "./ui/data-table-column-toggle"
-import { Button } from "./ui/button"
+} from "@/components/ui/table";
+import { Input } from "./ui/input";
+import { DataTablePagination } from "./ui/data-table-pagination";
+import { DataTableViewOptions } from "./ui/data-table-column-toggle";
+import { Button } from "./ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,40 +31,40 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu"
-import { MoreHorizontal, X, Mail, Trash2 } from "lucide-react"
-import { Checkbox } from "./ui/checkbox"
+} from "./ui/dropdown-menu";
+import { MoreHorizontal, X, Mail, Trash2 } from "lucide-react";
+import { Checkbox } from "./ui/checkbox";
 
 interface ActionItem<TData> {
-  label: string
-  onClick: (row: TData) => void
-  icon?: React.ComponentType<{ className?: string }>
-  className?: string | ((row: TData) => string)
-  disabled?: boolean | ((row: TData) => boolean)
+  label: string;
+  onClick: (row: TData) => void;
+  icon?: React.ComponentType<{ className?: string }>;
+  className?: string | ((row: TData) => string);
+  disabled?: boolean | ((row: TData) => boolean);
 }
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
-  searchColumns?: string[]
-  showActionsColumn?: boolean
-  onViewDetails?: (row: TData) => void
-  actionItems?: ActionItem<TData>[]
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+  searchColumns?: string[];
+  showActionsColumn?: boolean;
+  onViewDetails?: (row: TData) => void;
+  actionItems?: ActionItem<TData>[];
   // Server-side filtering props
-  filters?: Record<string, string | undefined>
-  onFilterChange?: (key: string, value: string) => void
-  onClearFilter?: (key: string) => void
-  onClearAllFilters?: () => void
-  columnTitles?: Record<string, string>
-  isFetching?: boolean
-  isLoading?: boolean
+  filters?: Record<string, string | undefined>;
+  onFilterChange?: (key: string, value: string) => void;
+  onClearFilter?: (key: string) => void;
+  onClearAllFilters?: () => void;
+  columnTitles?: Record<string, string>;
+  isFetching?: boolean;
+  isLoading?: boolean;
   // Global search props
-  globalSearch?: string
-  onGlobalSearchChange?: (value: string) => void
+  globalSearch?: string;
+  onGlobalSearchChange?: (value: string) => void;
   // Row selection props
-  enableRowSelection?: boolean
-  onDeleteSelected?: (rows: TData[]) => void
-  onSendEmailSelected?: (rows: TData[]) => void
+  enableRowSelection?: boolean;
+  onDeleteSelected?: (rows: TData[]) => void;
+  onSendEmailSelected?: (rows: TData[]) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -94,41 +94,45 @@ export function DataTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [globalFilter, setGlobalFilter] = React.useState("");
-  const [rowSelection, setRowSelection] = React.useState({})
+  const [rowSelection, setRowSelection] = React.useState({});
 
   const finalColumns = React.useMemo<ColumnDef<TData, TValue>[]>(() => {
-    const columnsWithExtras: ColumnDef<TData, TValue>[] = []
+    const columnsWithExtras: ColumnDef<TData, TValue>[] = [];
 
     // Add checkbox column if row selection is enabled
     if (enableRowSelection) {
       const selectColumn: ColumnDef<TData, TValue> = {
         id: "select" as any,
-        header: ({ table }) => (
-          <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
-            }
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-            aria-label="Select all"
-          />
-        ) as any,
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
-        ) as any,
+        header: ({ table }) =>
+          (
+            <Checkbox
+              checked={
+                table.getIsAllPageRowsSelected() ||
+                (table.getIsSomePageRowsSelected() && "indeterminate")
+              }
+              onCheckedChange={(value) =>
+                table.toggleAllPageRowsSelected(!!value)
+              }
+              aria-label="Select all"
+            />
+          ) as any,
+        cell: ({ row }) =>
+          (
+            <Checkbox
+              checked={row.getIsSelected()}
+              onCheckedChange={(value) => row.toggleSelected(!!value)}
+              aria-label="Select row"
+            />
+          ) as any,
         enableSorting: false,
         enableHiding: false,
         enableColumnFilter: false,
-      }
-      columnsWithExtras.push(selectColumn)
+      };
+      columnsWithExtras.push(selectColumn);
     }
 
     // Add user-defined columns
-    columnsWithExtras.push(...columns)
+    columnsWithExtras.push(...columns);
 
     // Add actions column if needed
     if (showActionsColumn) {
@@ -136,7 +140,7 @@ export function DataTable<TData, TValue>({
         id: "actions" as any,
         header: "Actions" as any,
         cell: ({ row }) => {
-          const original = row.original as TData
+          const original = row.original as TData;
           return (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -147,26 +151,24 @@ export function DataTable<TData, TValue>({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem
-                  onSelect={() => onViewDetails?.(original)}
-                >
+                <DropdownMenuItem onSelect={() => onViewDetails?.(original)}>
                   View Details
                 </DropdownMenuItem>
-                {(actionItems && actionItems.length > 0) && (
+                {actionItems && actionItems.length > 0 && (
                   <DropdownMenuSeparator />
                 )}
                 {actionItems?.map((item, index) => {
-                  const Icon = item.icon
+                  const Icon = item.icon;
                   const itemClassName = item.className
-                    ? (typeof item.className === "function"
-                        ? item.className(original as TData)
-                        : item.className)
-                    : undefined
+                    ? typeof item.className === "function"
+                      ? item.className(original as TData)
+                      : item.className
+                    : undefined;
                   const itemDisabled = item.disabled
-                    ? (typeof item.disabled === "function"
-                        ? item.disabled(original as TData)
-                        : item.disabled)
-                    : false
+                    ? typeof item.disabled === "function"
+                      ? item.disabled(original as TData)
+                      : item.disabled
+                    : false;
                   return (
                     <DropdownMenuItem
                       key={index}
@@ -177,18 +179,24 @@ export function DataTable<TData, TValue>({
                       {Icon ? <Icon className={itemClassName} /> : null}
                       {item.label}
                     </DropdownMenuItem>
-                  )
+                  );
                 })}
               </DropdownMenuContent>
             </DropdownMenu>
-          )
+          );
         },
-      }
-      columnsWithExtras.push(actionsColumn)
+      };
+      columnsWithExtras.push(actionsColumn);
     }
 
-    return columnsWithExtras
-  }, [columns, showActionsColumn, actionItems, onViewDetails, enableRowSelection])
+    return columnsWithExtras;
+  }, [
+    columns,
+    showActionsColumn,
+    actionItems,
+    onViewDetails,
+    enableRowSelection,
+  ]);
 
   const table = useReactTable({
     data,
@@ -206,10 +214,13 @@ export function DataTable<TData, TValue>({
     enableRowSelection: enableRowSelection,
     globalFilterFn: (row, _columnId, value) => {
       // Get the searchable columns
-      const searchableColumns = searchColumns.length > 0 ? searchColumns : finalColumns.map(col => (col as any).accessorKey).filter(Boolean);
+      const searchableColumns =
+        searchColumns.length > 0
+          ? searchColumns
+          : finalColumns.map((col) => (col as any).accessorKey).filter(Boolean);
 
       // Check if any of the searchable columns contain the search value
-      return searchableColumns.some(columnKey => {
+      return searchableColumns.some((columnKey) => {
         const cellValue = row.getValue(columnKey as string);
         if (cellValue == null) return false;
 
@@ -225,12 +236,13 @@ export function DataTable<TData, TValue>({
       globalFilter,
       rowSelection,
     },
-  })
+  });
 
   // Get selected rows
-  const selectedRows = table.getFilteredSelectedRowModel().rows.map(row => row.original)
-  const hasSelection = selectedRows.length > 0
-
+  const selectedRows = table
+    .getFilteredSelectedRowModel()
+    .rows.map((row) => row.original);
+  const hasSelection = selectedRows.length > 0;
 
   return (
     <div>
@@ -238,7 +250,7 @@ export function DataTable<TData, TValue>({
         <div className="flex items-center gap-2 flex-1">
           <Input
             placeholder={`Search`}
-            value={onGlobalSearchChange ? globalSearch : (globalFilter ?? "")}
+            value={onGlobalSearchChange ? globalSearch : globalFilter ?? ""}
             onChange={(event) => {
               if (onGlobalSearchChange) {
                 onGlobalSearchChange(event.target.value);
@@ -248,31 +260,35 @@ export function DataTable<TData, TValue>({
             }}
             className="max-w-sm"
           />
-          {onClearAllFilters && (Object.keys(filters).some(key => filters[key]) || globalSearch) && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onClearAllFilters}
-              className="h-8 gap-1"
-            >
-              <X className="h-3 w-3" />
-              Clear All
-            </Button>
-          )}
+          {onClearAllFilters &&
+            (Object.keys(filters).some((key) => filters[key]) ||
+              globalSearch) && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onClearAllFilters}
+                className="h-8 gap-1"
+              >
+                <X className="h-3 w-3" />
+                Clear All
+              </Button>
+            )}
         </div>
         <div className="flex items-center gap-2 justify-end">
           {/* Row selection action buttons */}
           {enableRowSelection && hasSelection && (
             <>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => onDeleteSelected?.(selectedRows)}
-                className="h-9 gap-2"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete ({selectedRows.length})
-              </Button>
+              {onDeleteSelected && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => onDeleteSelected?.(selectedRows)}
+                  className="h-9 gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete ({selectedRows.length})
+                </Button>
+              )}
               <Button
                 variant="default"
                 size="sm"
@@ -299,11 +315,11 @@ export function DataTable<TData, TValue>({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                       </TableHead>
-                    )
+                    );
                   })}
                 </TableRow>
               ))}
@@ -323,9 +339,12 @@ export function DataTable<TData, TValue>({
 
                     // Fallback: convert column id to readable format
                     return columnId
-                      .split('_')
-                      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-                      .join(' ');
+                      .split("_")
+                      .map(
+                        (word: string) =>
+                          word.charAt(0).toUpperCase() + word.slice(1)
+                      )
+                      .join(" ");
                   };
 
                   return (
@@ -335,7 +354,9 @@ export function DataTable<TData, TValue>({
                           <Input
                             placeholder={`${getColumnTitle(columnId)}...`}
                             value={filterValue}
-                            onChange={(event) => onFilterChange(columnId, event.target.value)}
+                            onChange={(event) =>
+                              onFilterChange(columnId, event.target.value)
+                            }
                             className="h-8 text-xs pr-8"
                           />
                           {filterValue && onClearFilter && (
@@ -355,9 +376,12 @@ export function DataTable<TData, TValue>({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {(isLoading || isFetching) ? (
+              {isLoading || isFetching ? (
                 <TableRow>
-                  <TableCell colSpan={finalColumns.length} className="h-24 text-center">
+                  <TableCell
+                    colSpan={finalColumns.length}
+                    className="h-24 text-center"
+                  >
                     <div className="flex items-center justify-center gap-2">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                       <span className="text-sm text-gray-600">Loading...</span>
@@ -372,14 +396,20 @@ export function DataTable<TData, TValue>({
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
                       </TableCell>
                     ))}
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={finalColumns.length} className="h-24 text-center">
+                  <TableCell
+                    colSpan={finalColumns.length}
+                    className="h-24 text-center"
+                  >
                     No results.
                   </TableCell>
                 </TableRow>
@@ -392,5 +422,5 @@ export function DataTable<TData, TValue>({
         <DataTablePagination table={table} />
       </div>
     </div>
-  )
+  );
 }
