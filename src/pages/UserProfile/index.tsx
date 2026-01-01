@@ -36,6 +36,7 @@ import UpdateUserPersonalInfo from "./UpdateUserPersonalInfo";
 import UpdateUserServiceSettings from "./UpdateUserServiceSettings";
 import UpdateUserEmailSettings from "./UpdateUserEmailSettings";
 import UpdateUserCallToAction from "./UpdateUserCallToAction";
+import UpdateUserBranding from "./UpdateUserBranding";
 
 const UserProfile = () => {
     const currentUser = useSelector((state: { user: { currentUser: User } }) => state.user.currentUser);
@@ -124,6 +125,7 @@ const UserProfile = () => {
     const [isServicesEditMode, setIsServicesEditMode] = useState(false);
     const [isEmailSettingsEditMode, setIsEmailSettingsEditMode] = useState(false);
     const [isCallToActionEditMode, setIsCallToActionEditMode] = useState(false);
+    const [isBrandingEditMode, setIsBrandingEditMode] = useState(false);
 
     // Get initials for avatar fallback
     const initials = `${first_name?.charAt(0) || ''}${last_name?.charAt(0) || ''}`.toUpperCase();
@@ -841,6 +843,42 @@ const UserProfile = () => {
                             />
                         ) : (
                             <CallToActionSummary callToAction={callToActionData?.data} />
+                        )}
+                    </CardContent>
+                </Card>
+
+                {/* Branding Card */}
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <div>
+                            <CardTitle>Branding Assets</CardTitle>
+                            <CardDescription>
+                                Manage your company branding assets and content
+                            </CardDescription>
+                        </div>
+                        {!isBrandingEditMode && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex items-center gap-2"
+                                onClick={() => setIsBrandingEditMode(true)}
+                            >
+                                <Edit className="w-4 h-4" />
+                                Edit Branding
+                            </Button>
+                        )}
+                    </CardHeader>
+                    <CardContent>
+                        {isBrandingEditMode ? (
+                            <UpdateUserBranding
+                                userId={currentUser?.rep_id}
+                                setIsEditMode={setIsBrandingEditMode}
+                                refetch={refetchUserDetails}
+                            />
+                        ) : (
+                            <p className="text-sm text-muted-foreground">
+                                Click "Edit Branding" to manage your branding assets, logos, and content.
+                            </p>
                         )}
                     </CardContent>
                 </Card>

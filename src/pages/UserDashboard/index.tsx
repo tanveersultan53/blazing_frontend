@@ -1,16 +1,13 @@
 import { useMemo } from "react";
 import { useBreadcrumbs } from "@/hooks/usePageTitle";
 import PageHeader from "@/components/PageHeader";
-import { FileDown, UserPlus, Mail, FileText, ArrowRight } from "lucide-react";
+import { FileDown, UserPlus } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { DataTable } from "@/components/data-table";
 import { useUserDashboard } from "./useUserDashboard";
 import { SendEmailToContactsModal } from "./SendEmailToContactsModal";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
-import { getCustomerEmailTemplates } from "@/services/emailService";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,16 +28,6 @@ const UserDashboard = () => {
     ], []);
 
     useBreadcrumbs(breadcrumbs);
-
-    // Fetch user's email templates
-    const { data: templatesData } = useQuery({
-        queryKey: ['customer-email-templates'],
-        queryFn: () => getCustomerEmailTemplates({}),
-    });
-
-    const userTemplates = templatesData?.data?.results || [];
-    const activeTemplates = userTemplates.filter(t => t.is_active);
-
 
     // Use the dashboard hook
     const {

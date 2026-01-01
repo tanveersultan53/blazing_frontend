@@ -23,6 +23,9 @@ import CreateCustomerTemplate from './pages/MyEmailTemplates/CreateTemplate';
 import BrowseTemplates from './pages/MyEmailTemplates/BrowseTemplates';
 import SendEmail from './pages/SendEmail';
 import NewsletterManagement from './pages/NewsletterManagement';
+import NewslettersList from './pages/NewsletterManagement/NewslettersList';
+import EcardsList from './pages/EcardManagement';
+import { EcardForm, EcardPreview } from './pages/EcardManagement';
 
 function App() {
   return (
@@ -50,7 +53,14 @@ function App() {
           <Route path="email-template-editor" element={<EmailTemplate />} />
           <Route path="react-quill-editor" element={<ReactQuillEditor />} />
           <Route path="email-sent-history" element={<EmailSentHistory />} />
-          <Route path="newsletters" element={<NewsletterManagement />} />
+          <Route path="newsletters" element={<NewslettersList />} />
+          <Route path="newsletters/create" element={<NewsletterManagement />} />
+          <Route path="newsletters/edit/:id" element={<NewsletterManagement />} />
+          <Route path="newsletters/:id" element={<NewsletterManagement />} />
+          <Route path="ecards" element={<EcardsList />} />
+          <Route path="ecards/create" element={<EcardForm />} />
+          <Route path="ecards/edit/:id" element={<EcardForm />} />
+          <Route path="ecards/preview/:id" element={<EcardPreview />} />
         </Route>
         <Route path="/login" element={<WithoutAuth><Login /></WithoutAuth>} />
         <Route path="*" element={<Navigate to="/" replace />} />

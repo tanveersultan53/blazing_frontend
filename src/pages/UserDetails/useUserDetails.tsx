@@ -8,7 +8,7 @@ import { useState } from "react";
 const useUserDetails = () => {
     const { id } = useParams();
     const location = useLocation();
-    const [activeTab, setActiveTab] = useState<'personal' | 'social' | 'settings' | 'services' | 'newsletters' | 'email' | 'call'>('personal');
+    const [activeTab, setActiveTab] = useState<'personal' | 'social' | 'branding' | 'settings' | 'services' | 'newsletters' | 'email' | 'call'>('personal');
 
     // Check if this is a contact details page or user details page
     const isContactDetails = location.pathname.startsWith('/contacts/');

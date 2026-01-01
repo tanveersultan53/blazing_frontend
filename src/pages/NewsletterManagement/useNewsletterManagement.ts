@@ -3,8 +3,8 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
-import { createNewsletter } from "@/services/newsletterService";
-import { getTemplates } from "@/services/templateManagementService";
+import { createNewsletter, verifyNewsletter } from "@/services/newsletterService";
+import { getUsers } from "@/services/userManagementService";
 import type { INewsletter } from "./interface";
 import type { User as UserType } from "@/redux/features/userSlice";
 
@@ -23,42 +23,52 @@ export const useNewsletterManagement = () => {
     formState: { errors },
   } = useForm<INewsletter>({
     defaultValues: {
-      template_type: "existing",
-      template_id: undefined,
-      html_file: null,
-      user_photo: null,
-      company_logo: null,
-      economic_news_image: null,
-      interest_rate_image: null,
-      real_estate_news_image: null,
-      article_1_image: null,
-      article_2_image: null,
-      economic_news_text: "",
-      interest_rate_text: "",
-      real_estate_news_text: "",
-      article_1: "",
-      article_2: "",
-      schedule_date: "",
-      schedule_time: "",
+      newsletter_label: "",
+      news_text: "",
+      rate_text: "",
+      econ_text: "",
+      article1_text: "",
+      article2_text: "",
+      news_image: null,
+      rate_image: null,
+      econ_image: null,
+      article1_image: null,
+      article2_image: null,
+      scheduled_date: "",
+      scheduled_time: "",
+      is_active: true,
+      // Branding fields
+      companylogo: null,
+      photo: null,
+      logo: null,
+      qrcode: null,
+      personaltext: "",
+      disclosure: "",
+      hlogo: undefined,
+      wlogo: undefined,
+      hphoto: undefined,
+      wphoto: undefined,
+      custom: false,
+      // Social media
+      fb: "",
+      ig: "",
+      li: "",
+      tw: "",
+      yt: "",
+      tk: "",
+      vo: "",
+      yp: "",
+      gg: "",
+      bg: "",
     },
     mode: "onChange",
   });
 
   // Image preview states
   const [scheduleDate, setScheduleDate] = useState<Date>();
-  const [userPhotoPreview, setUserPhotoPreview] = useState<string | null>(null);
-  const [companyLogoPreview, setCompanyLogoPreview] = useState<string | null>(
-    null
-  );
-  const [economicNewsImagePreview, setEconomicNewsImagePreview] = useState<
-    string | null
-  >(null);
-  const [interestRateImagePreview, setInterestRateImagePreview] = useState<
-    string | null
-  >(null);
-  const [realEstateNewsImagePreview, setRealEstateNewsImagePreview] = useState<
-    string | null
-  >(null);
+  const [econImagePreview, setEconImagePreview] = useState<string | null>(null);
+  const [rateImagePreview, setRateImagePreview] = useState<string | null>(null);
+  const [newsImagePreview, setNewsImagePreview] = useState<string | null>(null);
   const [article1ImagePreview, setArticle1ImagePreview] = useState<
     string | null
   >(null);
@@ -66,60 +76,69 @@ export const useNewsletterManagement = () => {
     string | null
   >(null);
 
-  // Conditional validation errors
-  const [templateError, setTemplateError] = useState<string>("");
-  const [htmlFileError, setHtmlFileError] = useState<string>("");
+  // Branding image preview states
+  const [companyLogoPreview, setCompanyLogoPreview] = useState<string | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [qrcodePreview, setQrcodePreview] = useState<string | null>(null);
 
-  // Fetch newsletter templates
-  const { data: templatesData, isLoading: isLoadingTemplates } = useQuery({
-    queryKey: ["templates"],
-    queryFn: () => getTemplates({}),
+  // Verify dialog states
+  const [isVerifyDialogOpen, setIsVerifyDialogOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [newsletterUrls, setNewsletterUrls] = useState<{
+    short_newsletter_url: string;
+    long_newsletter_url: string;
+  } | null>(null);
+
+
+  // Fetch users for verify dialog
+  const { data: usersData, isLoading: isLoadingUsers } = useQuery({
+    queryKey: ["users"],
+    queryFn: () => getUsers({}),
   });
 
-  const newsletterTemplates =
-    templatesData?.data?.results?.filter(
-      (template) => template.type === "newsletter" && template.is_active
-    ) || [];
+  const users = usersData?.data?.results || [];
+
+  // Verify newsletter mutation
+  const verifyMutation = useMutation({
+    mutationFn: ({ userId, formData }: { userId: number; formData: FormData }) =>
+      verifyNewsletter(userId, formData),
+    onSuccess: (response) => {
+      setNewsletterUrls(response.data);
+      toast.success("Newsletter verified successfully!");
+    },
+    onError: (error: any) => {
+      console.error("Verify newsletter error:", error);
+      toast.error(error.response?.data?.error || "Failed to verify newsletter");
+    },
+  });
 
   // Create newsletter mutation
   const createMutation = useMutation({
     mutationFn: createNewsletter,
     onSuccess: () => {
-      toast.success("Newsletter scheduled successfully!");
+      toast.success("Newsletter saved successfully!");
       // Reset form
       reset();
       setScheduleDate(undefined);
-      setUserPhotoPreview(null);
-      setCompanyLogoPreview(null);
-      setEconomicNewsImagePreview(null);
-      setInterestRateImagePreview(null);
-      setRealEstateNewsImagePreview(null);
+      setEconImagePreview(null);
+      setRateImagePreview(null);
+      setNewsImagePreview(null);
       setArticle1ImagePreview(null);
       setArticle2ImagePreview(null);
+      // Clear file inputs
+      const fileInputs = document.querySelectorAll('input[type="file"]');
+      fileInputs.forEach((input: any) => {
+        input.value = '';
+      });
     },
     onError: (error: any) => {
       console.error("Create newsletter error:", error);
-      toast.error(error.response?.data?.error || "Failed to create newsletter");
+      toast.error(error.response?.data?.error || "Failed to save newsletter");
     },
   });
 
   const onSubmit = (data: INewsletter) => {
-    // Clear previous errors
-    setTemplateError("");
-    setHtmlFileError("");
-
-    // Manual validation for conditional fields
-    if (data.template_type === "existing" && !data.template_id) {
-      setTemplateError("Please select a template");
-      toast.error("Please select a template");
-      return;
-    }
-    if (data.template_type === "upload" && !data.html_file) {
-      setHtmlFileError("Please upload an HTML template file");
-      toast.error("Please upload an HTML template file");
-      return;
-    }
-
     const formData = new FormData();
 
     Object.entries(data).forEach(([key, value]) => {
@@ -146,99 +165,50 @@ export const useNewsletterManagement = () => {
     createMutation.mutate(formData);
   };
 
-  const handleTemplateTypeChange = (type: "existing" | "upload") => {
-    setValue("template_type", type);
-    setTemplateError("");
-    setHtmlFileError("");
-    if (type === "existing") {
-      setValue("html_file", null);
-    } else {
-      setValue("template_id", undefined);
-    }
-  };
-
-  const handleTemplateSelect = (templateId: number) => {
-    setValue("template_id", templateId);
-    setTemplateError("");
-  };
-
-  const handleFileUpload = (file: File | null) => {
-    setValue("html_file", file);
-    setHtmlFileError("");
-  };
-
-  const handleUserPhotoUpload = (file: File | null) => {
-    setValue("user_photo", file);
+  const handleEconImageUpload = (file: File | null) => {
+    setValue("econ_image", file);
 
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setUserPhotoPreview(reader.result as string);
+        setEconImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     } else {
-      setUserPhotoPreview(null);
+      setEconImagePreview(null);
     }
   };
 
-  const handleCompanyLogoUpload = (file: File | null) => {
-    setValue("company_logo", file);
+  const handleRateImageUpload = (file: File | null) => {
+    setValue("rate_image", file);
 
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setCompanyLogoPreview(reader.result as string);
+        setRateImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     } else {
-      setCompanyLogoPreview(null);
+      setRateImagePreview(null);
     }
   };
 
-  const handleEconomicNewsImageUpload = (file: File | null) => {
-    setValue("economic_news_image", file);
+  const handleNewsImageUpload = (file: File | null) => {
+    setValue("news_image", file);
 
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setEconomicNewsImagePreview(reader.result as string);
+        setNewsImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     } else {
-      setEconomicNewsImagePreview(null);
-    }
-  };
-
-  const handleInterestRateImageUpload = (file: File | null) => {
-    setValue("interest_rate_image", file);
-
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setInterestRateImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setInterestRateImagePreview(null);
-    }
-  };
-
-  const handleRealEstateNewsImageUpload = (file: File | null) => {
-    setValue("real_estate_news_image", file);
-
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setRealEstateNewsImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setRealEstateNewsImagePreview(null);
+      setNewsImagePreview(null);
     }
   };
 
   const handleArticle1ImageUpload = (file: File | null) => {
-    setValue("article_1_image", file);
+    setValue("article1_image", file);
 
     if (file) {
       const reader = new FileReader();
@@ -252,7 +222,7 @@ export const useNewsletterManagement = () => {
   };
 
   const handleArticle2ImageUpload = (file: File | null) => {
-    setValue("article_2_image", file);
+    setValue("article2_image", file);
 
     if (file) {
       const reader = new FileReader();
@@ -265,6 +235,166 @@ export const useNewsletterManagement = () => {
     }
   };
 
+  const handleCompanyLogoUpload = (file: File | null) => {
+    setValue("companylogo", file);
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCompanyLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setCompanyLogoPreview(null);
+    }
+  };
+
+  const handlePhotoUpload = (file: File | null) => {
+    setValue("photo", file);
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setPhotoPreview(null);
+    }
+  };
+
+  const handleLogoUpload = (file: File | null) => {
+    setValue("logo", file);
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setLogoPreview(null);
+    }
+  };
+
+  const handleQrcodeUpload = (file: File | null) => {
+    setValue("qrcode", file);
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setQrcodePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setQrcodePreview(null);
+    }
+  };
+
+  const handleClear = () => {
+    reset();
+    setScheduleDate(undefined);
+    setEconImagePreview(null);
+    setRateImagePreview(null);
+    setNewsImagePreview(null);
+    setArticle1ImagePreview(null);
+    setArticle2ImagePreview(null);
+    setCompanyLogoPreview(null);
+    setPhotoPreview(null);
+    setLogoPreview(null);
+    setQrcodePreview(null);
+    // Clear file inputs
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    fileInputs.forEach((input: any) => {
+      input.value = '';
+    });
+    toast.success("Form cleared successfully");
+  };
+
+  const handleSave = () => {
+    const data = watch();
+
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (value === null || value === undefined) return;
+
+      if (value instanceof File) {
+        formData.append(key, value);
+        return;
+      }
+
+      if (value instanceof FileList) {
+        if (value.length > 0) {
+          formData.append(key, value[0]);
+        }
+        return;
+      }
+
+      formData.append(key, String(value));
+    });
+
+    createMutation.mutate(formData);
+  };
+
+  const handleVerify = () => {
+    setIsVerifyDialogOpen(true);
+  };
+
+  const handleVerifySubmit = () => {
+    if (!selectedUserId) {
+      toast.error("Please select a user");
+      return;
+    }
+
+    const data = watch();
+
+    const formData = new FormData();
+
+    // Add all form fields to FormData (except user_id, it's in the URL)
+    Object.entries(data).forEach(([key, value]) => {
+      if (value === null || value === undefined) return;
+
+      // Handle File objects
+      if (value instanceof File) {
+        formData.append(key, value);
+        return;
+      }
+
+      // Handle FileList objects
+      if (value instanceof FileList) {
+        if (value.length > 0) {
+          formData.append(key, value[0]);
+        }
+        return;
+      }
+
+      // Handle string/number values
+      formData.append(key, String(value));
+    });
+
+    verifyMutation.mutate({ userId: selectedUserId, formData });
+  };
+
+  const handleCloseVerifyDialog = () => {
+    setIsVerifyDialogOpen(false);
+    setSelectedUserId(null);
+  };
+
+  const handleClosePreview = () => {
+    setNewsletterUrls(null);
+  };
+
+  const handleProcess = () => {
+    const newsletterLabel = watch("newsletter_label");
+    if (!newsletterLabel) {
+      toast.error("Please enter a Newsletter Label");
+      return;
+    }
+
+    // TODO: Backend API to process newsletter with templates
+    toast.info("Processing newsletter and generating HTML files...");
+  };
+
   return {
     currentUser,
     register,
@@ -272,29 +402,43 @@ export const useNewsletterManagement = () => {
     watch,
     setValue,
     errors,
-    templateError,
-    htmlFileError,
     scheduleDate,
     setScheduleDate,
     createMutation,
-    handleTemplateTypeChange,
-    handleTemplateSelect,
-    handleFileUpload,
-    handleUserPhotoUpload,
-    handleCompanyLogoUpload,
-    handleEconomicNewsImageUpload,
-    handleInterestRateImageUpload,
-    handleRealEstateNewsImageUpload,
+    handleEconImageUpload,
+    handleRateImageUpload,
+    handleNewsImageUpload,
     handleArticle1ImageUpload,
     handleArticle2ImageUpload,
-    userPhotoPreview,
-    companyLogoPreview,
-    economicNewsImagePreview,
-    interestRateImagePreview,
-    realEstateNewsImagePreview,
+    handleClear,
+    handleSave,
+    handleVerify,
+    handleProcess,
+    econImagePreview,
+    rateImagePreview,
+    newsImagePreview,
     article1ImagePreview,
     article2ImagePreview,
-    newsletterTemplates,
-    isLoadingTemplates,
+    // Branding
+    handleCompanyLogoUpload,
+    handlePhotoUpload,
+    handleLogoUpload,
+    handleQrcodeUpload,
+    companyLogoPreview,
+    photoPreview,
+    logoPreview,
+    qrcodePreview,
+    // Verify dialog
+    isVerifyDialogOpen,
+    selectedUserId,
+    setSelectedUserId,
+    handleVerifySubmit,
+    handleCloseVerifyDialog,
+    users,
+    isLoadingUsers,
+    verifyMutation,
+    // Preview
+    newsletterUrls,
+    handleClosePreview,
   };
 };

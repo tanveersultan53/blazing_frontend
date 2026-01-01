@@ -12,7 +12,7 @@ export const getNewsletters = (filters?: {
   if (filters?.status) params.append('status', filters.status);
 
   const queryString = params.toString();
-  return api.get(`/newsletters${queryString ? '?' + queryString : ''}`);
+  return api.get(`/email/newsletter${queryString ? '?' + queryString : ''}`);
 };
 
 // Get single newsletter
@@ -21,7 +21,7 @@ export const getNewsletter = (id: number): Promise<AxiosResponse<INewsletter>> =
 
 // Create newsletter
 export const createNewsletter = (data: FormData): Promise<AxiosResponse<INewsletter>> =>
-  api.post('/newsletters', data);
+  api.post('/email/newsletter', data);
 
 // Update newsletter
 export const updateNewsletter = (id: number, data: Partial<INewsletter>): Promise<AxiosResponse<INewsletter>> =>
@@ -43,3 +43,7 @@ export const getNewsletterLogs = (newsletterId?: number): Promise<AxiosResponse<
 // Send newsletter
 export const sendNewsletter = (id: number): Promise<AxiosResponse<{ message: string; recipients_count: number }>> =>
   api.post(`/newsletters/${id}/send`);
+
+// Verify newsletter
+export const verifyNewsletter = (userId: number, data: FormData): Promise<AxiosResponse<{ short_newsletter_url: string; long_newsletter_url: string }>> =>
+  api.post(`/email/verify-news-letter/${userId}`, data);

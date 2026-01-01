@@ -3,13 +3,12 @@ import {
   Users,
   Home,
   UserIcon,
-  ClipboardCheckIcon,
-  ArrowDownUp,
   Settings,
   History,
   FileText,
   Mail,
   Newspaper,
+  Heart,
 } from "lucide-react"
 
 import { NavMain, type NavMainProps } from "@/components/nav-main"
@@ -22,8 +21,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { IconHelp, IconSearch, IconSettings } from "@tabler/icons-react"
-import { NavSecondary } from "./nav-secondary"
+import { IconHelp, IconSettings } from "@tabler/icons-react"
 import { useSelector } from "react-redux"
 import type { User } from "@/redux/features/userSlice"
 import BlazingIcon from "@/assets/blazing-icon.png"
@@ -50,6 +48,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Newsletters",
       url: ["/newsletters"],
       icon: Newspaper,
+      items: [],
+    },
+    {
+      title: "Ecards",
+      url: ["/ecards"],
+      icon: Heart,
       items: [],
     },
     {

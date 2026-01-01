@@ -11,6 +11,7 @@ import CallToAction from "./CallToAction";
 import Settings from "./Settings";
 import Services from "./Services";
 import EmailSettings from "./EmailSettings";
+import Branding from "./Branding";
 
 const UserDetails = () => {
     const { user, isLoading, activeTab, setActiveTab, refetch } = useUserDetails();
@@ -33,10 +34,11 @@ const UserDetails = () => {
 
         >
             <div className="flex w-full flex-col gap-6">
-                <Tabs defaultValue={activeTab} onValueChange={(value) => setActiveTab(value as 'personal' | 'social' | 'settings' | 'services' | 'newsletters' | 'email' | 'call')}>
+                <Tabs defaultValue={activeTab} onValueChange={(value) => setActiveTab(value as 'personal' | 'social' | 'settings' | 'services' | 'newsletters' | 'email' | 'call' | 'branding')}>
                     <TabsList>
                         <TabsTrigger value="personal">Personal Information</TabsTrigger>
                         <TabsTrigger value="social">Social Media</TabsTrigger>
+                        <TabsTrigger value="branding">Branding</TabsTrigger>
                         <TabsTrigger value="settings">Settings</TabsTrigger>
                         <TabsTrigger value="services">Services</TabsTrigger>
                         <TabsTrigger value="newsletters">Newsletters Information</TabsTrigger>
@@ -45,6 +47,7 @@ const UserDetails = () => {
                     </TabsList>
                     <TabsContent value="personal"><PersonalInformation user={user} refetch={refetch} /></TabsContent>
                     <TabsContent value="social"><SocialLinksInformation /></TabsContent>
+                    <TabsContent value="branding"><Branding /></TabsContent>
                     <TabsContent value="settings"><Settings /></TabsContent>
                     <TabsContent value="services"><Services /></TabsContent>
                     <TabsContent value="newsletters"><NewsLetterInformation user={user}/></TabsContent>

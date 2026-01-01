@@ -18,7 +18,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -26,17 +25,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import {
   Newspaper,
-  Send,
   CalendarIcon,
-  RefreshCw,
   Info,
-  User,
-  Building2,
-  Upload,
-  FileText,
+  ExternalLink,
 } from "lucide-react";
 import { useNewsletterManagement } from "./useNewsletterManagement";
 
@@ -47,43 +49,43 @@ export default function NewsletterManagement() {
     watch,
     setValue,
     errors,
-    templateError,
-    htmlFileError,
     scheduleDate,
     setScheduleDate,
     createMutation,
-    handleTemplateTypeChange,
-    handleTemplateSelect,
-    handleFileUpload,
-    handleUserPhotoUpload,
-    handleCompanyLogoUpload,
-    handleEconomicNewsImageUpload,
-    handleInterestRateImageUpload,
-    handleRealEstateNewsImageUpload,
+    handleEconImageUpload,
+    handleRateImageUpload,
+    handleNewsImageUpload,
     handleArticle1ImageUpload,
     handleArticle2ImageUpload,
-    userPhotoPreview,
-    companyLogoPreview,
-    economicNewsImagePreview,
-    interestRateImagePreview,
-    realEstateNewsImagePreview,
+    handleClear,
+    handleSave,
+    handleVerify,
+    handleProcess,
+    econImagePreview,
+    rateImagePreview,
+    newsImagePreview,
     article1ImagePreview,
     article2ImagePreview,
-    newsletterTemplates,
-    isLoadingTemplates,
+    // Verify dialog
+    isVerifyDialogOpen,
+    selectedUserId,
+    setSelectedUserId,
+    handleVerifySubmit,
+    handleCloseVerifyDialog,
+    users,
+    isLoadingUsers,
+    verifyMutation,
+    // Preview
+    newsletterUrls,
+    handleClosePreview,
   } = useNewsletterManagement();
 
-  const templateType = watch("template_type");
-  const templateId = watch("template_id");
-  const htmlFile = watch("html_file");
-  const userPhoto = watch("user_photo");
-  const companyLogo = watch("company_logo");
-  const economicNewsImage = watch("economic_news_image");
-  const interestRateImage = watch("interest_rate_image");
-  const realEstateNewsImage = watch("real_estate_news_image");
-  const article1Image = watch("article_1_image");
-  const article2Image = watch("article_2_image");
-  const scheduleTime = watch("schedule_time");
+  const econImage = watch("econ_image");
+  const rateImage = watch("rate_image");
+  const newsImage = watch("news_image");
+  const article1Image = watch("article1_image");
+  const article2Image = watch("article2_image");
+  const scheduleTime = watch("scheduled_time");
 
   return (
     <PageHeader
@@ -113,139 +115,17 @@ export default function NewsletterManagement() {
                     be sent to all active subscribers on the scheduled date.
                   </AlertDescription>
                 </Alert>
-
-                {/* Template Selection */}
-                <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-900">
-                  <Label className="text-base font-semibold">
-                    Newsletter Template <span className="text-red-500">*</span>
-                  </Label>
-
-                  <RadioGroup
-                    value={templateType}
-                    onValueChange={(value) =>
-                      handleTemplateTypeChange(value as "existing" | "upload")
-                    }
-                    className="flex gap-4 mt-3"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="existing" id="existing" />
-                      <Label
-                        htmlFor="existing"
-                        className="font-normal cursor-pointer"
-                      >
-                        Choose Existing Template
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="upload" id="upload" />
-                      <Label
-                        htmlFor="upload"
-                        className="font-normal cursor-pointer"
-                      >
-                        Upload HTML Template
-                      </Label>
-                    </div>
-                  </RadioGroup>
-
-                  {/* Existing Template Selection */}
-                  {templateType === "existing" && (
-                    <div className="space-y-2 w-full">
-                      <Label htmlFor="template_select">
-                        Select Template <span className="text-red-500">*</span>
-                      </Label>
-                      <Select
-                        value={templateId?.toString()}
-                        onValueChange={(value) =>
-                          handleTemplateSelect(parseInt(value))
-                        }
-                        disabled={isLoadingTemplates}
-                      >
-                        <SelectTrigger
-                          id="template_select"
-                          className={cn(
-                            "w-full",
-                            templateError && "border-red-500"
-                          )}
-                        >
-                          <SelectValue
-                            placeholder={
-                              isLoadingTemplates
-                                ? "Loading templates..."
-                                : "Select a newsletter template"
-                            }
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {newsletterTemplates.length > 0 ? (
-                            newsletterTemplates.map((template) => (
-                              <SelectItem
-                                key={template.id}
-                                value={template.id.toString()}
-                              >
-                                <div className="flex items-center gap-2">
-                                  <FileText className="h-4 w-4" />
-                                  {template.name}
-                                </div>
-                              </SelectItem>
-                            ))
-                          ) : (
-                            <SelectItem value="no-templates" disabled>
-                              No newsletter templates available
-                            </SelectItem>
-                          )}
-                        </SelectContent>
-                      </Select>
-                      {templateError && (
-                        <p className="text-sm text-red-500">{templateError}</p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Upload Template */}
-                  {templateType === "upload" && (
-                    <div className="space-y-2">
-                      <Label htmlFor="html_file">
-                        Upload HTML File <span className="text-red-500">*</span>
-                      </Label>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          id="html_file"
-                          type="file"
-                          accept=".html,.htm"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0] || null;
-                            handleFileUpload(file);
-                          }}
-                          className={cn(
-                            "cursor-pointer",
-                            htmlFileError && "border-red-500"
-                          )}
-                        />
-                        <Upload className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      {htmlFile && (
-                        <p className="text-xs text-muted-foreground">
-                          Selected file: {htmlFile.name}
-                        </p>
-                      )}
-                      {htmlFileError && (
-                        <p className="text-sm text-red-500">{htmlFileError}</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-
                 {/* Row 1: Economic News Text & Interest Rate Text */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Economic News Text */}
                   <div className="space-y-2">
-                    <Label htmlFor="economic_news_text">
+                    <Label htmlFor="econ_text">
                       Economic News Text <span className="text-red-500">*</span>
                     </Label>
                     <Textarea
-                      id="economic_news_text"
+                      id="econ_text"
                       placeholder="Enter economic news content..."
-                      {...register("economic_news_text", {
+                      {...register("econ_text", {
                         required: "Economic News Text is required",
                         minLength: {
                           value: 10,
@@ -255,25 +135,25 @@ export default function NewsletterManagement() {
                       rows={4}
                       className={cn(
                         "resize-none",
-                        errors.economic_news_text && "border-red-500"
+                        errors.econ_text && "border-red-500"
                       )}
                     />
-                    {errors.economic_news_text && (
+                    {errors.econ_text && (
                       <p className="text-sm text-red-500">
-                        {errors.economic_news_text.message}
+                        {errors.econ_text.message}
                       </p>
                     )}
                   </div>
 
                   {/* Interest Rate Text */}
                   <div className="space-y-2">
-                    <Label htmlFor="interest_rate_text">
+                    <Label htmlFor="rate_text">
                       Interest Rate Text <span className="text-red-500">*</span>
                     </Label>
                     <Textarea
-                      id="interest_rate_text"
+                      id="rate_text"
                       placeholder="Enter interest rate information..."
-                      {...register("interest_rate_text", {
+                      {...register("rate_text", {
                         required: "Interest Rate Text is required",
                         minLength: {
                           value: 10,
@@ -283,12 +163,12 @@ export default function NewsletterManagement() {
                       rows={4}
                       className={cn(
                         "resize-none",
-                        errors.interest_rate_text && "border-red-500"
+                        errors.rate_text && "border-red-500"
                       )}
                     />
-                    {errors.interest_rate_text && (
+                    {errors.rate_text && (
                       <p className="text-sm text-red-500">
-                        {errors.interest_rate_text.message}
+                        {errors.rate_text.message}
                       </p>
                     )}
                   </div>
@@ -298,14 +178,14 @@ export default function NewsletterManagement() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Real Estate News Text */}
                   <div className="space-y-2">
-                    <Label htmlFor="real_estate_news_text">
+                    <Label htmlFor="news_text">
                       Real Estate News Text{" "}
                       <span className="text-red-500">*</span>
                     </Label>
                     <Textarea
-                      id="real_estate_news_text"
+                      id="news_text"
                       placeholder="Enter real estate news..."
-                      {...register("real_estate_news_text", {
+                      {...register("news_text", {
                         required: "Real Estate News Text is required",
                         minLength: {
                           value: 10,
@@ -315,25 +195,25 @@ export default function NewsletterManagement() {
                       rows={4}
                       className={cn(
                         "resize-none",
-                        errors.real_estate_news_text && "border-red-500"
+                        errors.news_text && "border-red-500"
                       )}
                     />
-                    {errors.real_estate_news_text && (
+                    {errors.news_text && (
                       <p className="text-sm text-red-500">
-                        {errors.real_estate_news_text.message}
+                        {errors.news_text.message}
                       </p>
                     )}
                   </div>
 
                   {/* Article 1 */}
                   <div className="space-y-2">
-                    <Label htmlFor="article_1">
+                    <Label htmlFor="article1_text">
                       Article 1 <span className="text-red-500">*</span>
                     </Label>
                     <Textarea
-                      id="article_1"
+                      id="article1_text"
                       placeholder="Enter first article content..."
-                      {...register("article_1", {
+                      {...register("article1_text", {
                         required: "Article 1 is required",
                         minLength: {
                           value: 10,
@@ -343,12 +223,12 @@ export default function NewsletterManagement() {
                       rows={4}
                       className={cn(
                         "resize-none",
-                        errors.article_1 && "border-red-500"
+                        errors.article1_text && "border-red-500"
                       )}
                     />
-                    {errors.article_1 && (
+                    {errors.article1_text && (
                       <p className="text-sm text-red-500">
-                        {errors.article_1.message}
+                        {errors.article1_text.message}
                       </p>
                     )}
                   </div>
@@ -356,37 +236,64 @@ export default function NewsletterManagement() {
 
                 {/* Row 3: Article 2 (Full Width) */}
                 <div className="space-y-2">
-                  <Label htmlFor="article_2">
-                    Article 2 <span className="text-red-500">*</span>
+                  <Label htmlFor="article2_text">
+                    Article 2
                   </Label>
-                  <Textarea
-                    id="article_2"
-                    placeholder="Enter second article content..."
-                    {...register("article_2", {
-                      required: "Article 2 is required",
-                      minLength: {
-                        value: 10,
-                        message: "Minimum 10 characters required",
-                      },
-                    })}
-                    rows={4}
-                    className={cn(
-                      "resize-none",
-                      errors.article_2 && "border-red-500"
-                    )}
-                  />
-                  {errors.article_2 && (
+                    <Textarea
+                      id="article2_text"
+                      placeholder="Enter second article content..."
+                      {...register("article2_text", {
+                        // optional field
+                        validate: value => {
+                          if (value && value.length < 10) {
+                            return "Minimum 10 characters required";
+                          }
+                          return true; // valid if empty
+                        }
+                      })}
+                      rows={4}
+                      className={cn(
+                        "resize-none",
+                        errors.article2_text && "border-red-500"
+                      )}
+                    />
+                  {errors.article2_text && (
                     <p className="text-sm text-red-500">
-                      {errors.article_2.message}
+                      {errors.article2_text.message}
                     </p>
                   )}
                 </div>
 
-                {/* Row 4: Schedule Date & Schedule Time */}
+                {/* Row 4: Newsletter Label */}
+                <div className="space-y-2">
+                  <Label htmlFor="newsletter_label">
+                    Newsletter Label <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="newsletter_label"
+                    placeholder="e.g., December 29, 2025 Real Estate Report"
+                    {...register("newsletter_label", {
+                      required: "Newsletter Label is required",
+                    })}
+                    className={cn(
+                      errors.newsletter_label && "border-red-500"
+                    )}
+                  />
+                  {errors.newsletter_label && (
+                    <p className="text-sm text-red-500">
+                      {errors.newsletter_label.message}
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    This will be used to name the email files (e.g., "december 29 2025 real estate report.htm")
+                  </p>
+                </div>
+
+                {/* Row 5: Schedule Date & Schedule Time */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Schedule Date */}
                   <div className="space-y-2">
-                    <Label htmlFor="schedule_date">Schedule Date</Label>
+                    <Label htmlFor="scheduled_date">Schedule Date</Label>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
@@ -411,8 +318,8 @@ export default function NewsletterManagement() {
                             setScheduleDate(date);
                             if (date) {
                               setValue(
-                                "schedule_date",
-                                format(date, "yyyy-MM-dd HH:mm:ss")
+                                "scheduled_date",
+                                format(date, "yyyy-MM-dd")
                               );
                             }
                           }}
@@ -429,11 +336,11 @@ export default function NewsletterManagement() {
 
                   {/* Schedule Time */}
                   <div className="space-y-2">
-                    <Label htmlFor="schedule_time">Schedule Time</Label>
+                    <Label htmlFor="scheduled_time">Schedule Time</Label>
                     <Input
-                      id="schedule_time"
+                      id="scheduled_time"
                       type="time"
-                      {...register("schedule_time")}
+                      {...register("scheduled_time")}
                       className="w-full"
                     />
                     {scheduleTime && (
@@ -445,10 +352,19 @@ export default function NewsletterManagement() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-3 pt-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4">
                   <Button
                     type="button"
                     variant="outline"
+                    onClick={handleClear}
+                    disabled={createMutation.isPending}
+                  >
+                    Clear
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleSave}
                     disabled={createMutation.isPending}
                   >
                     Save
@@ -456,124 +372,24 @@ export default function NewsletterManagement() {
                   <Button
                     type="button"
                     variant="outline"
+                    onClick={handleProcess}
                     disabled={createMutation.isPending}
                   >
-                    Process
-                  </Button>
-                   <Button
-                    type="button"
-                    variant="outline"
-                    disabled={createMutation.isPending}
-                  >
-                    Add HTML Codes
+                    Process Newsletter
                   </Button>
                   <Button
                     type="button"
                     variant="outline"
+                    onClick={handleVerify}
                     disabled={createMutation.isPending}
                   >
                     Verify
-                  </Button>
-                   <Button
-                    type="button"
-                    variant="outline"
-                    disabled={createMutation.isPending}
-                  >
-                    Done
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={createMutation.isPending}
-                  >
-                    Distribute
-                  </Button>
-                  <Button type="submit" disabled={createMutation.isPending}>
-                    <>
-                      <Send className="mr-2 h-4 w-4" />
-                      Schedule Newsletter
-                    </>
                   </Button>
                 </div>
               </div>
 
               {/* Right Side - User & Company + Images (4 columns) */}
               <div className="lg:col-span-4 space-y-6">
-                {/* User Photo and Logo */}
-                <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-900">
-                  <h3 className="text-lg font-semibold">User & Company</h3>
-
-                  {/* User Photo */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      User Photo
-                    </Label>
-                    <div className="space-y-3">
-                      <Input
-                        id="user_photo"
-                        type="file"
-                        accept="image/png,image/jpeg,image/jpg"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0] || null;
-                          handleUserPhotoUpload(file);
-                        }}
-                        className="cursor-pointer"
-                      />
-                      {userPhotoPreview && (
-                        <div className="flex items-center gap-4 p-4 border rounded-lg bg-white dark:bg-gray-800">
-                          <img
-                            src={userPhotoPreview}
-                            alt="User Photo Preview"
-                            className="h-16 w-16 object-cover rounded-full"
-                          />
-                          <div>
-                            <p className="font-semibold text-sm">Preview</p>
-                            <p className="text-xs text-muted-foreground">
-                              {userPhoto?.name}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Company Logo */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium flex items-center gap-2">
-                      <Building2 className="h-4 w-4" />
-                      Company Logo
-                    </Label>
-                    <div className="space-y-3">
-                      <Input
-                        id="company_logo"
-                        type="file"
-                        accept="image/png,image/jpeg,image/jpg"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0] || null;
-                          handleCompanyLogoUpload(file);
-                        }}
-                        className="cursor-pointer"
-                      />
-                      {companyLogoPreview && (
-                        <div className="flex items-center gap-4 p-4 border rounded-lg bg-white dark:bg-gray-800">
-                          <img
-                            src={companyLogoPreview}
-                            alt="Company Logo Preview"
-                            className="h-12 w-12 object-contain"
-                          />
-                          <div>
-                            <p className="font-semibold text-sm">Preview</p>
-                            <p className="text-xs text-muted-foreground">
-                              {companyLogo?.name}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
                 {/* Newsletter Images */}
                 <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-900">
                   <h3 className="text-lg font-semibold">Newsletter Images</h3>
@@ -587,24 +403,24 @@ export default function NewsletterManagement() {
                       Economic News Image
                     </Label>
                     <Input
-                      id="economic_news_image"
+                      id="econ_image"
                       type="file"
                       accept="image/png,image/jpeg,image/jpg"
                       onChange={(e) => {
                         const file = e.target.files?.[0] || null;
-                        handleEconomicNewsImageUpload(file);
+                        handleEconImageUpload(file);
                       }}
                       className="cursor-pointer"
                     />
-                    {economicNewsImagePreview && (
+                    {econImagePreview && (
                       <div className="w-full p-4 border rounded-lg bg-white dark:bg-gray-800">
                         <img
-                          src={economicNewsImagePreview}
+                          src={econImagePreview}
                           alt="Economic News Preview"
                           className="w-full h-24 object-cover rounded-lg"
                         />
                         <p className="text-xs text-muted-foreground mt-2">
-                          {economicNewsImage?.name}
+                          {econImage?.name}
                         </p>
                       </div>
                     )}
@@ -616,24 +432,24 @@ export default function NewsletterManagement() {
                       Interest Rate Image
                     </Label>
                     <Input
-                      id="interest_rate_image"
+                      id="rate_image"
                       type="file"
                       accept="image/png,image/jpeg,image/jpg"
                       onChange={(e) => {
                         const file = e.target.files?.[0] || null;
-                        handleInterestRateImageUpload(file);
+                        handleRateImageUpload(file);
                       }}
                       className="cursor-pointer"
                     />
-                    {interestRateImagePreview && (
+                    {rateImagePreview && (
                       <div className="w-full p-4 border rounded-lg bg-white dark:bg-gray-800">
                         <img
-                          src={interestRateImagePreview}
+                          src={rateImagePreview}
                           alt="Interest Rate Preview"
                           className="w-full h-24 object-cover rounded-lg"
                         />
                         <p className="text-xs text-muted-foreground mt-2">
-                          {interestRateImage?.name}
+                          {rateImage?.name}
                         </p>
                       </div>
                     )}
@@ -645,24 +461,24 @@ export default function NewsletterManagement() {
                       Real Estate News Image
                     </Label>
                     <Input
-                      id="real_estate_news_image"
+                      id="news_image"
                       type="file"
                       accept="image/png,image/jpeg,image/jpg"
                       onChange={(e) => {
                         const file = e.target.files?.[0] || null;
-                        handleRealEstateNewsImageUpload(file);
+                        handleNewsImageUpload(file);
                       }}
                       className="cursor-pointer"
                     />
-                    {realEstateNewsImagePreview && (
+                    {newsImagePreview && (
                       <div className="w-full p-4 border rounded-lg bg-white dark:bg-gray-800">
                         <img
-                          src={realEstateNewsImagePreview}
+                          src={newsImagePreview}
                           alt="Real Estate News Preview"
                           className="w-full h-24 object-cover rounded-lg"
                         />
                         <p className="text-xs text-muted-foreground mt-2">
-                          {realEstateNewsImage?.name}
+                          {newsImage?.name}
                         </p>
                       </div>
                     )}
@@ -674,7 +490,7 @@ export default function NewsletterManagement() {
                       Article 1 Image
                     </Label>
                     <Input
-                      id="article_1_image"
+                      id="article1_image"
                       type="file"
                       accept="image/png,image/jpeg,image/jpg"
                       onChange={(e) => {
@@ -703,7 +519,7 @@ export default function NewsletterManagement() {
                       Article 2 Image
                     </Label>
                     <Input
-                      id="article_2_image"
+                      id="article2_image"
                       type="file"
                       accept="image/png,image/jpeg,image/jpg"
                       onChange={(e) => {
@@ -731,6 +547,127 @@ export default function NewsletterManagement() {
           </CardContent>
         </Card>
       </form>
+
+      {/* User Selection Dialog */}
+      <Dialog open={isVerifyDialogOpen} onOpenChange={handleCloseVerifyDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Verify Newsletter</DialogTitle>
+            <DialogDescription>
+              Select a user to generate newsletter preview
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="user-select">Select User</Label>
+              <Select
+                value={selectedUserId?.toString()}
+                onValueChange={(value) => setSelectedUserId(Number(value))}
+              >
+                <SelectTrigger id="user-select">
+                  <SelectValue placeholder="Choose a user..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {isLoadingUsers ? (
+                    <SelectItem value="loading" disabled>
+                      Loading users...
+                    </SelectItem>
+                  ) : users.length === 0 ? (
+                    <SelectItem value="no-users" disabled>
+                      No users found
+                    </SelectItem>
+                  ) : (
+                    users.map((user) => (
+                      <SelectItem key={user.id} value={user.id.toString()}>
+                        {user.first_name} {user.last_name} ({user.email})
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCloseVerifyDialog}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleVerifySubmit}
+              disabled={!selectedUserId || verifyMutation.isPending}
+            >
+              {verifyMutation.isPending ? "Verifying..." : "Verify"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Newsletter Preview Dialog */}
+      <Dialog open={!!newsletterUrls} onOpenChange={handleClosePreview}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Newsletter Preview</DialogTitle>
+            <DialogDescription>
+              View your newsletter previews
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {newsletterUrls && (
+              <>
+                <div className="space-y-2">
+                  <Label>Short Newsletter</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={newsletterUrls.short_newsletter_url}
+                      readOnly
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() =>
+                        window.open(newsletterUrls.short_newsletter_url, "_blank")
+                      }
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Open
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Long Newsletter</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={newsletterUrls.long_newsletter_url}
+                      readOnly
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() =>
+                        window.open(newsletterUrls.long_newsletter_url, "_blank")
+                      }
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Open
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+          <DialogFooter>
+            <Button type="button" onClick={handleClosePreview}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PageHeader>
   );
 }

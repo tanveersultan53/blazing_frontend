@@ -13,29 +13,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { ArrowLeft, Copy, Eye, Loader2, FileText, Settings, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-const EMAIL_TYPES = [
-  { value: 1, label: 'Holiday Ecard 1' },
-  { value: 2, label: 'Holiday Ecard 2' },
-  { value: 3, label: 'Holiday Ecard 3' },
-  { value: 4, label: 'Holiday Ecard 4' },
-  { value: 5, label: 'Holiday Ecard 5' },
-  { value: 6, label: 'Holiday Ecard 6' },
-  { value: 7, label: 'Holiday Ecard 7' },
-  { value: 8, label: 'Holiday Ecard 8' },
-  { value: 9, label: 'Holiday Ecard 9' },
-  { value: 10, label: 'Holiday Ecard 10' },
-  { value: 11, label: 'Holiday Ecard 11' },
-  { value: 12, label: 'Holiday Ecard 12' },
-  { value: 13, label: 'Holiday Ecard 13' },
-  { value: 14, label: 'Birthday Ecard' },
-  { value: 15, label: 'Newsletter' },
-  { value: 99, label: 'Custom Email' },
-];
 
 export default function BrowseTemplates() {
   const navigate = useNavigate();
@@ -48,6 +28,7 @@ export default function BrowseTemplates() {
   const [selectedTemplate, setSelectedTemplate] = useState<SystemEmailTemplate | null>(null);
   const [templateName, setTemplateName] = useState('');
   const [emailSubject, setEmailSubject] = useState('');
+  const [preheader, setPreheader] = useState('');
   const [emailType, setEmailType] = useState<number>(99);
   const [isActive, setIsActive] = useState(true);
   const [sendEcard, setSendEcard] = useState(true);
@@ -74,6 +55,7 @@ export default function BrowseTemplates() {
       setCopyingTemplateId(null);
       setTemplateName('');
       setEmailSubject('');
+      setPreheader('');
       setEmailType(99);
       setIsActive(true);
       setSendEcard(true);
@@ -127,8 +109,8 @@ export default function BrowseTemplates() {
 
   return (
     <PageHeader
-      title="Create Email Template"
-      description="Choose a template from the library dropdown and customize the details to create your email template."
+      title="Create Email"
+      description="Choose a template from the library dropdown and customize the details to create your email."
       actions={[
         {
           label: 'Back to Templates',
@@ -144,10 +126,10 @@ export default function BrowseTemplates() {
           <CardHeader className="space-y-1 pb-6">
             <div className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-primary" />
-              <CardTitle className="text-2xl">Create Email Template</CardTitle>
+              <CardTitle className="text-2xl">Create Email</CardTitle>
             </div>
             <p className="text-sm text-muted-foreground">
-              Fill in the details below to create your custom email template
+              Fill in the details below to create your custom email
             </p>
           </CardHeader>
           <CardContent className="space-y-8">
@@ -162,7 +144,7 @@ export default function BrowseTemplates() {
 
               <div className="space-y-2">
                 <Label htmlFor="template-select" className="text-base">
-                  Select Template from Library <span className="text-red-500">*</span>
+                  Select Template <span className="text-red-500">*</span>
                 </Label>
                 <div className="flex gap-2">
                   <Select
@@ -189,7 +171,7 @@ export default function BrowseTemplates() {
                           <SelectItem key={template.id} value={String(template.id)}>
                             <div className="flex items-center gap-2">
                               <FileText className="h-4 w-4" />
-                              {template.name}
+                              {template.name.replace(/\s*Template\s*/gi, '').trim()}
                             </div>
                           </SelectItem>
                         ))
@@ -212,7 +194,7 @@ export default function BrowseTemplates() {
                   <div className="flex items-center gap-2 mt-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
                     <FileText className="h-4 w-4 text-primary" />
                     <div className="flex-1">
-                      <p className="text-sm font-medium">Selected: {selectedTemplate.name}</p>
+                      <p className="text-sm font-medium">Selected: {selectedTemplate.name.replace(/\s*Template\s*/gi, '').trim()}</p>
                       <p className="text-xs text-muted-foreground">Type: {selectedTemplate.type}</p>
                     </div>
                   </div>
@@ -229,12 +211,12 @@ export default function BrowseTemplates() {
                 </h3>
               </div>
 
-              {/* Template Name and Email Type in one row */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                {/* Template Name */}
-                <div className="space-y-2 md:col-span-3">
+              {/* Email Name and Email Subject in one row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Email Name */}
+                <div className="space-y-2">
                   <Label htmlFor="template-name" className="text-sm">
-                    Template Name <span className="text-red-500">*</span>
+                    Email Name <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="template-name"
@@ -244,28 +226,8 @@ export default function BrowseTemplates() {
                   />
                 </div>
 
-                {/* Email Type Dropdown */}
-                <div className="space-y-2 md:col-span-3">
-                  <Label htmlFor="email-type" className="text-sm">Email Type</Label>
-                  <Select
-                    value={String(emailType)}
-                    onValueChange={(value) => setEmailType(Number(value))}
-                  >
-                    <SelectTrigger id="email-type">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {EMAIL_TYPES.map((type) => (
-                        <SelectItem key={type.value} value={String(type.value)}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 {/* Email Subject */}
-                <div className="space-y-2 md:col-span-6">
+                <div className="space-y-2">
                   <Label htmlFor="email-subject" className="text-sm">
                     Email Subject <span className="text-red-500">*</span>
                   </Label>
@@ -277,68 +239,21 @@ export default function BrowseTemplates() {
                   />
                 </div>
               </div>
-            </div>
 
-            {/* Section 3: Template Options */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 pb-2 border-b">
-                <Settings className="h-4 w-4 text-primary" />
-                <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
-                  Template Options
-                </h3>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Active Status */}
-                <div className="flex items-center justify-between rounded-lg border-2 p-4 bg-card hover:border-primary/50 transition-colors">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="is-active" className="text-sm font-semibold cursor-pointer">
-                      Active Status
-                    </Label>
-                    <p className="text-xs text-muted-foreground">
-                      {isActive ? 'Enabled' : 'Disabled'}
-                    </p>
-                  </div>
-                  <Switch
-                    id="is-active"
-                    checked={isActive}
-                    onCheckedChange={setIsActive}
-                  />
-                </div>
-
-                {/* Send as Ecard */}
-                <div className="flex items-center justify-between rounded-lg border-2 p-4 bg-card hover:border-primary/50 transition-colors">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="send-ecard" className="text-sm font-semibold cursor-pointer">
-                      Send as Ecard
-                    </Label>
-                    <p className="text-xs text-muted-foreground">
-                      {sendEcard ? 'Enabled' : 'Disabled'}
-                    </p>
-                  </div>
-                  <Switch
-                    id="send-ecard"
-                    checked={sendEcard}
-                    onCheckedChange={setSendEcard}
-                  />
-                </div>
-
-                {/* Set as Default */}
-                <div className="flex items-center justify-between rounded-lg border-2 p-4 bg-card hover:border-primary/50 transition-colors">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="is-default" className="text-sm font-semibold cursor-pointer">
-                      Set as Default
-                    </Label>
-                    <p className="text-xs text-muted-foreground">
-                      {isDefault ? 'Enabled' : 'Disabled'}
-                    </p>
-                  </div>
-                  <Switch
-                    id="is-default"
-                    checked={isDefault}
-                    onCheckedChange={setIsDefault}
-                  />
-                </div>
+              {/* Preheader Field */}
+              <div className="space-y-2">
+                <Label htmlFor="preheader" className="text-sm">
+                  Preheader
+                </Label>
+                <Input
+                  id="preheader"
+                  placeholder="e.g., Preview text that appears in email inbox..."
+                  value={preheader}
+                  onChange={(e) => setPreheader(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  The preview text that appears in the inbox before the email is opened (optional)
+                </p>
               </div>
             </div>
 
@@ -366,7 +281,7 @@ export default function BrowseTemplates() {
                 ) : (
                   <>
                     <Copy className="mr-2 h-4 w-4" />
-                    Create Template
+                    Create Email
                   </>
                 )}
               </Button>

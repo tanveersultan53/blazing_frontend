@@ -1,26 +1,44 @@
 export interface INewsletter {
   id?: number;
-  template_type: 'existing' | 'upload';
-  template_id?: number;
-  html_file?: File | null;
-  user_photo?: File | null;
-  company_logo?: File | null;
-  economic_news_image?: File | null;
-  interest_rate_image?: File | null;
-  real_estate_news_image?: File | null;
-  article_1_image?: File | null;
-  article_2_image?: File | null;
-  economic_news_text: string;
-  interest_rate_text: string;
-  real_estate_news_text: string;
-  article_1: string;
-  article_2: string;
-  schedule_date: string;
-  schedule_time: string;
-  status?: 'draft' | 'scheduled' | 'sent';
-  created_at?: string;
-  updated_at?: string;
-  created_by?: number;
+  newsletter_label: string;
+  news_text: string;
+  rate_text: string;
+  econ_text: string;
+  article1_text: string;
+  article2_text: string;
+  news_image?: File | null;
+  rate_image?: File | null;
+  econ_image?: File | null;
+  article1_image?: File | null;
+  article2_image?: File | null;
+  scheduled_date: string;
+  scheduled_time: string;
+  is_active?: boolean;
+  created?: string;
+  modified?: string;
+  // Branding fields
+  companylogo?: File | null;
+  photo?: File | null;
+  logo?: File | null;
+  qrcode?: File | null;
+  personaltext?: string;
+  disclosure?: string;
+  hlogo?: number;
+  wlogo?: number;
+  hphoto?: number;
+  wphoto?: number;
+  custom?: boolean;
+  // Social media links
+  fb?: string;
+  ig?: string;
+  li?: string;
+  tw?: string;
+  yt?: string;
+  tk?: string;
+  vo?: string;
+  yp?: string;
+  gg?: string;
+  bg?: string;
 }
 
 export interface NewsletterLog {
