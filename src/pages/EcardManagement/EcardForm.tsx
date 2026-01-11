@@ -130,7 +130,29 @@ export default function EcardForm() {
   });
 
   const handleInputChange = (field: keyof IEcard, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => {
+      const updated = { ...prev, [field]: value };
+
+      // If ecard_text is changed and there's HTML template with {ecard_text} placeholder, replace it
+      if (
+        field === "ecard_text" &&
+        updated.email_html &&
+        updated.email_html.includes("{ecard_text}")
+      ) {
+        updated.email_html = updated.email_html.replace(/{ecard_text}/g, value);
+      }
+
+      // If email_preheader is changed and there's HTML template with {Greeting} placeholder, replace it
+      if (
+        field === "email_preheader" &&
+        updated.email_html &&
+        updated.email_html.includes("{Greeting}")
+      ) {
+        updated.email_html = updated.email_html.replace(/{Greeting}/g, value);
+      }
+
+      return updated;
+    });
   };
 
   const handleImageUpload = (file: File | null) => {
@@ -138,7 +160,20 @@ export default function EcardForm() {
       setFormData((prev) => ({ ...prev, ecard_image: file }));
       const reader = new FileReader();
       reader.onloadend = () => {
-        setEcardImagePreview(reader.result as string);
+        const imageDataUrl = reader.result as string;
+        setEcardImagePreview(imageDataUrl);
+
+        // If there's HTML template with {ecard_image} placeholder, replace it
+        if (
+          formData.email_html &&
+          formData.email_html.includes("{ecard_image}")
+        ) {
+          const updatedHtml = formData.email_html.replace(
+            /{ecard_image}/g,
+            imageDataUrl
+          );
+          setFormData((prev) => ({ ...prev, email_html: updatedHtml }));
+        }
       };
       reader.readAsDataURL(file);
     } else {
@@ -153,9 +188,24 @@ export default function EcardForm() {
       // Read HTML file content
       const reader = new FileReader();
       reader.onload = (e) => {
-        const content = e.target?.result as string;
+        let content = e.target?.result as string;
+
+        // If there's already an uploaded image, replace {ecard_image} placeholder
+        if (ecardImagePreview && content.includes("{ecard_image}")) {
+          content = content.replace(/{ecard_image}/g, ecardImagePreview);
+        }
+
+        // If there's already ecard text, replace {ecard_text} placeholder
+        if (formData.ecard_text && content.includes("{ecard_text}")) {
+          content = content.replace(/{ecard_text}/g, formData.ecard_text);
+        }
+
+        // If there's already email preheader, replace {preheader} placeholder
+        if (formData.email_preheader && content.includes("{preheader}")) {
+          content = content.replace(/{preheader}/g, formData.email_preheader);
+        }
+
         setFormData((prev) => ({ ...prev, email_html: content }));
-        setEcardImagePreview(content); // Show HTML preview
       };
       reader.readAsText(file);
     } else {
@@ -450,7 +500,7 @@ export default function EcardForm() {
                   )}
 
                 {/* Ecard Text - Only for creating ecards */}
-                {formData.email_type === "ecard" && !uploadedHtmlFile && (
+                {formData.email_type === "ecard" && (
                   <div className="space-y-2">
                     <Label htmlFor="ecard_text">Ecard Text</Label>
                     <Textarea
