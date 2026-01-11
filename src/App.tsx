@@ -26,6 +26,8 @@ import NewsletterManagement from './pages/NewsletterManagement';
 import NewslettersList from './pages/NewsletterManagement/NewslettersList';
 import EcardsList from './pages/EcardManagement';
 import { EcardForm, EcardPreview } from './pages/EcardManagement';
+import SocialIconsList from './pages/SocialIconManagement';
+import { SocialIconForm } from './pages/SocialIconManagement';
 
 function App() {
   return (
@@ -61,6 +63,9 @@ function App() {
           <Route path="ecards/create" element={<EcardForm />} />
           <Route path="ecards/edit/:id" element={<EcardForm />} />
           <Route path="ecards/preview/:id" element={<EcardPreview />} />
+          <Route path="social-icons" element={<SocialIconsList />} />
+          <Route path="social-icons/create" element={<SocialIconForm />} />
+          <Route path="social-icons/edit/:id" element={<SocialIconForm />} />
         </Route>
         <Route path="/login" element={<WithoutAuth><Login /></WithoutAuth>} />
         <Route path="*" element={<Navigate to="/" replace />} />

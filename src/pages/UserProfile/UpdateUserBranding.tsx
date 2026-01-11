@@ -26,10 +26,10 @@ interface IBranding {
 
 // API functions
 const getBranding = (userId: string | number): Promise<AxiosResponse<IBranding>> =>
-  api.get(`/accounts/admin/users/${userId}/branding`);
+  api.get(`/accounts/users/register-branding/${userId}`);
 
 const updateBranding = (userId: string | number, data: FormData): Promise<AxiosResponse<IBranding>> =>
-  api.put(`/accounts/admin/users/${userId}/branding`, data);
+  api.put(`/accounts/users/register-branding/${userId}`, data);
 
 interface UpdateUserBrandingProps {
   userId: string | number | undefined;

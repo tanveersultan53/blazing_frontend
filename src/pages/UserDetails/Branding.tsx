@@ -34,10 +34,10 @@ interface IBranding {
 
 // API functions
 const getBranding = (userId: string): Promise<AxiosResponse<IBranding>> =>
-  api.get(`/accounts/admin/users/${userId}/branding`);
+  api.get(`/accounts/users/register-branding/${userId}`);
 
 const updateBranding = (userId: string, data: FormData): Promise<AxiosResponse<IBranding>> =>
-  api.put(`/accounts/admin/users/${userId}/branding`, data);
+  api.put(`/accounts/users/register-branding/${userId}`, data);
 
 export default function Branding() {
   const { id } = useParams<{ id: string }>();

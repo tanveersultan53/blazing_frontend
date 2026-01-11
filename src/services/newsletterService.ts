@@ -17,19 +17,19 @@ export const getNewsletters = (filters?: {
 
 // Get single newsletter
 export const getNewsletter = (id: number): Promise<AxiosResponse<INewsletter>> =>
-  api.get(`/newsletters/${id}`);
+  api.get(`/email/newsletter/${id}`);
 
 // Create newsletter
 export const createNewsletter = (data: FormData): Promise<AxiosResponse<INewsletter>> =>
   api.post('/email/newsletter', data);
 
 // Update newsletter
-export const updateNewsletter = (id: number, data: Partial<INewsletter>): Promise<AxiosResponse<INewsletter>> =>
-  api.patch(`/newsletters/${id}`, data);
+export const updateNewsletter = (id: number, data: FormData): Promise<AxiosResponse<INewsletter>> =>
+  api.patch(`/email/newsletter/${id}`, data);
 
 // Delete newsletter
 export const deleteNewsletter = (id: number): Promise<AxiosResponse<void>> =>
-  api.delete(`/newsletters/${id}`);
+  api.delete(`/email/newsletter/${id}`);
 
 // Get newsletter logs
 export const getNewsletterLogs = (newsletterId?: number): Promise<AxiosResponse<NewsletterLogsResponse>> => {
@@ -47,3 +47,7 @@ export const sendNewsletter = (id: number): Promise<AxiosResponse<{ message: str
 // Verify newsletter
 export const verifyNewsletter = (userId: number, data: FormData): Promise<AxiosResponse<{ short_newsletter_url: string; long_newsletter_url: string }>> =>
   api.post(`/email/verify-news-letter/${userId}`, data);
+
+// Send test email
+export const sendTestEmail = (userId: number, data: FormData): Promise<AxiosResponse<{ success: boolean; message: string; newsletter_version: string }>> =>
+  api.post(`/email/send-test-email/${userId}`, data);

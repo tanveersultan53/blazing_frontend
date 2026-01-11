@@ -39,8 +39,11 @@ import {
   CalendarIcon,
   Info,
   ExternalLink,
+  Loader2,
+  Mail,
 } from "lucide-react";
 import { useNewsletterManagement } from "./useNewsletterManagement";
+import Loading from "@/components/Loading";
 
 export default function NewsletterManagement() {
   const {
@@ -60,7 +63,9 @@ export default function NewsletterManagement() {
     handleClear,
     handleSave,
     handleVerify,
-    handleProcess,
+    handleAddHtmlCodes,
+    handleDistribute,
+    handleSchedule,
     econImagePreview,
     rateImagePreview,
     newsImagePreview,
@@ -75,9 +80,19 @@ export default function NewsletterManagement() {
     users,
     isLoadingUsers,
     verifyMutation,
+    // Test email
+    testEmail,
+    setTestEmail,
+    newsletterVersion,
+    setNewsletterVersion,
+    sendTestMutation,
+    handleSendTestEmail,
     // Preview
     newsletterUrls,
     handleClosePreview,
+    // Edit mode
+    isEditMode,
+    isLoadingNewsletter,
   } = useNewsletterManagement();
 
   const econImage = watch("econ_image");
@@ -87,20 +102,24 @@ export default function NewsletterManagement() {
   const article2Image = watch("article2_image");
   const scheduleTime = watch("scheduled_time");
 
+  if (isEditMode && isLoadingNewsletter) {
+    return <Loading />;
+  }
+
   return (
     <PageHeader
-      title="Newsletter Management"
-      description="Create and schedule newsletters for your subscribers"
+      title={isEditMode ? "Edit Newsletter" : "Newsletter Management"}
+      description={isEditMode ? "Update newsletter information" : "Create and schedule newsletters for your subscribers"}
     >
       <form onSubmit={handleSubmit}>
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
               <Newspaper className="h-5 w-5 text-primary" />
-              <CardTitle>Create Newsletter</CardTitle>
+              <CardTitle>{isEditMode ? "Edit Newsletter" : "Create Newsletter"}</CardTitle>
             </div>
             <CardDescription>
-              Fill in the newsletter content and schedule for delivery
+              {isEditMode ? "Update the newsletter content and schedule" : "Fill in the newsletter content and schedule for delivery"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -113,6 +132,27 @@ export default function NewsletterManagement() {
                   <AlertDescription className="text-sm">
                     All fields marked with * are required. The newsletter will
                     be sent to all active subscribers on the scheduled date.
+                  </AlertDescription>
+                </Alert>
+
+                {/* HTML Codes Info Alert */}
+                <Alert className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
+                  <Info className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-sm space-y-2">
+                    <div className="font-semibold">HTML Codes - Quick Formatting Guide:</div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1 text-xs">
+                      <div><code className="bg-white dark:bg-gray-800 px-1 rounded">*1</code> = Start bold</div>
+                      <div><code className="bg-white dark:bg-gray-800 px-1 rounded">*2</code> = End bold</div>
+                      <div><code className="bg-white dark:bg-gray-800 px-1 rounded">*3</code> = Start italic</div>
+                      <div><code className="bg-white dark:bg-gray-800 px-1 rounded">*4</code> = End italic</div>
+                      <div><code className="bg-white dark:bg-gray-800 px-1 rounded">*5</code> = Paragraph break</div>
+                      <div><code className="bg-white dark:bg-gray-800 px-1 rounded">*6</code> = Line break</div>
+                      <div><code className="bg-white dark:bg-gray-800 px-1 rounded">*7</code> = Start underline</div>
+                      <div><code className="bg-white dark:bg-gray-800 px-1 rounded">*8</code> = End underline</div>
+                    </div>
+                    <div className="text-xs mt-2 italic">
+                      Example: <code className="bg-white dark:bg-gray-800 px-1 rounded">*1This text will be bold*2</code> → Click "Add HTML Codes" to convert
+                    </div>
                   </AlertDescription>
                 </Alert>
                 {/* Row 1: Economic News Text & Interest Rate Text */}
@@ -352,39 +392,69 @@ export default function NewsletterManagement() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleClear}
-                    disabled={createMutation.isPending}
-                  >
-                    Clear
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleSave}
-                    disabled={createMutation.isPending}
-                  >
-                    Save
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleProcess}
-                    disabled={createMutation.isPending}
-                  >
-                    Process Newsletter
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleVerify}
-                    disabled={createMutation.isPending}
-                  >
-                    Verify
-                  </Button>
+                <div className="space-y-3 pt-4">
+                  {/* First Row */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleClear}
+                      disabled={createMutation.isPending}
+                    >
+                      Clear
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleSave}
+                      disabled={createMutation.isPending}
+                    >
+                      {createMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          {isEditMode ? 'Updating...' : 'Saving...'}
+                        </>
+                      ) : (
+                        isEditMode ? 'Update' : 'Save'
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleAddHtmlCodes}
+                      disabled={createMutation.isPending}
+                    >
+                      Add HTML Codes
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleSchedule}
+                      disabled={createMutation.isPending}
+                    >
+                      Schedule
+                    </Button>
+                  </div>
+
+                  {/* Second Row */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleVerify}
+                      disabled={createMutation.isPending}
+                    >
+                      Verify
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleDistribute}
+                      disabled={createMutation.isPending}
+                    >
+                      Distribute
+                    </Button>
+                  </div>
                 </div>
               </div>
 
@@ -550,11 +620,11 @@ export default function NewsletterManagement() {
 
       {/* User Selection Dialog */}
       <Dialog open={isVerifyDialogOpen} onOpenChange={handleCloseVerifyDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Verify Newsletter</DialogTitle>
             <DialogDescription>
-              Select a user to generate newsletter preview
+              Select a user to generate newsletter preview or send test email
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -586,21 +656,78 @@ export default function NewsletterManagement() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Test Email Section */}
+            <div className="border-t pt-4">
+              <Label className="text-sm font-semibold mb-3 block">Test Email Settings</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="test-email">Test Email Address</Label>
+                  <Input
+                    id="test-email"
+                    type="email"
+                    placeholder="test@example.com"
+                    value={testEmail}
+                    onChange={(e) => setTestEmail(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="newsletter-version">Newsletter Version</Label>
+                  <Select value={newsletterVersion} onValueChange={(value) => setNewsletterVersion(value as "long" | "short")}>
+                    <SelectTrigger id="newsletter-version">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="long">Long Newsletter</SelectItem>
+                      <SelectItem value="short">Short Newsletter</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={handleCloseVerifyDialog}
+              className="sm:flex-1"
             >
               Cancel
             </Button>
             <Button
               type="button"
-              onClick={handleVerifySubmit}
-              disabled={!selectedUserId || verifyMutation.isPending}
+              variant="secondary"
+              onClick={handleSendTestEmail}
+              disabled={!selectedUserId || !testEmail || sendTestMutation.isPending || verifyMutation.isPending}
+              className="sm:flex-1"
             >
-              {verifyMutation.isPending ? "Verifying..." : "Verify"}
+              {sendTestMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Mail className="mr-2 h-4 w-4" />
+                  Test Email
+                </>
+              )}
+            </Button>
+            <Button
+              type="button"
+              onClick={handleVerifySubmit}
+              disabled={!selectedUserId || verifyMutation.isPending || sendTestMutation.isPending}
+              className="sm:flex-1"
+            >
+              {verifyMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Verifying...
+                </>
+              ) : (
+                "Verify"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -608,11 +735,11 @@ export default function NewsletterManagement() {
 
       {/* Newsletter Preview Dialog */}
       <Dialog open={!!newsletterUrls} onOpenChange={handleClosePreview}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Newsletter Preview</DialogTitle>
             <DialogDescription>
-              View your newsletter previews
+              View your newsletter preview URLs
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">

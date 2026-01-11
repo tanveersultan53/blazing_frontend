@@ -94,3 +94,28 @@ export const getServiceSettings = (id: string | number): Promise<AxiosResponse<I
 
 export const updateServiceSettings = ({ id, serviceSettings }: { id: string | number, serviceSettings: IServiceSettings }): Promise<AxiosResponse<IServiceSettings>> =>
     api.patch(`/accounts/admin/users/${id}/service-settings`, serviceSettings);
+
+// Branding
+export interface IBranding {
+    companylogo?: File | string | null;
+    photo?: File | string | null;
+    logo?: File | string | null;
+    qrcode?: File | string | null;
+    personaltext?: string;
+    disclosure?: string;
+    hlogo?: number;
+    wlogo?: number;
+    hphoto?: number;
+    wphoto?: number;
+    custom?: boolean;
+}
+
+export const getBranding = (id: string | number): Promise<AxiosResponse<IBranding>> =>
+    api.get(`/accounts/users/register-branding/${id}`);
+
+export const updateBranding = ({ id, branding }: { id: string | number, branding: FormData }): Promise<AxiosResponse<IBranding>> =>
+    api.put(`/accounts/users/register-branding/${id}`, branding, {
+        headers: {
+            'Content-Type': undefined, // Let the browser set the Content-Type with boundary
+        },
+    });

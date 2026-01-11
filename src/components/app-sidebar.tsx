@@ -9,6 +9,7 @@ import {
   Mail,
   Newspaper,
   Heart,
+  Share2,
 } from "lucide-react"
 
 import { NavMain, type NavMainProps } from "@/components/nav-main"
@@ -54,6 +55,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Ecards",
       url: ["/ecards"],
       icon: Heart,
+      items: [],
+    },
+    {
+      title: "Social Icons",
+      url: ["/social-icons"],
+      icon: Share2,
       items: [],
     },
     {
