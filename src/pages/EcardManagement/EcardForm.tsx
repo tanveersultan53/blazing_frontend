@@ -79,7 +79,6 @@ export default function EcardForm() {
   const [ecardImagePreview, setEcardImagePreview] = useState<string | null>(
     null
   );
-  const [uploadedHtmlFile, setUploadedHtmlFile] = useState<File | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditListDialog, setShowEditListDialog] = useState(false);
   const [showDeleteListDialog, setShowDeleteListDialog] = useState(false);
@@ -159,7 +158,6 @@ export default function EcardForm() {
 
   const handleHtmlFileUpload = async (file: File | null) => {
     if (file) {
-      setUploadedHtmlFile(file);
       // Read HTML file content - keep it raw, no replacements
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -168,7 +166,6 @@ export default function EcardForm() {
       };
       reader.readAsText(file);
     } else {
-      setUploadedHtmlFile(null);
       setFormData((prev) => ({ ...prev, email_html: "" }));
     }
     // Reset preview when HTML file changes
@@ -284,7 +281,6 @@ export default function EcardForm() {
       single_user_email: "",
     });
     setEcardImagePreview(null);
-    setUploadedHtmlFile(null);
     setPreviewHtml(null);
   };
 
