@@ -3,11 +3,13 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
-import { getDefaultEmail } from '@/services/ecardService';
+import { getDefaultEmail, previewEcardHtml } from '@/services/ecardService';
+import { useState, useEffect } from 'react';
 
 export default function EcardPreview() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
 
   // Fetch ecard data
   const { data, isLoading } = useQuery({
@@ -17,6 +19,35 @@ export default function EcardPreview() {
   });
 
   const ecard = data?.data;
+
+  // Fetch filled preview HTML when ecard data is loaded
+  useEffect(() => {
+    const fetchPreview = async () => {
+      if (ecard && ecard.email_html) {
+        try {
+          const response = await previewEcardHtml(1, {
+            email_html: ecard.email_html,
+            ecard_text: ecard.ecard_text || '',
+            email_preheader: ecard.email_preheader || '',
+            greeting: ecard.greeting || '',
+            ecard_image: typeof ecard.ecard_image === 'string' ? ecard.ecard_image : '',
+            first_name: 'John',
+            last_name: 'Doe',
+          });
+
+          if (response.data.success && response.data.html_content) {
+            setPreviewHtml(response.data.html_content);
+          }
+        } catch (error) {
+          console.error('Failed to fetch preview:', error);
+          // Fallback to raw HTML if preview fails
+          setPreviewHtml(ecard.email_html);
+        }
+      }
+    };
+
+    fetchPreview();
+  }, [ecard]);
 
   if (isLoading) {
     return (
@@ -70,15 +101,30 @@ export default function EcardPreview() {
           <CardTitle>Email Preview</CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Show HTML content if available */}
-          {ecard.email_html ? (
+          {/* Show filled HTML preview if available */}
+          {previewHtml ? (
+            <div className="border rounded-lg overflow-hidden">
+              <iframe
+                srcDoc={previewHtml}
+                className="w-full h-[600px] bg-white"
+                title="Email Preview (Filled with User Data)"
+                sandbox="allow-same-origin"
+              />
+              <p className="text-xs text-muted-foreground mt-2">
+                Preview with filled placeholders (user data, social icons, etc.)
+              </p>
+            </div>
+          ) : ecard.email_html ? (
             <div className="border rounded-lg overflow-hidden">
               <iframe
                 srcDoc={ecard.email_html}
                 className="w-full h-[600px] bg-white"
-                title="Email Preview"
+                title="Email Preview (Raw HTML)"
                 sandbox="allow-same-origin"
               />
+              <p className="text-xs text-muted-foreground mt-2">
+                Loading filled preview...
+              </p>
             </div>
           ) : (
             /* Show image if available */
@@ -123,6 +169,18 @@ export default function EcardPreview() {
               <div>
                 <span className="font-semibold">Ecard Date:</span>{' '}
                 {new Date(ecard.ecard_date).toLocaleDateString()}
+              </div>
+            )}
+            {ecard.greeting && (
+              <div>
+                <span className="font-semibold">Greeting:</span>{' '}
+                {ecard.greeting}
+              </div>
+            )}
+            {ecard.single_user_email && (
+              <div>
+                <span className="font-semibold">Single User Email:</span>{' '}
+                {ecard.single_user_email}
               </div>
             )}
           </div>

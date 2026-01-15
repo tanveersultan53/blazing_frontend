@@ -33,7 +33,6 @@ import {
   ArrowLeft,
   FileImage,
   FileCode,
-  FileText,
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import {
@@ -42,6 +41,7 @@ import {
   getDefaultEmail,
   deleteDefaultEmail,
   distributeEcard,
+  previewEcardHtml,
 } from "@/services/ecardService";
 import { EMAIL_CATEGORIES } from "./interface";
 import type { IEcard } from "./interface";
@@ -71,7 +71,9 @@ export default function EcardForm() {
     ecard_text: "",
     email_html: "",
     email_preheader: "",
+    greeting: "",
     custom_email: false,
+    single_user_email: "",
   });
 
   const [ecardImagePreview, setEcardImagePreview] = useState<string | null>(
@@ -79,12 +81,12 @@ export default function EcardForm() {
   );
   const [uploadedHtmlFile, setUploadedHtmlFile] = useState<File | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [showEditListDialog, setShowEditListDialog] = useState(false);
   const [showDeleteListDialog, setShowDeleteListDialog] = useState(false);
-  const [showPreviewListDialog, setShowPreviewListDialog] = useState(false);
   const [ecardsList, setEcardsList] = useState<IEcard[]>([]);
   const [selectedEcard, setSelectedEcard] = useState<IEcard | null>(null);
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
 
   // Fetch ecard data if editing
   const { data: ecardData, isLoading: isLoadingEcard } = useQuery({
@@ -130,29 +132,11 @@ export default function EcardForm() {
   });
 
   const handleInputChange = (field: keyof IEcard, value: any) => {
-    setFormData((prev) => {
-      const updated = { ...prev, [field]: value };
-
-      // If ecard_text is changed and there's HTML template with {ecard_text} placeholder, replace it
-      if (
-        field === "ecard_text" &&
-        updated.email_html &&
-        updated.email_html.includes("{ecard_text}")
-      ) {
-        updated.email_html = updated.email_html.replace(/{ecard_text}/g, value);
-      }
-
-      // If email_preheader is changed and there's HTML template with {Greeting} placeholder, replace it
-      if (
-        field === "email_preheader" &&
-        updated.email_html &&
-        updated.email_html.includes("{Greeting}")
-      ) {
-        updated.email_html = updated.email_html.replace(/{Greeting}/g, value);
-      }
-
-      return updated;
-    });
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    // Reset preview when any field changes so user knows to click Preview again
+    if (previewHtml) {
+      setPreviewHtml(null);
+    }
   };
 
   const handleImageUpload = (file: File | null) => {
@@ -160,57 +144,36 @@ export default function EcardForm() {
       setFormData((prev) => ({ ...prev, ecard_image: file }));
       const reader = new FileReader();
       reader.onloadend = () => {
-        const imageDataUrl = reader.result as string;
-        setEcardImagePreview(imageDataUrl);
-
-        // If there's HTML template with {ecard_image} placeholder, replace it
-        if (
-          formData.email_html &&
-          formData.email_html.includes("{ecard_image}")
-        ) {
-          const updatedHtml = formData.email_html.replace(
-            /{ecard_image}/g,
-            imageDataUrl
-          );
-          setFormData((prev) => ({ ...prev, email_html: updatedHtml }));
-        }
+        setEcardImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     } else {
       setFormData((prev) => ({ ...prev, ecard_image: null }));
       setEcardImagePreview(null);
     }
+    // Reset preview when image changes
+    if (previewHtml) {
+      setPreviewHtml(null);
+    }
   };
 
   const handleHtmlFileUpload = async (file: File | null) => {
     if (file) {
       setUploadedHtmlFile(file);
-      // Read HTML file content
+      // Read HTML file content - keep it raw, no replacements
       const reader = new FileReader();
       reader.onload = (e) => {
-        let content = e.target?.result as string;
-
-        // If there's already an uploaded image, replace {ecard_image} placeholder
-        if (ecardImagePreview && content.includes("{ecard_image}")) {
-          content = content.replace(/{ecard_image}/g, ecardImagePreview);
-        }
-
-        // If there's already ecard text, replace {ecard_text} placeholder
-        if (formData.ecard_text && content.includes("{ecard_text}")) {
-          content = content.replace(/{ecard_text}/g, formData.ecard_text);
-        }
-
-        // If there's already email preheader, replace {preheader} placeholder
-        if (formData.email_preheader && content.includes("{preheader}")) {
-          content = content.replace(/{preheader}/g, formData.email_preheader);
-        }
-
+        const content = e.target?.result as string;
         setFormData((prev) => ({ ...prev, email_html: content }));
       };
       reader.readAsText(file);
     } else {
       setUploadedHtmlFile(null);
       setFormData((prev) => ({ ...prev, email_html: "" }));
+    }
+    // Reset preview when HTML file changes
+    if (previewHtml) {
+      setPreviewHtml(null);
     }
   };
 
@@ -248,6 +211,12 @@ export default function EcardForm() {
     if (formData.email_preheader) {
       submitData.append("email_preheader", formData.email_preheader);
     }
+    if (formData.greeting) {
+      submitData.append("greeting", formData.greeting);
+    }
+    if (formData.single_user_email) {
+      submitData.append("single_user_email", formData.single_user_email);
+    }
     if (formData.ecard_image instanceof File) {
       submitData.append("ecard_image", formData.ecard_image);
     }
@@ -255,15 +224,14 @@ export default function EcardForm() {
     saveMutation.mutate(submitData);
   };
 
-  // Fetch all ecards for Edit/Delete/Preview lists
+  // Fetch all ecards for Edit/Delete lists
   const { data: ecardsData } = useQuery({
     queryKey: ["default-emails"],
     queryFn: async () => {
       const { getDefaultEmails } = await import("@/services/ecardService");
       return getDefaultEmails();
     },
-    enabled:
-      showEditListDialog || showDeleteListDialog || showPreviewListDialog,
+    enabled: showEditListDialog || showDeleteListDialog,
   });
 
   useEffect(() => {
@@ -311,10 +279,13 @@ export default function EcardForm() {
       ecard_text: "",
       email_html: "",
       email_preheader: "",
+      greeting: "",
       custom_email: false,
+      single_user_email: "",
     });
     setEcardImagePreview(null);
     setUploadedHtmlFile(null);
+    setPreviewHtml(null);
   };
 
   const handleEdit = () => {
@@ -325,8 +296,38 @@ export default function EcardForm() {
     setShowDeleteListDialog(true);
   };
 
-  const handlePreview = () => {
-    setShowPreviewListDialog(true);
+  const handlePreview = async () => {
+    // Validate that there's HTML content to preview
+    if (!formData.email_html) {
+      toast.error("Please upload an email HTML template first");
+      return;
+    }
+
+    setIsLoadingPreview(true);
+    try {
+      // Call backend API to get filled HTML preview
+      const response = await previewEcardHtml(1, {
+        email_html: formData.email_html,
+        ecard_text: formData.ecard_text || "",
+        email_preheader: formData.email_preheader || "",
+        greeting: formData.greeting || "",
+        ecard_image: ecardImagePreview || "",
+        first_name: "John",
+        last_name: "Doe",
+      });
+
+      if (response.data.success && response.data.html_content) {
+        setPreviewHtml(response.data.html_content);
+        toast.success("Preview updated with filled placeholders");
+      } else {
+        toast.error("Failed to generate preview");
+      }
+    } catch (error: any) {
+      console.error("Preview error:", error);
+      toast.error(error.response?.data?.error || "Failed to generate preview");
+    } finally {
+      setIsLoadingPreview(false);
+    }
   };
 
   const handleDistribute = () => {
@@ -352,12 +353,6 @@ export default function EcardForm() {
     if (selectedEcard?.id) {
       deleteMutation.mutate(selectedEcard.id);
     }
-  };
-
-  const handleSelectEcardForPreview = (ecard: IEcard) => {
-    setSelectedEcard(ecard);
-    setShowPreviewListDialog(false);
-    setShowPreviewDialog(true);
   };
 
   if (isEditMode && isLoadingEcard) {
@@ -451,6 +446,39 @@ export default function EcardForm() {
                       handleInputChange("email_preheader", e.target.value)
                     }
                   />
+                </div>
+
+                {/* Greeting */}
+                <div className="space-y-2">
+                  <Label htmlFor="greeting">Greeting</Label>
+                  <Input
+                    id="greeting"
+                    placeholder="e.g., Hi {first_name}"
+                    value={formData.greeting}
+                    onChange={(e) =>
+                      handleInputChange("greeting", e.target.value)
+                    }
+                  />
+                </div>
+
+                {/* Single User Email */}
+                <div className="space-y-2">
+                  <Label htmlFor="single_user_email">
+                    Single User Email (Optional)
+                  </Label>
+                  <Input
+                    id="single_user_email"
+                    type="email"
+                    placeholder="e.g., user@example.com"
+                    value={formData.single_user_email}
+                    onChange={(e) =>
+                      handleInputChange("single_user_email", e.target.value)
+                    }
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Leave empty to send to all users, or enter an email to send
+                    to a single user only
+                  </p>
                 </div>
 
                 {/* Email Category */}
@@ -563,14 +591,33 @@ export default function EcardForm() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email_name">Email Preview</Label>
+                <Label htmlFor="email_name">
+                  Email Preview
+                  {isLoadingPreview && (
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      Loading...
+                    </span>
+                  )}
+                  {previewHtml && !isLoadingPreview && (
+                    <span className="ml-2 text-xs text-green-600">
+                      (Filled from backend)
+                    </span>
+                  )}
+                </Label>
                 <div className="bg-accent h-full w-full rounded-2xl">
-                  {/* HTML Preview - Full Width */}
-                  {formData.email_html ? (
+                  {/* Show filled preview from backend if available, otherwise show raw HTML */}
+                  {previewHtml ? (
+                    <iframe
+                      srcDoc={previewHtml}
+                      className="w-full h-full bg-white"
+                      title="Email Preview (Filled)"
+                      sandbox="allow-same-origin"
+                    />
+                  ) : formData.email_html ? (
                     <iframe
                       srcDoc={formData.email_html}
                       className="w-full h-full bg-white"
-                      title="Email Preview"
+                      title="Email Preview (Raw)"
                       sandbox="allow-same-origin"
                     />
                   ) : (
@@ -634,9 +681,9 @@ export default function EcardForm() {
                 type="button"
                 variant="outline"
                 onClick={handlePreview}
-                disabled={saveMutation.isPending}
+                disabled={saveMutation.isPending || isLoadingPreview}
               >
-                Preview
+                {isLoadingPreview ? "Loading..." : "Preview"}
               </Button>
               <Button
                 type="button"
@@ -716,40 +763,6 @@ export default function EcardForm() {
         </DialogContent>
       </Dialog>
 
-      {/* Preview List Dialog */}
-      <Dialog
-        open={showPreviewListDialog}
-        onOpenChange={setShowPreviewListDialog}
-      >
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Select Ecard to Preview</DialogTitle>
-            <DialogDescription>
-              Choose an ecard from the list to preview
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2">
-            {ecardsList.map((ecard) => (
-              <div
-                key={ecard.id}
-                className="p-4 border rounded-lg hover:bg-muted cursor-pointer transition-colors"
-                onClick={() => handleSelectEcardForPreview(ecard)}
-              >
-                <div className="font-medium">{ecard.email_name}</div>
-                <div className="text-sm text-muted-foreground">
-                  {ecard.email_subject}
-                </div>
-              </div>
-            ))}
-            {ecardsList.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                No ecards available
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
@@ -772,47 +785,6 @@ export default function EcardForm() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Preview Dialog */}
-      <Dialog open={showPreviewDialog} onOpenChange={setShowPreviewDialog}>
-        <DialogContent className="max-w-5xl max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle>{selectedEcard?.email_name}</DialogTitle>
-            <DialogDescription>
-              Subject: {selectedEcard?.email_subject}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="overflow-auto max-h-[70vh] rounded-lg border-2">
-            {selectedEcard?.email_html ? (
-              <iframe
-                srcDoc={selectedEcard.email_html}
-                className="w-full h-[65vh] bg-white"
-                title="Ecard Preview"
-                sandbox="allow-same-origin"
-              />
-            ) : selectedEcard?.ecard_image &&
-              typeof selectedEcard.ecard_image === "string" ? (
-              <img
-                src={selectedEcard.ecard_image}
-                alt={selectedEcard.email_name}
-                className="w-full h-auto"
-              />
-            ) : selectedEcard?.ecard_text ? (
-              <div className="p-6">
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: selectedEcard.ecard_text.replace(/<BR>/gi, "<br>"),
-                  }}
-                />
-              </div>
-            ) : (
-              <div className="flex items-center justify-center py-20 text-muted-foreground">
-                <FileText className="h-16 w-16 mb-4 opacity-20" />
-                <p>No preview available</p>
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </PageHeader>
   );
 }

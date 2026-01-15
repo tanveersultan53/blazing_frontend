@@ -9,7 +9,9 @@ export interface IEcard {
   ecard_text?: string;
   email_html?: string;
   email_preheader?: string;
+  greeting?: string;
   custom_email: boolean;
+  single_user_email?: string;
   created?: string;
   modified?: string;
 }

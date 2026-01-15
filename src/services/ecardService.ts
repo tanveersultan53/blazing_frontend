@@ -40,3 +40,15 @@ export const distributeEcard = (id: number): Promise<AxiosResponse<{ message: st
 // Preview ecard
 export const previewEcard = (id: number): Promise<AxiosResponse<{ html_content: string }>> =>
   api.get(`/email/default-email/${id}/preview`);
+
+// Preview ecard HTML with filled placeholders
+export const previewEcardHtml = (userId: number, data: {
+  email_html: string;
+  ecard_text?: string;
+  email_preheader?: string;
+  greeting?: string;
+  ecard_image?: string;
+  first_name?: string;
+  last_name?: string;
+}): Promise<AxiosResponse<{ html_content: string; success: boolean }>> =>
+  api.post(`/email/ecard-preview/${userId}`, data);
