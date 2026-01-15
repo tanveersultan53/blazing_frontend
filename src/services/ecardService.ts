@@ -52,3 +52,28 @@ export const previewEcardHtml = (userId: number, data: {
   last_name?: string;
 }): Promise<AxiosResponse<{ html_content: string; success: boolean }>> =>
   api.post(`/email/ecard-preview/${userId}`, data);
+
+// Get users list for dropdown
+export const getUsersList = (): Promise<AxiosResponse<{
+  users: Array<{
+    id: number;
+    name: string;
+    email: string;
+    company: string;
+  }>;
+}>> =>
+  api.get('/email/default-email/users-list');
+
+// Send ecard to recipients
+export const sendEcard = (ecardId: number, data: {
+  recipient_type: 'contacts' | 'partners' | 'all' | 'custom';
+  custom_emails?: string[];
+  user_id?: number;
+}): Promise<AxiosResponse<{
+  success: boolean;
+  message: string;
+  sent_count: number;
+  failed_count: number;
+  total_recipients: number;
+}>> =>
+  api.post(`/email/default-email/${ecardId}/send`, data);

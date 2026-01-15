@@ -33,6 +33,7 @@ import {
   ArrowLeft,
   FileImage,
   FileCode,
+  Send,
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import {
@@ -42,6 +43,8 @@ import {
   deleteDefaultEmail,
   distributeEcard,
   previewEcardHtml,
+  sendEcard,
+  getUsersList,
 } from "@/services/ecardService";
 import { EMAIL_CATEGORIES } from "./interface";
 import type { IEcard } from "./interface";
@@ -86,6 +89,13 @@ export default function EcardForm() {
   const [selectedEcard, setSelectedEcard] = useState<IEcard | null>(null);
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  const [showSendDialog, setShowSendDialog] = useState(false);
+  const [recipientType, setRecipientType] = useState<'contacts' | 'partners' | 'all' | 'custom'>('all');
+  const [customEmails, setCustomEmails] = useState<string>('');
+  const [sendPreviewHtml, setSendPreviewHtml] = useState<string | null>(null);
+  const [showSendPreview, setShowSendPreview] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [usersList, setUsersList] = useState<Array<{ id: number; name: string; email: string; company: string }>>([]);
 
   // Fetch ecard data if editing
   const { data: ecardData, isLoading: isLoadingEcard } = useQuery({
@@ -266,6 +276,26 @@ export default function EcardForm() {
     },
   });
 
+  // Send mutation
+  const sendMutation = useMutation({
+    mutationFn: (data: { ecardId: number; recipient_type: 'contacts' | 'partners' | 'all' | 'custom'; custom_emails?: string[]; user_id?: number }) =>
+      sendEcard(data.ecardId, { recipient_type: data.recipient_type, custom_emails: data.custom_emails, user_id: data.user_id }),
+    onSuccess: (response) => {
+      const { sent_count, failed_count, total_recipients } = response.data;
+      toast.success(`Ecard sent successfully! Sent: ${sent_count}, Failed: ${failed_count}, Total: ${total_recipients}`);
+      setShowSendDialog(false);
+      setShowSendPreview(false);
+      setSendPreviewHtml(null);
+      setCustomEmails('');
+      setRecipientType('all');
+      setSelectedUserId(null);
+    },
+    onError: (error: any) => {
+      console.error("Send ecard error:", error);
+      toast.error(error.response?.data?.error || "Failed to send ecard");
+    },
+  });
+
   const handleClear = () => {
     setFormData({
       email_name: "",
@@ -332,6 +362,104 @@ export default function EcardForm() {
     }
   };
 
+  const handleSend = async () => {
+    setShowSendDialog(true);
+    setShowSendPreview(false);
+    setSendPreviewHtml(null);
+
+    // Fetch users list for dropdown
+    try {
+      const response = await getUsersList();
+      setUsersList(response.data.users);
+    } catch (error) {
+      console.error("Failed to fetch users list:", error);
+      toast.error("Failed to load users list");
+    }
+  };
+
+  const handlePreviewBeforeSend = async () => {
+    if (!id) {
+      toast.error("Please save the ecard first before sending");
+      return;
+    }
+
+    if (!selectedUserId) {
+      toast.error("Please select a user to fill the ecard data");
+      return;
+    }
+
+    if (!formData.email_html) {
+      toast.error("Please upload an email HTML template first");
+      return;
+    }
+
+    if (recipientType === 'custom') {
+      const emails = customEmails.split(',').map(email => email.trim()).filter(email => email);
+      if (emails.length === 0) {
+        toast.error("Please enter at least one email address");
+        return;
+      }
+    }
+
+    // Generate preview with selected user's data
+    setIsLoadingPreview(true);
+    try {
+      const response = await previewEcardHtml(selectedUserId, {
+        email_html: formData.email_html,
+        ecard_text: formData.ecard_text || "",
+        email_preheader: formData.email_preheader || "",
+        greeting: formData.greeting || "",
+        ecard_image: ecardImagePreview || "",
+        first_name: "John",
+        last_name: "Doe",
+      });
+
+      if (response.data.success && response.data.html_content) {
+        setSendPreviewHtml(response.data.html_content);
+        setShowSendPreview(true);
+      } else {
+        toast.error("Failed to generate preview");
+      }
+    } catch (error: any) {
+      console.error("Preview error:", error);
+      toast.error(error.response?.data?.error || "Failed to generate preview");
+    } finally {
+      setIsLoadingPreview(false);
+    }
+  };
+
+  const handleConfirmSend = () => {
+    if (!id) {
+      toast.error("Please save the ecard first before sending");
+      return;
+    }
+
+    if (!selectedUserId) {
+      toast.error("Please select a user to fill the ecard data");
+      return;
+    }
+
+    if (recipientType === 'custom') {
+      const emails = customEmails.split(',').map(email => email.trim()).filter(email => email);
+      if (emails.length === 0) {
+        toast.error("Please enter at least one email address");
+        return;
+      }
+      sendMutation.mutate({
+        ecardId: Number(id),
+        recipient_type: recipientType,
+        custom_emails: emails,
+        user_id: selectedUserId
+      });
+    } else {
+      sendMutation.mutate({
+        ecardId: Number(id),
+        recipient_type: recipientType,
+        user_id: selectedUserId
+      });
+    }
+  };
+
   const handleSelectEcardForEdit = (ecard: IEcard) => {
     if (ecard.id) {
       navigate(`/ecards/edit/${ecard.id}`);
@@ -374,6 +502,16 @@ export default function EcardForm() {
           variant: "outline",
           icon: ArrowLeft,
         },
+        ...(isEditMode && id
+          ? [
+              {
+                label: "Send Ecard",
+                onClick: handleSend,
+                variant: "default" as const,
+                icon: Send,
+              },
+            ]
+          : []),
       ]}
     >
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -756,6 +894,188 @@ export default function EcardForm() {
               </div>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Send Ecard Dialog */}
+      <Dialog
+        open={showSendDialog}
+        onOpenChange={(open) => {
+          setShowSendDialog(open);
+          if (!open) {
+            // Reset all states when dialog is closed
+            setShowSendPreview(false);
+            setSendPreviewHtml(null);
+            setSelectedUserId(null);
+            setCustomEmails('');
+            setRecipientType('all');
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {showSendPreview ? "Preview & Confirm Send" : "Send Ecard"}
+            </DialogTitle>
+            <DialogDescription>
+              {showSendPreview
+                ? "Review the ecard preview below and confirm to send to recipients"
+                : "Select recipients and preview the ecard before sending"}
+            </DialogDescription>
+          </DialogHeader>
+
+          {!showSendPreview ? (
+            // Step 1: Select Recipients
+            <>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="user_select">Select User (Whose Data to Fill)</Label>
+                  <Select
+                    value={selectedUserId?.toString()}
+                    onValueChange={(value) => setSelectedUserId(Number(value))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a user" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {usersList.map((user) => (
+                        <SelectItem key={user.id} value={user.id.toString()}>
+                          {user.name} {user.company && `(${user.company})`} - {user.email}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    This user's data (photo, logo, address, etc.) will be used to fill the ecard placeholders
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="recipient_type">Recipient Type</Label>
+                  <Select
+                    value={recipientType}
+                    onValueChange={(value: 'contacts' | 'partners' | 'all' | 'custom') => setRecipientType(value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select recipient type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Contacts & Partners</SelectItem>
+                      <SelectItem value="contacts">Contacts Only</SelectItem>
+                      <SelectItem value="partners">Partners Only</SelectItem>
+                      <SelectItem value="custom">Custom Email Addresses</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {recipientType === 'custom' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="custom_emails">Email Addresses</Label>
+                    <Textarea
+                      id="custom_emails"
+                      placeholder="Enter email addresses separated by commas (e.g., user1@example.com, user2@example.com)"
+                      value={customEmails}
+                      onChange={(e) => setCustomEmails(e.target.value)}
+                      rows={4}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Separate multiple email addresses with commas
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowSendDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handlePreviewBeforeSend}
+                  disabled={isLoadingPreview}
+                >
+                  {isLoadingPreview ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Loading Preview...
+                    </>
+                  ) : (
+                    "Next: Preview"
+                  )}
+                </Button>
+              </div>
+            </>
+          ) : (
+            // Step 2: Preview & Confirm
+            <>
+              <div className="space-y-4 py-4">
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="bg-muted px-4 py-2 text-sm font-medium">
+                    Email Preview (with sample data: John Doe)
+                  </div>
+                  {sendPreviewHtml && (
+                    <iframe
+                      srcDoc={sendPreviewHtml}
+                      className="w-full h-[400px] bg-white"
+                      title="Ecard Preview Before Send"
+                      sandbox="allow-same-origin"
+                    />
+                  )}
+                </div>
+                <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-md text-sm">
+                  <p className="font-medium text-blue-900 dark:text-blue-100">
+                    Ready to Send
+                  </p>
+                  <p className="text-blue-700 dark:text-blue-300 mt-1">
+                    Filled with data from: <span className="font-medium">
+                      {usersList.find(u => u.id === selectedUserId)?.name || 'Selected User'}
+                    </span>
+                  </p>
+                  <p className="text-blue-700 dark:text-blue-300 mt-1">
+                    Recipients: <span className="font-medium">
+                      {recipientType === 'all' ? 'All Contacts & Partners' :
+                       recipientType === 'contacts' ? 'Contacts Only' :
+                       recipientType === 'partners' ? 'Partners Only' :
+                       'Custom Email Addresses'}
+                    </span>
+                  </p>
+                  <p className="text-blue-600 dark:text-blue-400 text-xs mt-1">
+                    Each recipient will receive a personalized version with their own name but with the selected user's branding/contact info.
+                  </p>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowSendPreview(false)}
+                  disabled={sendMutation.isPending}
+                >
+                  Back
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleConfirmSend}
+                  disabled={sendMutation.isPending}
+                >
+                  {sendMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="mr-2 h-4 w-4" />
+                      Confirm & Send
+                    </>
+                  )}
+                </Button>
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
 
