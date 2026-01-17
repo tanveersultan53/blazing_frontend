@@ -149,7 +149,7 @@ const Settings = () => {
                         <div className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="space-y-2">
-                                    <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">Name</label>
+                                    <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">App Name</label>
                                     <p className="text-sm font-semibold">{data?.data?.name || '-'}</p>
                                 </div>
                                 <div className="space-y-2">
@@ -180,7 +180,7 @@ const Settings = () => {
                         <div className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="space-y-2">
-                                    <label htmlFor="name" className="text-xs font-medium text-muted-foreground">Name</label>
+                                    <label htmlFor="name" className="text-xs font-medium text-muted-foreground">App Name</label>
                                     <Input
                                         id="name"
                                         type="text"

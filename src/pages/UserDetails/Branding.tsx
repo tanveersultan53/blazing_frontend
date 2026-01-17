@@ -163,197 +163,200 @@ export default function Branding() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Branding Assets */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Branding Assets</h3>
+          {/* Grid 12 layout - col-6 col-6 */}
+          <div className="grid grid-cols-12 gap-6">
+            {/* Branding Assets - col-6 */}
+            <div className="col-span-12 md:col-span-6 space-y-4">
+              <h3 className="text-lg font-semibold">Branding Assets</h3>
 
-            {/* Company Logo */}
-            <div className="space-y-2">
-              <Label htmlFor="companylogo">Company Logo</Label>
-              <Input
-                id="companylogo"
-                type="file"
-                accept="image/png,image/jpeg,image/jpg,image/gif"
-                onChange={(e) =>
-                  handleImageUpload(
-                    e.target.files?.[0] || null,
-                    "companylogo",
-                    setCompanyLogoPreview
-                  )
-                }
-              />
-              {companyLogoPreview && (
-                <div className="mt-2 p-4 border rounded-lg">
-                  <img
-                    src={companyLogoPreview}
-                    alt="Company Logo Preview"
-                    className="h-24 object-contain"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Professional Photo */}
-            <div className="space-y-2">
-              <Label htmlFor="photo">Professional Photo</Label>
-              <Input
-                id="photo"
-                type="file"
-                accept="image/png,image/jpeg,image/jpg,image/gif"
-                onChange={(e) =>
-                  handleImageUpload(e.target.files?.[0] || null, "photo", setPhotoPreview)
-                }
-              />
-              {photoPreview && (
-                <div className="mt-2 p-4 border rounded-lg">
-                  <img
-                    src={photoPreview}
-                    alt="Photo Preview"
-                    className="h-24 object-cover"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Additional Logo */}
-            <div className="space-y-2">
-              <Label htmlFor="logo">Additional Logo</Label>
-              <Input
-                id="logo"
-                type="file"
-                accept="image/png,image/jpeg,image/jpg,image/gif"
-                onChange={(e) =>
-                  handleImageUpload(e.target.files?.[0] || null, "logo", setLogoPreview)
-                }
-              />
-              {logoPreview && (
-                <div className="mt-2 p-4 border rounded-lg">
-                  <img
-                    src={logoPreview}
-                    alt="Logo Preview"
-                    className="h-24 object-contain"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* QR Code */}
-            <div className="space-y-2">
-              <Label htmlFor="qrcode">QR Code</Label>
-              <Input
-                id="qrcode"
-                type="file"
-                accept="image/png,image/jpeg,image/jpg,image/gif"
-                onChange={(e) =>
-                  handleImageUpload(e.target.files?.[0] || null, "qrcode", setQrcodePreview)
-                }
-              />
-              {qrcodePreview && (
-                <div className="mt-2 p-4 border rounded-lg">
-                  <img
-                    src={qrcodePreview}
-                    alt="QR Code Preview"
-                    className="h-24 object-contain"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Branding Content */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Branding Content</h3>
-
-            <div className="space-y-2">
-              <Label htmlFor="personaltext">Personal Text / Bio</Label>
-              <Textarea
-                id="personaltext"
-                placeholder="Enter your personal introduction or bio..."
-                value={formData.personaltext || ""}
-                onChange={(e) => handleInputChange("personaltext", e.target.value)}
-                rows={4}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="disclosure">Legal Disclosure</Label>
-              <Textarea
-                id="disclosure"
-                placeholder="Enter legal disclosure text..."
-                value={formData.disclosure || ""}
-                onChange={(e) => handleInputChange("disclosure", e.target.value)}
-                rows={4}
-              />
-            </div>
-          </div>
-
-          {/* Image Dimensions */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Image Dimensions (Optional)</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {/* Company Logo */}
               <div className="space-y-2">
-                <Label htmlFor="hlogo">Logo Height (px)</Label>
+                <Label htmlFor="companylogo">Company Logo</Label>
                 <Input
-                  id="hlogo"
-                  type="number"
-                  placeholder="Height"
-                  value={formData.hlogo || ""}
+                  id="companylogo"
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/gif"
                   onChange={(e) =>
-                    handleInputChange("hlogo", e.target.value ? Number(e.target.value) : undefined)
+                    handleImageUpload(
+                      e.target.files?.[0] || null,
+                      "companylogo",
+                      setCompanyLogoPreview
+                    )
                   }
                 />
+                {companyLogoPreview && (
+                  <div className="mt-2 p-4 border rounded-lg">
+                    <img
+                      src={companyLogoPreview}
+                      alt="Company Logo Preview"
+                      className="h-24 object-contain"
+                    />
+                  </div>
+                )}
               </div>
+
+              {/* Professional Photo */}
               <div className="space-y-2">
-                <Label htmlFor="wlogo">Logo Width (px)</Label>
+                <Label htmlFor="photo">Professional Photo</Label>
                 <Input
-                  id="wlogo"
-                  type="number"
-                  placeholder="Width"
-                  value={formData.wlogo || ""}
+                  id="photo"
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/gif"
                   onChange={(e) =>
-                    handleInputChange("wlogo", e.target.value ? Number(e.target.value) : undefined)
+                    handleImageUpload(e.target.files?.[0] || null, "photo", setPhotoPreview)
                   }
                 />
+                {photoPreview && (
+                  <div className="mt-2 p-4 border rounded-lg">
+                    <img
+                      src={photoPreview}
+                      alt="Photo Preview"
+                      className="h-24 object-cover"
+                    />
+                  </div>
+                )}
               </div>
+
+              {/* Custom Symbol */}
               <div className="space-y-2">
-                <Label htmlFor="hphoto">Photo Height (px)</Label>
+                <Label htmlFor="logo">Custom Symbol</Label>
                 <Input
-                  id="hphoto"
-                  type="number"
-                  placeholder="Height"
-                  value={formData.hphoto || ""}
+                  id="logo"
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/gif"
                   onChange={(e) =>
-                    handleInputChange("hphoto", e.target.value ? Number(e.target.value) : undefined)
+                    handleImageUpload(e.target.files?.[0] || null, "logo", setLogoPreview)
                   }
                 />
+                {logoPreview && (
+                  <div className="mt-2 p-4 border rounded-lg">
+                    <img
+                      src={logoPreview}
+                      alt="Logo Preview"
+                      className="h-24 object-contain"
+                    />
+                  </div>
+                )}
               </div>
+
+              {/* QR Code */}
               <div className="space-y-2">
-                <Label htmlFor="wphoto">Photo Width (px)</Label>
+                <Label htmlFor="qrcode">QR Code</Label>
                 <Input
-                  id="wphoto"
-                  type="number"
-                  placeholder="Width"
-                  value={formData.wphoto || ""}
+                  id="qrcode"
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/gif"
                   onChange={(e) =>
-                    handleInputChange("wphoto", e.target.value ? Number(e.target.value) : undefined)
+                    handleImageUpload(e.target.files?.[0] || null, "qrcode", setQrcodePreview)
                   }
                 />
+                {qrcodePreview && (
+                  <div className="mt-2 p-4 border rounded-lg">
+                    <img
+                      src={qrcodePreview}
+                      alt="QR Code Preview"
+                      className="h-24 object-contain"
+                    />
+                  </div>
+                )}
               </div>
             </div>
-          </div>
 
-          {/* Custom Branding Toggle */}
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="custom"
-              checked={formData.custom || false}
-              onChange={(e) => handleInputChange("custom", e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300"
-            />
-            <Label htmlFor="custom" className="cursor-pointer">
-              Enable Custom Branding Options
-            </Label>
+            {/* Branding Content - col-6 */}
+            <div className="col-span-12 md:col-span-6 space-y-4">
+              <h3 className="text-lg font-semibold">Branding Content</h3>
+
+              <div className="space-y-2">
+                <Label htmlFor="personaltext">Personal Text / Bio</Label>
+                <Textarea
+                  id="personaltext"
+                  placeholder="Enter your personal introduction or bio..."
+                  value={formData.personaltext || ""}
+                  onChange={(e) => handleInputChange("personaltext", e.target.value)}
+                  rows={4}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="disclosure">Legal Disclosure</Label>
+                <Textarea
+                  id="disclosure"
+                  placeholder="Enter legal disclosure text..."
+                  value={formData.disclosure || ""}
+                  onChange={(e) => handleInputChange("disclosure", e.target.value)}
+                  rows={4}
+                />
+              </div>
+
+              {/* Image Dimensions */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Image Dimensions (Optional)</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="hlogo">Logo Height (px)</Label>
+                    <Input
+                      id="hlogo"
+                      type="number"
+                      placeholder="Height"
+                      value={formData.hlogo || ""}
+                      onChange={(e) =>
+                        handleInputChange("hlogo", e.target.value ? Number(e.target.value) : undefined)
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="wlogo">Logo Width (px)</Label>
+                    <Input
+                      id="wlogo"
+                      type="number"
+                      placeholder="Width"
+                      value={formData.wlogo || ""}
+                      onChange={(e) =>
+                        handleInputChange("wlogo", e.target.value ? Number(e.target.value) : undefined)
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="hphoto">Photo Height (px)</Label>
+                    <Input
+                      id="hphoto"
+                      type="number"
+                      placeholder="Height"
+                      value={formData.hphoto || ""}
+                      onChange={(e) =>
+                        handleInputChange("hphoto", e.target.value ? Number(e.target.value) : undefined)
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="wphoto">Photo Width (px)</Label>
+                    <Input
+                      id="wphoto"
+                      type="number"
+                      placeholder="Width"
+                      value={formData.wphoto || ""}
+                      onChange={(e) =>
+                        handleInputChange("wphoto", e.target.value ? Number(e.target.value) : undefined)
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Custom Branding Toggle */}
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="custom"
+                  checked={formData.custom || false}
+                  onChange={(e) => handleInputChange("custom", e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <Label htmlFor="custom" className="cursor-pointer">
+                  Enable Custom Symbol
+                </Label>
+              </div>
+            </div>
           </div>
 
           {/* Submit Button */}

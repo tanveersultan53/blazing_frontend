@@ -140,7 +140,7 @@ const NewsLetterInformation = ({ user }: { user: IUserDetails | undefined, }) =>
                                     <p className="text-sm font-semibold">{user?.company || '-'}</p>
                                 </div>
                                 <div className="space-y-2">
-                                    <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">Discloure</label>
+                                    <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">Legal Disclosure</label>
                                     <p className="text-sm font-semibold">{'-'}</p>
                                 </div>
                                 <div className="space-y-2">
@@ -320,7 +320,7 @@ const NewsLetterInformation = ({ user }: { user: IUserDetails | undefined, }) =>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="space-y-2">
-                                    <label htmlFor="discloure" className="text-xs font-medium text-muted-foreground">Discloure</label>
+                                    <label htmlFor="discloure" className="text-xs font-medium text-muted-foreground">Legal Disclosure</label>
                                     <Textarea
                                         id="discloure"
                                         placeholder="Enter discloure"

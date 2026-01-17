@@ -203,9 +203,9 @@ export default function UpdateUserBranding({ userId, setIsEditMode, refetch }: U
           )}
         </div>
 
-        {/* Additional Logo */}
+        {/* Custom Symbol */}
         <div className="space-y-2">
-          <Label htmlFor="logo">Additional Logo</Label>
+          <Label htmlFor="logo">Custom Symbol</Label>
           <Input
             id="logo"
             type="file"
@@ -340,7 +340,7 @@ export default function UpdateUserBranding({ userId, setIsEditMode, refetch }: U
           className="h-4 w-4 rounded border-gray-300"
         />
         <Label htmlFor="custom" className="cursor-pointer">
-          Enable Custom Branding Options
+          Enable Custom Symbol
         </Label>
       </div>
 
