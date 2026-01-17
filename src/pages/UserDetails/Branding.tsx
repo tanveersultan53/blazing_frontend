@@ -16,6 +16,7 @@ import {
 import { Loader2 } from "lucide-react";
 import api from "@/services/axiosInterceptor";
 import type { AxiosResponse } from "axios";
+import { resizeImage, type ImageType } from "@/lib/imageResizer";
 
 interface IBranding {
   id?: number;
@@ -100,18 +101,28 @@ export default function Branding() {
     },
   });
 
-  const handleImageUpload = (
+  const handleImageUpload = async (
     file: File | null,
     field: keyof IBranding,
-    setPreview: (preview: string | null) => void
+    setPreview: (preview: string | null) => void,
+    imageType: ImageType = 'other'
   ) => {
     if (file) {
-      setFormData((prev) => ({ ...prev, [field]: file }));
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      try {
+        // Resize the image before storing
+        const resizedFile = await resizeImage(file, imageType);
+        setFormData((prev) => ({ ...prev, [field]: resizedFile }));
+
+        // Create preview from resized file
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreview(reader.result as string);
+        };
+        reader.readAsDataURL(resizedFile);
+      } catch (error) {
+        console.error('Failed to resize image:', error);
+        toast.error('Failed to process image. Please try again.');
+      }
     } else {
       setFormData((prev) => ({ ...prev, [field]: null }));
       setPreview(null);
@@ -180,7 +191,8 @@ export default function Branding() {
                     handleImageUpload(
                       e.target.files?.[0] || null,
                       "companylogo",
-                      setCompanyLogoPreview
+                      setCompanyLogoPreview,
+                      "logo"
                     )
                   }
                 />
@@ -203,7 +215,7 @@ export default function Branding() {
                   type="file"
                   accept="image/png,image/jpeg,image/jpg,image/gif"
                   onChange={(e) =>
-                    handleImageUpload(e.target.files?.[0] || null, "photo", setPhotoPreview)
+                    handleImageUpload(e.target.files?.[0] || null, "photo", setPhotoPreview, "other")
                   }
                 />
                 {photoPreview && (
@@ -225,7 +237,7 @@ export default function Branding() {
                   type="file"
                   accept="image/png,image/jpeg,image/jpg,image/gif"
                   onChange={(e) =>
-                    handleImageUpload(e.target.files?.[0] || null, "logo", setLogoPreview)
+                    handleImageUpload(e.target.files?.[0] || null, "logo", setLogoPreview, "logo")
                   }
                 />
                 {logoPreview && (
@@ -247,7 +259,7 @@ export default function Branding() {
                   type="file"
                   accept="image/png,image/jpeg,image/jpg,image/gif"
                   onChange={(e) =>
-                    handleImageUpload(e.target.files?.[0] || null, "qrcode", setQrcodePreview)
+                    handleImageUpload(e.target.files?.[0] || null, "qrcode", setQrcodePreview, "other")
                   }
                 />
                 {qrcodePreview && (
