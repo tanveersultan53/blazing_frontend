@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { CheckIcon, PencilIcon, XIcon } from "lucide-react";
+import { CheckIcon, PencilIcon, XIcon, Image as ImageIcon, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AxiosResponse } from "axios";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -13,6 +13,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 
 const NewsLetterInformation = ({ user }: { user: IUserDetails | undefined, }) => {
     const { id } = useParams();
@@ -49,6 +50,36 @@ const NewsLetterInformation = ({ user }: { user: IUserDetails | undefined, }) =>
 
     const { register, formState: { errors }, watch, setValue } = form;
 
+    // Watch for file changes to show previews
+    const photoFile = watch('photo' as any);
+    const logoFile = watch('logo' as any);
+    const photoPreviewRef = useRef<string | null>(null);
+    const logoPreviewRef = useRef<string | null>(null);
+
+    // Cleanup object URLs to prevent memory leaks
+    useEffect(() => {
+        return () => {
+            if (photoPreviewRef.current) {
+                URL.revokeObjectURL(photoPreviewRef.current);
+            }
+            if (logoPreviewRef.current) {
+                URL.revokeObjectURL(logoPreviewRef.current);
+            }
+        };
+    }, []);
+
+    // Function to clear file selection
+    const clearFile = (fieldName: 'photo' | 'logo') => {
+        setValue(fieldName as any, undefined as any);
+        if (fieldName === 'photo' && photoPreviewRef.current) {
+            URL.revokeObjectURL(photoPreviewRef.current);
+            photoPreviewRef.current = null;
+        }
+        if (fieldName === 'logo' && logoPreviewRef.current) {
+            URL.revokeObjectURL(logoPreviewRef.current);
+            logoPreviewRef.current = null;
+        }
+    };
 
     const handleCancel = () => {
         setIsEditMode(false);
@@ -154,6 +185,53 @@ const NewsLetterInformation = ({ user }: { user: IUserDetails | undefined, }) =>
                                     <p className="text-sm font-semibold">{data?.data?.custom ? 'Yes' : 'No'}</p>
                                 </div>
                             </div>
+
+                            {/* Media Information Section */}
+                            <div className="border-t pt-6 mt-6">
+                                <h3 className="text-lg font-semibold mb-4">Media Information</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-muted-foreground">User Photo</label>
+                                        <div className="flex items-center gap-4">
+                                            {user?.photo ? (
+                                                <img
+                                                    src={user.photo}
+                                                    alt="User photo"
+                                                    className="w-20 h-20 object-cover rounded-md border"
+                                                />
+                                            ) : (
+                                                <div className="w-20 h-20 bg-gray-100 rounded-md border flex items-center justify-center">
+                                                    <ImageIcon className="h-8 w-8 text-gray-400" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-muted-foreground">User Logo</label>
+                                        <div className="flex items-center gap-4">
+                                            {user?.logo ? (
+                                                <img
+                                                    src={user.logo}
+                                                    alt="User logo"
+                                                    className="w-20 h-20 object-cover rounded-md border"
+                                                />
+                                            ) : (
+                                                <div className="w-20 h-20 bg-gray-100 rounded-md border flex items-center justify-center">
+                                                    <ImageIcon className="h-8 w-8 text-gray-400" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                                {user?.disclaimer && (
+                                    <div className="mt-6 space-y-2">
+                                        <label className="text-xs font-medium text-muted-foreground">Disclaimer Text</label>
+                                        <div className="p-3 bg-gray-50 rounded-md">
+                                            <p className="text-sm">{user.disclaimer}</p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     }
                     {isEditMode &&
@@ -253,6 +331,139 @@ const NewsLetterInformation = ({ user }: { user: IUserDetails | undefined, }) =>
                                     {errors.discloure && (
                                         <p className="text-sm text-red-500">{errors.discloure.message as string}</p>
                                     )}
+                                </div>
+                            </div>
+
+                            {/* Media Information Section */}
+                            <div className="border-t pt-6 mt-6">
+                                <h3 className="text-lg font-semibold mb-4">Media Information</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label htmlFor="photo" className="text-sm font-medium">
+                                            User Photo
+                                        </label>
+                                        <div className="relative">
+                                            <Input
+                                                id="photo"
+                                                type="file"
+                                                accept="image/*"
+                                                {...register('photo' as any)}
+                                                onChange={(e) => {
+                                                    register('photo' as any).onChange(e);
+                                                }}
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            />
+                                            <div className="flex items-center justify-between w-full px-3 py-2 text-sm border border-input bg-background rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                                                <div className="flex items-center gap-2">
+                                                    <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                                                    <span className="text-muted-foreground">
+                                                        {photoFile && photoFile[0] ? photoFile[0].name : 'No file chosen'}
+                                                    </span>
+                                                </div>
+                                                <Button type="button" variant="outline" size="sm" className="ml-2">
+                                                    <Upload className="h-4 w-4 mr-1" />
+                                                    Choose File
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        {photoFile && photoFile[0] && (
+                                            <div className="mt-2">
+                                                <div className="relative inline-block">
+                                                    <img
+                                                        src={(() => {
+                                                            if (photoPreviewRef.current) {
+                                                                URL.revokeObjectURL(photoPreviewRef.current);
+                                                            }
+                                                            photoPreviewRef.current = URL.createObjectURL(photoFile[0]);
+                                                            return photoPreviewRef.current;
+                                                        })()}
+                                                        alt="Photo preview"
+                                                        className="w-20 h-20 object-cover rounded-md border"
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        variant="destructive"
+                                                        size="sm"
+                                                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                                                        onClick={() => clearFile('photo')}
+                                                    >
+                                                        <X className="h-3 w-3" />
+                                                    </Button>
+                                                </div>
+                                                <p className="text-xs text-gray-500 mt-1">Preview</p>
+                                            </div>
+                                        )}
+                                        <p className="text-xs text-gray-500">Upload a profile photo (JPG, PNG, GIF)</p>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label htmlFor="logo" className="text-sm font-medium">
+                                            User Logo
+                                        </label>
+                                        <div className="relative">
+                                            <Input
+                                                id="logo"
+                                                type="file"
+                                                accept="image/*"
+                                                {...register('logo' as any)}
+                                                onChange={(e) => {
+                                                    register('logo' as any).onChange(e);
+                                                }}
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            />
+                                            <div className="flex items-center justify-between w-full px-3 py-2 text-sm border border-input bg-background rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                                                <div className="flex items-center gap-2">
+                                                    <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                                                    <span className="text-muted-foreground">
+                                                        {logoFile && logoFile[0] ? logoFile[0].name : 'No file chosen'}
+                                                    </span>
+                                                </div>
+                                                <Button type="button" variant="outline" size="sm" className="ml-2">
+                                                    <Upload className="h-4 w-4 mr-1" />
+                                                    Choose File
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        {logoFile && logoFile[0] && (
+                                            <div className="mt-2">
+                                                <div className="relative inline-block">
+                                                    <img
+                                                        src={(() => {
+                                                            if (logoPreviewRef.current) {
+                                                                URL.revokeObjectURL(logoPreviewRef.current);
+                                                            }
+                                                            logoPreviewRef.current = URL.createObjectURL(logoFile[0]);
+                                                            return logoPreviewRef.current;
+                                                        })()}
+                                                        alt="Logo preview"
+                                                        className="w-20 h-20 object-cover rounded-md border"
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        variant="destructive"
+                                                        size="sm"
+                                                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                                                        onClick={() => clearFile('logo')}
+                                                    >
+                                                        <X className="h-3 w-3" />
+                                                    </Button>
+                                                </div>
+                                                <p className="text-xs text-gray-500 mt-1">Preview</p>
+                                            </div>
+                                        )}
+                                        <p className="text-xs text-gray-500">Upload a company/user logo (JPG, PNG, GIF)</p>
+                                    </div>
+                                </div>
+                                <div className="space-y-2 mt-4">
+                                    <label htmlFor="disclaimer" className="text-sm font-medium">
+                                        Disclaimer Text
+                                    </label>
+                                    <Textarea
+                                        id="disclaimer"
+                                        placeholder="Enter disclaimer text (optional)"
+                                        {...register('disclaimer' as any)}
+                                        className={(errors as any).disclaimer ? 'border-red-500' : ''}
+                                    />
+                                    <p className="text-xs text-gray-500">Add any disclaimer or additional information about the user</p>
                                 </div>
                             </div>
                         </div>)

@@ -399,22 +399,6 @@ const UserProfile = () => {
                                     </label>
                                     <p className="text-base mt-1">{displayValue(company_id)}</p>
                                 </div>
-                                <div>
-                                    <label className="text-sm font-medium text-muted-foreground">
-                                        Account Folder
-                                    </label>
-                                    <p className="text-base mt-1">{displayValue(account_folder)}</p>
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium text-muted-foreground">
-                                        Staff
-                                    </label>
-                                    <div className="mt-1">
-                                        <Badge variant="outline" className={is_staff ? "bg-blue-100 text-blue-800 border-blue-300" : "bg-gray-100 text-gray-800 border-gray-300"}>
-                                            {is_staff ? 'Yes' : 'No'}
-                                        </Badge>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                         )}
