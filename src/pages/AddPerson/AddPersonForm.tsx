@@ -456,17 +456,13 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                                 <label htmlFor="close_date" className="text-sm font-medium">
                                     Close Date
                                 </label>
-                                <Input
-                                    id="close_date"
-                                    type="date"
-                                    {...register('close_date', {
-                                        pattern: {
-                                            value: /^\d{4}-\d{2}-\d{2}$/,
-                                            message: 'Date must be in YYYY-MM-DD format'
-                                        }
-                                    })}
-                                    className={errors.close_date ? 'border-red-500' : ''}
-                                />
+                                <div className="w-full">
+                                    <DatePicker
+                                        value={watch('close_date') ? new Date(watch('close_date')!) : undefined}
+                                        onChange={(date: Date | undefined) => setValue('close_date', date ? format(date, 'yyyy-MM-dd') : null)}
+                                        placeholder="Select close date"
+                                    />
+                                </div>
                                 {errors.close_date && (
                                     <p className="text-sm text-red-500">{errors.close_date.message}</p>
                                 )}

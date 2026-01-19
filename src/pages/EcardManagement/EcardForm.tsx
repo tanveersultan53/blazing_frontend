@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Card,
   CardContent,
@@ -646,14 +648,15 @@ export default function EcardForm() {
                   formData.email_category !== 0 && (
                     <div className="space-y-2">
                       <Label htmlFor="ecard_date">Ecard Date</Label>
-                      <Input
-                        id="ecard_date"
-                        type="date"
-                        value={formData.ecard_date}
-                        onChange={(e) =>
-                          handleInputChange("ecard_date", e.target.value)
-                        }
-                      />
+                      <div className="w-full">
+                        <DatePicker
+                          value={formData.ecard_date ? new Date(formData.ecard_date) : undefined}
+                          onChange={(date: Date | undefined) =>
+                            handleInputChange("ecard_date", date ? format(date, 'yyyy-MM-dd') : "")
+                          }
+                          placeholder="Select ecard date"
+                        />
+                      </div>
                       <p className="text-xs text-muted-foreground">
                         The date when the ecard should be sent (e.g., 7/4/2026
                         for 4th of July)
