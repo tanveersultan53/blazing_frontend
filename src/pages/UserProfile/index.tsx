@@ -93,7 +93,6 @@ const UserProfile = () => {
         last_name,
         email,
         is_superuser,
-        is_staff,
         is_active,
         date_joined,
         rep_id,
@@ -111,7 +110,6 @@ const UserProfile = () => {
         title,
         mid,
         website,
-        account_folder,
         branch_id,
         industry_type,
         socials
