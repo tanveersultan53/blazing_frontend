@@ -8,6 +8,8 @@ export interface CronJob {
     description?: string;
     job_type: string;
     job_type_display?: string;
+    ecard?: number;
+    ecard_name?: string;
     schedule: string;
     status: "running" | "stopped" | "paused";
     status_display?: string;
@@ -23,6 +25,7 @@ export interface CreateCronJobData {
     name: string;
     description?: string;
     job_type: string;
+    ecard?: number;
     schedule: string;
     status?: "running" | "stopped" | "paused";
 }
@@ -32,6 +35,7 @@ export interface UpdateCronJobData {
     name?: string;
     description?: string;
     job_type?: string;
+    ecard?: number;
     schedule?: string;
     status?: "running" | "stopped" | "paused";
     is_active?: boolean;

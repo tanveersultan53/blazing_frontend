@@ -36,6 +36,7 @@ import {
     type CronJob as CronJobType,
     type CreateCronJobData,
 } from "@/services/cronJobService";
+import { getDefaultEmails } from "@/services/ecardService";
 
 // Using CronJob type from service
 type CronJob = CronJobType;
@@ -45,6 +46,7 @@ interface NewCronJob {
     schedule: string;
     description: string;
     jobType: string;
+    ecardId?: number;
 }
 
 const CronJobs = () => {
@@ -63,6 +65,7 @@ const CronJobs = () => {
         schedule: "",
         description: "",
         jobType: "NORMAL",
+        ecardId: undefined,
     });
 
     // Fetch cron jobs from API
@@ -72,6 +75,14 @@ const CronJobs = () => {
     });
 
     const cronJobs = cronJobsData?.data?.results || [];
+
+    // Fetch ecards for dropdown
+    const { data: ecardsData } = useQuery({
+        queryKey: ['ecards'],
+        queryFn: () => getDefaultEmails(),
+    });
+
+    const ecards = ecardsData?.data?.results || [];
 
     // Create cron job mutation
     const createMutation = useMutation({
@@ -84,6 +95,7 @@ const CronJobs = () => {
                 schedule: "",
                 description: "",
                 jobType: "NORMAL",
+                ecardId: undefined,
             });
             toast.success("Cron job created successfully");
         },
@@ -163,6 +175,11 @@ const CronJobs = () => {
                 <div>
                     <p className="font-medium">{row.original.name}</p>
                     <p className="text-sm text-muted-foreground">{row.original.description}</p>
+                    {row.original.ecard_name && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                            Ecard: {row.original.ecard_name}
+                        </p>
+                    )}
                 </div>
             ),
         },
@@ -238,13 +255,14 @@ const CronJobs = () => {
             schedule: newCronJob.schedule,
             description: newCronJob.description,
             job_type: newCronJob.jobType,
+            ecard: newCronJob.ecardId,
             status: "stopped",
         };
 
         createMutation.mutate(data);
     };
 
-    const handleInputChange = (field: keyof NewCronJob, value: string) => {
+    const handleInputChange = (field: keyof NewCronJob, value: string | number | undefined) => {
         setNewCronJob(prev => ({ ...prev, [field]: value }));
     };
 
@@ -323,6 +341,28 @@ const CronJobs = () => {
                                     <SelectItem value="MEMORIAL_DAY">Memorial Day</SelectItem>
                                 </SelectContent>
                             </Select>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="ecard">Ecard/Email Template (Optional)</Label>
+                            <Select
+                                value={newCronJob.ecardId?.toString() || ""}
+                                onValueChange={(value) => handleInputChange("ecardId", value ? parseInt(value) : undefined as any)}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select an ecard (optional)" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="">None</SelectItem>
+                                    {ecards.map((ecard: any) => (
+                                        <SelectItem key={ecard.id} value={ecard.id.toString()}>
+                                            {ecard.email_name || `Ecard #${ecard.id}`}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <p className="text-sm text-muted-foreground">
+                                Select the ecard/email that will be sent when this job runs
+                            </p>
                         </div>
                         <div className="grid gap-2">
                             <div className="flex items-center gap-2">
