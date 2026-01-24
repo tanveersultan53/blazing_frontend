@@ -31,7 +31,13 @@ export function DatePicker({
     const [open, setOpen] = React.useState(false)
 
     const handleSelect = (date: Date | undefined) => {
-        onChange?.(date)
+        if (date) {
+            // Create a new date at noon in local timezone to avoid timezone issues
+            const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0);
+            onChange?.(localDate);
+        } else {
+            onChange?.(date);
+        }
         setOpen(false)
     }
 
@@ -44,7 +50,7 @@ export function DatePicker({
                     className={`data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal ${className || ''}`}
                 >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {value ? format(value, "PPP") : <span>{placeholder}</span>}
+                    {value ? format(value, "MM/dd/yyyy") : <span>{placeholder}</span>}
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">

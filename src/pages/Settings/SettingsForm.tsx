@@ -5,7 +5,7 @@ import Loading from "@/components/Loading";
 import type { AxiosResponse } from "axios";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/helpers/constants";
-import { getEmailSettings, updateEmailSettings } from "@/services/userManagementService";
+import { getEmailSettings, updateEmailSettings, getSocials, updateSocials } from "@/services/userManagementService";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { CheckIcon, PencilIcon, XIcon } from "lucide-react";
@@ -14,16 +14,25 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { format } from "date-fns";
-import type { IEmailSettings } from "../UserDetails/interface";
+import type { IEmailSettings, ISocials } from "../UserDetails/interface";
+import { Input } from "@/components/ui/input";
 
 const SettingsForm = ({ userId }: { userId: string }) => {
-    
+
     const [isEditMode, setIsEditMode] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSocialEditMode, setIsSocialEditMode] = useState(false);
+    const [isSocialSubmitting, setIsSocialSubmitting] = useState(false);
+    const [sendGridPassword, setSendGridPassword] = useState("");
 
     const { data, isLoading, refetch } = useQuery<AxiosResponse<IEmailSettings>>({
         queryKey: [queryKeys.getEmailSettings, userId],
         queryFn: () => getEmailSettings(userId as string | number),
+    });
+
+    const { data: socialsData, isLoading: isSocialsLoading, refetch: refetchSocials } = useQuery<AxiosResponse<ISocials>>({
+        queryKey: [queryKeys.getSocials, userId],
+        queryFn: () => getSocials(userId as string | number),
     });
 
     const initialValues = {
@@ -56,10 +65,30 @@ const SettingsForm = ({ userId }: { userId: string }) => {
         newsletter_date2: data?.data?.newsletter_date2 || format(new Date(), 'yyyy-MM-dd'),
         autooptionscol: data?.data?.autooptionscol,
         active_deactive_all_settings: data?.data?.active_deactive_all_settings || false,
+        no_rate_post: data?.data?.no_rate_post || false,
+        no_emal_report: data?.data?.no_emal_report || false,
+        use_first_name: data?.data?.use_first_name || false,
+        change_phone_label: data?.data?.change_phone_label || false,
     }
 
     const form = useForm<IEmailSettings>({
         defaultValues: initialValues,
+        mode: 'onChange'
+    });
+
+    const socialForm = useForm<ISocials>({
+        defaultValues: {
+            id: socialsData?.data?.id || 0,
+            facebook: socialsData?.data?.facebook || '',
+            linkedin: socialsData?.data?.linkedin || '',
+            twitter: socialsData?.data?.twitter || '',
+            instagram: socialsData?.data?.instagram || '',
+            youtube: socialsData?.data?.youtube || '',
+            blogr: socialsData?.data?.blogr || '',
+            google: socialsData?.data?.google || '',
+            yelp: socialsData?.data?.yelp || '',
+            vimeo: socialsData?.data?.vimeo || '',
+        },
         mode: 'onChange'
     });
 
@@ -95,6 +124,20 @@ const SettingsForm = ({ userId }: { userId: string }) => {
         }
     });
 
+    const { mutate: updateSocialsMutation } = useMutation({
+        mutationFn: updateSocials,
+        onSuccess: () => {
+            toast.success("Social links updated successfully");
+            setIsSocialEditMode(false);
+            setIsSocialSubmitting(false);
+            refetchSocials();
+        },
+        onError: () => {
+            toast.error("Failed to update social links");
+            setIsSocialSubmitting(false);
+        }
+    });
+
     const onSubmit = (formData: IEmailSettings) => {
         // Validate mandatory fields before submission
         if (!validateMandatoryFields(formData)) {
@@ -112,9 +155,49 @@ const SettingsForm = ({ userId }: { userId: string }) => {
         }
     }, [data?.data]);
 
+    React.useEffect(() => {
+        if (socialsData?.data) {
+            socialForm.reset({
+                id: socialsData.data.id,
+                facebook: socialsData.data.facebook || '',
+                linkedin: socialsData.data.linkedin || '',
+                twitter: socialsData.data.twitter || '',
+                instagram: socialsData.data.instagram || '',
+                youtube: socialsData.data.youtube || '',
+                blogr: socialsData.data.blogr || '',
+                google: socialsData.data.google || '',
+                yelp: socialsData.data.yelp || '',
+                vimeo: socialsData.data.vimeo || '',
+            });
+        }
+    }, [socialsData?.data]);
+
     const handleCancel = () => {
         setIsEditMode(false);
         form.reset(initialValues);
+    };
+
+    const handleSocialCancel = () => {
+        setIsSocialEditMode(false);
+        if (socialsData?.data) {
+            socialForm.reset({
+                id: socialsData.data.id,
+                facebook: socialsData.data.facebook || '',
+                linkedin: socialsData.data.linkedin || '',
+                twitter: socialsData.data.twitter || '',
+                instagram: socialsData.data.instagram || '',
+                youtube: socialsData.data.youtube || '',
+                blogr: socialsData.data.blogr || '',
+                google: socialsData.data.google || '',
+                yelp: socialsData.data.yelp || '',
+                vimeo: socialsData.data.vimeo || '',
+            });
+        }
+    };
+
+    const onSocialSubmit = (formData: ISocials) => {
+        setIsSocialSubmitting(true);
+        updateSocialsMutation({ id: userId as string | number, socials: formData });
     };
 
     // Define holiday fields for better maintainability
@@ -197,7 +280,8 @@ const SettingsForm = ({ userId }: { userId: string }) => {
     };
 
 
-    return isLoading ? <Loading /> : (
+    return (isLoading || isSocialsLoading) ? <Loading /> : (
+        <>
         <form onSubmit={form.handleSubmit(onSubmit)}> <Card className="mb-12">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <div>
@@ -229,11 +313,11 @@ const SettingsForm = ({ userId }: { userId: string }) => {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Main Birthday</label>
-                                <p className="text-sm font-semibold">{data?.data?.birthday ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.birthday ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Spouse Birthday</label>
-                                <p className="text-sm font-semibold">{data?.data?.spouse_birthday ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.spouse_birthday ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Birthday Status</label>
@@ -249,55 +333,55 @@ const SettingsForm = ({ userId }: { userId: string }) => {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">New Years</label>
-                                <p className="text-sm font-semibold">{data?.data?.newyears ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.newyears ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Summer Day</label>
-                                <p className="text-sm font-semibold">{data?.data?.summer ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.summer ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Labor Day</label>
-                                <p className="text-sm font-semibold">{data?.data?.laborday ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.laborday ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Memorial Day</label>
-                                <p className="text-sm font-semibold">{data?.data?.memorialday ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.memorialday ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">St Patrick's Day</label>
-                                <p className="text-sm font-semibold">{data?.data?.stpatrick ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.stpatrick ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Halloween</label>
-                                <p className="text-sm font-semibold">{data?.data?.halloween ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.halloween ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Thanksgiving</label>
-                                <p className="text-sm font-semibold">{data?.data?.thanksgiving ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.thanksgiving ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Veterans Day</label>
-                                <p className="text-sm font-semibold">{data?.data?.veteransday ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.veteransday ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Spring</label>
-                                <p className="text-sm font-semibold">{data?.data?.spring ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.spring ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">December Holidays</label>
-                                <p className="text-sm font-semibold">{data?.data?.december ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.december ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Fall Holidays</label>
-                                <p className="text-sm font-semibold">{data?.data?.fall ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.fall ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Valentine's Day</label>
-                                <p className="text-sm font-semibold">{data?.data?.valentine ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.valentine ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">July 4th</label>
-                                <p className="text-sm font-semibold">{data?.data?.july4 ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.july4 ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">ECard Status</label>
@@ -346,6 +430,26 @@ const SettingsForm = ({ userId }: { userId: string }) => {
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Newsletter Date</label>
                                 <p className="text-sm font-semibold capitalize">{data?.data?.newsletter_date2}</p>
+                            </div>
+                        </div>
+                        <Separator />
+                        <label className="text-sm font-medium">Additional Settings</label>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+                            <div className="space-y-2">
+                                <label htmlFor="no_rate_post" className="text-xs font-medium text-muted-foreground">No Rate Plan</label>
+                                <p className="text-sm font-semibold">{data?.data?.no_rate_post ? 'Yes' : 'No'}</p>
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="no_emal_report" className="text-xs font-medium text-muted-foreground">Email Report</label>
+                                <p className="text-sm font-semibold">{data?.data?.no_emal_report ? 'No' : 'Yes'}</p>
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="use_first_name" className="text-xs font-medium text-muted-foreground">First Name In Subject</label>
+                                <p className="text-sm font-semibold">{data?.data?.use_first_name ? 'Yes' : 'No'}</p>
+                            </div>
+                            <div className="space-y-2">
+                                <label htmlFor="change_phone_label" className="text-xs font-medium text-muted-foreground">Changeable Phone Label</label>
+                                <p className="text-sm font-semibold">{data?.data?.change_phone_label ? 'Yes' : 'No'}</p>
                             </div>
                         </div>
                     </div>
@@ -706,12 +810,225 @@ const SettingsForm = ({ userId }: { userId: string }) => {
                                     </div>
                                 </div>
                             </div>
+                            <Separator />
+                            <label className="text-sm font-medium">Additional Settings</label>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id="no_rate_post"
+                                        checked={watch('no_rate_post')}
+                                        onCheckedChange={(checked) => setValue('no_rate_post', checked as boolean)}
+                                    />
+                                    <label htmlFor="no_rate_post" className="text-sm font-medium">No Rate Plan</label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id="no_emal_report"
+                                        checked={watch('no_emal_report')}
+                                        onCheckedChange={(checked) => setValue('no_emal_report', checked as boolean)}
+                                    />
+                                    <label htmlFor="no_emal_report" className="text-sm font-medium">Email Report</label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id="use_first_name"
+                                        checked={watch('use_first_name')}
+                                        onCheckedChange={(checked) => setValue('use_first_name', checked as boolean)}
+                                    />
+                                    <label htmlFor="use_first_name" className="text-sm font-medium">First Name In Subject</label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id="change_phone_label"
+                                        checked={watch('change_phone_label')}
+                                        onCheckedChange={(checked) => setValue('change_phone_label', checked as boolean)}
+                                    />
+                                    <label htmlFor="change_phone_label" className="text-sm font-medium">Changeable Phone Label</label>
+                                </div>
+                            </div>
                         </div>
                     </>
                 }
             </CardContent>
         </Card>
         </form>
+
+        {/* Social Links Card */}
+        <form onSubmit={socialForm.handleSubmit(onSocialSubmit)}>
+            <Card className="mb-12">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <div>
+                        <CardTitle>Social Links & SendGrid Settings</CardTitle>
+                        <CardDescription>You can also update social links information and SendGrid password here by clicking the update button.</CardDescription>
+                    </div>
+                    {isSocialEditMode &&
+                        <div className="flex items-center gap-2">
+                            <Button variant="secondary" size="sm" className="flex items-center gap-2" onClick={handleSocialCancel} disabled={isSocialSubmitting}>
+                                <XIcon className="w-4 h-4" />
+                                Cancel
+                            </Button>
+                            <Button variant="default" size="sm" className="flex items-center gap-2" disabled={isSocialSubmitting} type="submit">
+                                <CheckIcon className="w-4 h-4" />
+                                {isSocialSubmitting ? 'Saving...' : 'Save Changes'}
+                            </Button>
+                        </div>
+                    }
+                    {!isSocialEditMode &&
+                        <Button variant="outline" size="sm" className="flex items-center gap-2" onClick={() => setIsSocialEditMode(!isSocialEditMode)}>
+                            <PencilIcon className="w-4 h-4" />
+                            Update Settings
+                        </Button>
+                    }
+                </CardHeader>
+                <CardContent>
+                    {!isSocialEditMode &&
+                        <div className="space-y-6">
+                            <label className="text-sm font-medium">Social Links</label>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-medium text-muted-foreground">Facebook</label>
+                                    <p className="text-sm font-semibold">{socialsData?.data?.facebook || 'Not set'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-medium text-muted-foreground">LinkedIn</label>
+                                    <p className="text-sm font-semibold">{socialsData?.data?.linkedin || 'Not set'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-medium text-muted-foreground">Twitter</label>
+                                    <p className="text-sm font-semibold">{socialsData?.data?.twitter || 'Not set'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-medium text-muted-foreground">Instagram</label>
+                                    <p className="text-sm font-semibold">{socialsData?.data?.instagram || 'Not set'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-medium text-muted-foreground">YouTube</label>
+                                    <p className="text-sm font-semibold">{socialsData?.data?.youtube || 'Not set'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-medium text-muted-foreground">Blog</label>
+                                    <p className="text-sm font-semibold">{socialsData?.data?.blogr || 'Not set'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-medium text-muted-foreground">Google</label>
+                                    <p className="text-sm font-semibold">{socialsData?.data?.google || 'Not set'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-medium text-muted-foreground">Yelp</label>
+                                    <p className="text-sm font-semibold">{socialsData?.data?.yelp || 'Not set'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-medium text-muted-foreground">Vimeo</label>
+                                    <p className="text-sm font-semibold">{socialsData?.data?.vimeo || 'Not set'}</p>
+                                </div>
+                            </div>
+                            <Separator />
+                            <label className="text-sm font-medium">SendGrid Settings</label>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-medium text-muted-foreground">SendGrid Password</label>
+                                    <p className="text-sm font-semibold">{sendGridPassword ? '••••••••' : 'Not set'}</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    {isSocialEditMode &&
+                        <div className="space-y-6">
+                            <label className="text-sm font-medium">Social Links</label>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <label htmlFor="facebook" className="text-xs font-medium text-muted-foreground">Facebook</label>
+                                    <Input
+                                        id="facebook"
+                                        placeholder="https://facebook.com/..."
+                                        {...socialForm.register('facebook')}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="linkedin" className="text-xs font-medium text-muted-foreground">LinkedIn</label>
+                                    <Input
+                                        id="linkedin"
+                                        placeholder="https://linkedin.com/in/..."
+                                        {...socialForm.register('linkedin')}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="twitter" className="text-xs font-medium text-muted-foreground">Twitter</label>
+                                    <Input
+                                        id="twitter"
+                                        placeholder="https://twitter.com/..."
+                                        {...socialForm.register('twitter')}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="instagram" className="text-xs font-medium text-muted-foreground">Instagram</label>
+                                    <Input
+                                        id="instagram"
+                                        placeholder="https://instagram.com/..."
+                                        {...socialForm.register('instagram')}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="youtube" className="text-xs font-medium text-muted-foreground">YouTube</label>
+                                    <Input
+                                        id="youtube"
+                                        placeholder="https://youtube.com/..."
+                                        {...socialForm.register('youtube')}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="blogr" className="text-xs font-medium text-muted-foreground">Blog</label>
+                                    <Input
+                                        id="blogr"
+                                        placeholder="https://yourblog.com..."
+                                        {...socialForm.register('blogr')}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="google" className="text-xs font-medium text-muted-foreground">Google</label>
+                                    <Input
+                                        id="google"
+                                        placeholder="https://google.com/..."
+                                        {...socialForm.register('google')}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="yelp" className="text-xs font-medium text-muted-foreground">Yelp</label>
+                                    <Input
+                                        id="yelp"
+                                        placeholder="https://yelp.com/..."
+                                        {...socialForm.register('yelp')}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="vimeo" className="text-xs font-medium text-muted-foreground">Vimeo</label>
+                                    <Input
+                                        id="vimeo"
+                                        placeholder="https://vimeo.com/..."
+                                        {...socialForm.register('vimeo')}
+                                    />
+                                </div>
+                            </div>
+                            <Separator />
+                            <label className="text-sm font-medium">SendGrid Settings</label>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <label htmlFor="sendgrid_password" className="text-xs font-medium text-muted-foreground">SendGrid Password</label>
+                                    <Input
+                                        id="sendgrid_password"
+                                        type="password"
+                                        placeholder="Enter SendGrid password"
+                                        value={sendGridPassword}
+                                        onChange={(e) => setSendGridPassword(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </CardContent>
+            </Card>
+        </form>
+        </>
     )
 }
 

@@ -230,11 +230,11 @@ const EmailSettings = () => {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Main Birthday</label>
-                                <p className="text-sm font-semibold">{data?.data?.birthday ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.birthday ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Spouse Birthday</label>
-                                <p className="text-sm font-semibold">{data?.data?.spouse_birthday ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.spouse_birthday ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Birthday Status</label>
@@ -250,55 +250,55 @@ const EmailSettings = () => {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">New Years</label>
-                                <p className="text-sm font-semibold">{data?.data?.newyears ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.newyears ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Summer Day</label>
-                                <p className="text-sm font-semibold">{data?.data?.summer ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.summer ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Labor Day</label>
-                                <p className="text-sm font-semibold">{data?.data?.laborday ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.laborday ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Memorial Day</label>
-                                <p className="text-sm font-semibold">{data?.data?.memorialday ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.memorialday ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">St Patrick's Day</label>
-                                <p className="text-sm font-semibold">{data?.data?.stpatrick ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.stpatrick ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Halloween</label>
-                                <p className="text-sm font-semibold">{data?.data?.halloween ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.halloween ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Thanksgiving</label>
-                                <p className="text-sm font-semibold">{data?.data?.thanksgiving ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.thanksgiving ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Veterans Day</label>
-                                <p className="text-sm font-semibold">{data?.data?.veteransday ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.veteransday ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Spring</label>
-                                <p className="text-sm font-semibold">{data?.data?.spring ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.spring ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">December Holidays</label>
-                                <p className="text-sm font-semibold">{data?.data?.december ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.december ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Fall Holidays</label>
-                                <p className="text-sm font-semibold">{data?.data?.fall ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.fall ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Valentine's Day</label>
-                                <p className="text-sm font-semibold">{data?.data?.valentine ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.valentine ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">July 4th</label>
-                                <p className="text-sm font-semibold">{data?.data?.july4 ? 'Active' : 'Deactive'}</p>
+                                <p className="text-sm font-semibold">{data?.data?.july4 ? 'Send' : "Don't Send"}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">ECard Status</label>

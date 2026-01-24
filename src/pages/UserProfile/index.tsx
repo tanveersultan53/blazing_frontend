@@ -891,7 +891,6 @@ const ServiceSettingsSummary = ({ serviceSettings }: { serviceSettings?: IServic
         { label: "Send Post Service", value: serviceSettings.send_post_service },
         { label: "Send Newsletter", value: serviceSettings.send_newsletter },
         { label: "Send Coming Home", value: serviceSettings.send_cominghome },
-        { label: "Has Coming Home", value: serviceSettings.has_coming_home },
         { label: "No Branding", value: serviceSettings.no_branding },
     ];
 
@@ -907,7 +906,7 @@ const ServiceSettingsSummary = ({ serviceSettings }: { serviceSettings?: IServic
             ))}
             {serviceSettings.coming_home_file && (
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-muted-foreground">Coming Home File</label>
+                    <label className="text-sm font-medium text-muted-foreground">Coming Has Home</label>
                     <p className="text-base mt-1">{serviceSettings.coming_home_file}</p>
                 </div>
             )}

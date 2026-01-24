@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, useRef, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import type { IServiceSettings } from "../UserDetails/interface";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { CheckIcon, XIcon } from "lucide-react";
+import { CheckIcon, XIcon, Upload, Trash2 } from "lucide-react";
 import { updateServiceSettings } from "@/services/userManagementService";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -23,7 +23,6 @@ const initialValues: IServiceSettings = {
     send_newsletter: false,
     send_cominghome: false,
     coming_home_file: "",
-    has_coming_home: false,
     no_branding: false,
     email_service_amt: 0,
     bs_service_amt: 0,
@@ -44,6 +43,8 @@ const UpdateUserServiceSettings = ({
     refetch,
 }: UpdateUserServiceSettingsProps) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [comingHomeFile, setComingHomeFile] = useState<File | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const defaultValues = useMemo(
         () => ({
@@ -89,6 +90,10 @@ const UpdateUserServiceSettings = ({
             setIsEditMode(false);
             refetch();
             setIsSubmitting(false);
+            setComingHomeFile(null);
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
         },
         onError: (error: any) => {
             console.error("Error updating service settings:", error);
@@ -99,6 +104,29 @@ const UpdateUserServiceSettings = ({
             setIsSubmitting(false);
         },
     });
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            // Validate file type (only HTML files)
+            if (file.type !== 'text/html' && !file.name.endsWith('.html')) {
+                toast.error('Please upload an HTML file');
+                return;
+            }
+            setComingHomeFile(file);
+            toast.success('File selected: ' + file.name);
+        }
+    };
+
+    const handleClearFile = () => {
+        setComingHomeFile(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+        // Clear the coming_home_file field
+        setValue('coming_home_file', '');
+        toast.success('File cleared');
+    };
 
     const onSubmit = (data: IServiceSettings) => {
         if (!userId) {
@@ -112,15 +140,34 @@ const UpdateUserServiceSettings = ({
             ),
         ) as IServiceSettings;
 
-        updateServiceSettingsMutation({
-            ...filteredData,
-            coming_home_file: filteredData.send_cominghome ? "yes" : "no",
-        });
+        // If there's a file to upload, use FormData
+        if (comingHomeFile) {
+            const formDataWithFile = new FormData();
+
+            // Append all the service settings
+            Object.entries(filteredData).forEach(([key, value]) => {
+                formDataWithFile.append(key, String(value));
+            });
+
+            // Append the file
+            formDataWithFile.append('coming_home_file', comingHomeFile);
+
+            updateServiceSettingsMutation(formDataWithFile as any);
+        } else {
+            updateServiceSettingsMutation({
+                ...filteredData,
+                coming_home_file: filteredData.send_cominghome ? "yes" : "no",
+            });
+        }
     };
 
     const handleCancel = () => {
         setIsEditMode(false);
         reset(defaultValues);
+        setComingHomeFile(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
     };
 
     return (
@@ -279,18 +326,53 @@ const UpdateUserServiceSettings = ({
                 }
             />
 
-            <div className="flex items-center space-x-2">
-                <Checkbox
-                    id="has_coming_home"
-                    checked={watch("has_coming_home")}
-                    onCheckedChange={(checked) =>
-                        setValue("has_coming_home", checked as boolean)
-                    }
-                />
-                <label htmlFor="has_coming_home" className="text-sm font-medium">
-                    Has Coming Home
-                </label>
-            </div>
+            {/* Coming Home Newsletter File Upload */}
+            {watch('send_cominghome') && (
+                <div className="space-y-4 border-t pt-4 mt-4">
+                    <label className="text-sm font-medium">Coming Home Newsletter</label>
+                    <div className="flex items-center gap-4">
+                        <div className="flex-1">
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept=".html,text/html"
+                                onChange={handleFileChange}
+                                className="hidden"
+                                id="coming-home-file-input-profile"
+                            />
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="w-full"
+                            >
+                                <Upload className="w-4 h-4 mr-2" />
+                                {comingHomeFile ? comingHomeFile.name : 'Upload HTML File'}
+                            </Button>
+                        </div>
+                        {(comingHomeFile || serviceSettings?.coming_home_file) && (
+                            <Button
+                                type="button"
+                                variant="destructive"
+                                size="icon"
+                                onClick={handleClearFile}
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </Button>
+                        )}
+                    </div>
+                    {serviceSettings?.coming_home_file && !comingHomeFile && (
+                        <p className="text-sm text-muted-foreground">
+                            Current file: {serviceSettings.coming_home_file}
+                        </p>
+                    )}
+                    {comingHomeFile && (
+                        <p className="text-sm text-green-600">
+                            New file selected: {comingHomeFile.name}
+                        </p>
+                    )}
+                </div>
+            )}
 
             <div className="flex items-center space-x-2">
                 <Checkbox

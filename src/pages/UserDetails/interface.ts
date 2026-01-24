@@ -124,6 +124,10 @@ export interface IEmailSettings {
   newsletter_date2: string | null
   autooptionscol: any
   active_deactive_all_settings?: boolean
+  no_rate_post?: boolean
+  no_emal_report?: boolean
+  use_first_name?: boolean
+  change_phone_label?: boolean
 }
 
 export interface Preferences {
@@ -206,8 +210,7 @@ export interface IServiceSettings {
   send_post_service: boolean
   send_newsletter: boolean
   send_cominghome: boolean
-  coming_home_file?: string // later to be removed coming_home_file 
-  has_coming_home: boolean
+  coming_home_file?: string // later to be removed coming_home_file
   no_branding: boolean
   email_service_amt: number
   bs_service_amt: number
