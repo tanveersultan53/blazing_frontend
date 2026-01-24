@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useBreadcrumbs } from "@/hooks/usePageTitle";
 import PageHeader from "@/components/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, CheckCircle, XCircle, Eye, Send } from "lucide-react";
+import { CheckCircle, XCircle, Eye, Send } from "lucide-react";
 import { DataTable } from "@/components/data-table";
 import type { ColumnDef } from "@tanstack/react-table";
 
