@@ -29,6 +29,7 @@ import { EcardForm, EcardPreview } from './pages/EcardManagement';
 import SocialIconsList from './pages/SocialIconManagement';
 import { SocialIconForm } from './pages/SocialIconManagement';
 import EmailActivity from './pages/EmailActivity';
+import CronJobs from './pages/CronJobs';
 
 function App() {
   return (
@@ -57,6 +58,7 @@ function App() {
           <Route path="email-template-editor" element={<EmailTemplate />} />
           <Route path="react-quill-editor" element={<ReactQuillEditor />} />
           <Route path="email-sent-history" element={<EmailSentHistory />} />
+          <Route path="cron-jobs" element={<CronJobs />} />
           <Route path="newsletters" element={<NewslettersList />} />
           <Route path="newsletters/create" element={<NewsletterManagement />} />
           <Route path="newsletters/edit/:id" element={<NewsletterManagement />} />

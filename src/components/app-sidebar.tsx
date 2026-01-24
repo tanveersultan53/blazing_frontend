@@ -11,6 +11,7 @@ import {
   Heart,
   Share2,
   Activity,
+  Clock,
 } from "lucide-react"
 
 import { NavMain, type NavMainProps } from "@/components/nav-main"
@@ -68,6 +69,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Email History",
       url: ["/email-sent-history"],
       icon: History,
+      items: [],
+    },
+    {
+      title: "Cron Jobs",
+      url: ["/cron-jobs"],
+      icon: Clock,
       items: [],
     },
   ]
