@@ -66,7 +66,7 @@ const CronJobs = () => {
     });
 
     // Fetch cron jobs from API
-    const { data: cronJobsData, isLoading } = useQuery({
+    const { data: cronJobsData } = useQuery({
         queryKey: ['cronJobs'],
         queryFn: getCronJobs,
     });
