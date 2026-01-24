@@ -6,17 +6,45 @@ import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import { Play, StopCircle, RefreshCw, Clock } from "lucide-react";
+import { Play, StopCircle, RefreshCw, Clock, Plus, Info } from "lucide-react";
 import { toast } from "sonner";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+    getCronJobs,
+    createCronJob,
+    startCronJob,
+    stopCronJob,
+    restartCronJob,
+    type CronJob as CronJobType,
+    type CreateCronJobData,
+} from "@/services/cronJobService";
 
-interface CronJob {
-    id: number;
+// Using CronJob type from service
+type CronJob = CronJobType;
+
+interface NewCronJob {
     name: string;
     schedule: string;
     description: string;
-    status: "running" | "stopped" | "paused";
-    lastRun?: string;
-    nextRun?: string;
+    jobType: string;
 }
 
 const CronJobs = () => {
@@ -26,66 +54,90 @@ const CronJobs = () => {
     ], []);
 
     useBreadcrumbs(breadcrumbs);
+    const queryClient = useQueryClient();
 
-    // Sample cron jobs data - replace with actual API data later
-    const [cronJobs, setCronJobs] = useState<CronJob[]>([
-        {
-            id: 1,
-            name: "Birthday Email Sender",
-            schedule: "0 9 * * *",
-            description: "Sends birthday emails to contacts daily at 9 AM",
-            status: "running",
-            lastRun: "2026-01-08 09:00:00",
-            nextRun: "2026-01-09 09:00:00",
-        },
-        {
-            id: 2,
-            name: "Newsletter Sender",
-            schedule: "0 10 * * 1",
-            description: "Sends weekly newsletters every Monday at 10 AM",
-            status: "running",
-            lastRun: "2026-01-06 10:00:00",
-            nextRun: "2026-01-13 10:00:00",
-        },
-        {
-            id: 3,
-            name: "Holiday Ecard Sender",
-            schedule: "0 8 * * *",
-            description: "Sends holiday ecards daily at 8 AM",
-            status: "stopped",
-            lastRun: "2026-01-07 08:00:00",
-            nextRun: "-",
-        },
-        {
-            id: 4,
-            name: "Email Report Generator",
-            schedule: "0 23 * * *",
-            description: "Generates daily email reports at 11 PM",
-            status: "running",
-            lastRun: "2026-01-07 23:00:00",
-            nextRun: "2026-01-08 23:00:00",
-        },
-    ]);
+    const [showCreateDialog, setShowCreateDialog] = useState(false);
+    const [showCronHelp, setShowCronHelp] = useState(false);
+    const [newCronJob, setNewCronJob] = useState<NewCronJob>({
+        name: "",
+        schedule: "",
+        description: "",
+        jobType: "NORMAL",
+    });
 
-    const handleStart = (jobId: number, jobName: string) => {
-        // TODO: Replace with actual API call
-        setCronJobs(prev => prev.map(job =>
-            job.id === jobId ? { ...job, status: "running" as const } : job
-        ));
-        toast.success(`${jobName} started successfully`);
+    // Fetch cron jobs from API
+    const { data: cronJobsData, isLoading } = useQuery({
+        queryKey: ['cronJobs'],
+        queryFn: getCronJobs,
+    });
+
+    const cronJobs = cronJobsData?.data?.results || [];
+
+    // Create cron job mutation
+    const createMutation = useMutation({
+        mutationFn: (data: CreateCronJobData) => createCronJob(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['cronJobs'] });
+            setShowCreateDialog(false);
+            setNewCronJob({
+                name: "",
+                schedule: "",
+                description: "",
+                jobType: "NORMAL",
+            });
+            toast.success("Cron job created successfully");
+        },
+        onError: (error: any) => {
+            toast.error(error?.response?.data?.message || "Failed to create cron job");
+        },
+    });
+
+    // Start cron job mutation
+    const startMutation = useMutation({
+        mutationFn: (id: number) => startCronJob(id),
+        onSuccess: (response) => {
+            queryClient.invalidateQueries({ queryKey: ['cronJobs'] });
+            toast.success(response.data.message);
+        },
+        onError: (error: any) => {
+            toast.error(error?.response?.data?.message || "Failed to start cron job");
+        },
+    });
+
+    // Stop cron job mutation
+    const stopMutation = useMutation({
+        mutationFn: (id: number) => stopCronJob(id),
+        onSuccess: (response) => {
+            queryClient.invalidateQueries({ queryKey: ['cronJobs'] });
+            toast.success(response.data.message);
+        },
+        onError: (error: any) => {
+            toast.error(error?.response?.data?.message || "Failed to stop cron job");
+        },
+    });
+
+    // Restart cron job mutation
+    const restartMutation = useMutation({
+        mutationFn: (id: number) => restartCronJob(id),
+        onSuccess: (response) => {
+            queryClient.invalidateQueries({ queryKey: ['cronJobs'] });
+            toast.success(response.data.message);
+        },
+        onError: (error: any) => {
+            toast.error(error?.response?.data?.message || "Failed to restart cron job");
+        },
+    });
+
+    const handleStart = (jobId: number) => {
+        startMutation.mutate(jobId);
     };
 
-    const handleStop = (jobId: number, jobName: string) => {
-        // TODO: Replace with actual API call
-        setCronJobs(prev => prev.map(job =>
-            job.id === jobId ? { ...job, status: "stopped" as const } : job
-        ));
-        toast.success(`${jobName} stopped successfully`);
+    const handleStop = (jobId: number) => {
+        stopMutation.mutate(jobId);
     };
 
-    const handleRestart = (_jobId: number, jobName: string) => {
-        // TODO: Replace with actual API call
-        toast.success(`${jobName} restarted successfully`);
+    const handleRestart = (jobId: number) => {
+        restartMutation.mutate(jobId);
     };
 
     const getStatusBadge = (status: CronJob["status"]) => {
@@ -130,17 +182,17 @@ const CronJobs = () => {
             cell: ({ row }) => getStatusBadge(row.original.status),
         },
         {
-            accessorKey: "lastRun",
+            accessorKey: "last_run",
             header: "Last Run",
             cell: ({ row }) => (
-                <span className="text-sm">{row.original.lastRun || "-"}</span>
+                <span className="text-sm">{row.original.last_run || "-"}</span>
             ),
         },
         {
-            accessorKey: "nextRun",
+            accessorKey: "next_run",
             header: "Next Run",
             cell: ({ row }) => (
-                <span className="text-sm">{row.original.nextRun || "-"}</span>
+                <span className="text-sm">{row.original.next_run || "-"}</span>
             ),
         },
         {
@@ -152,7 +204,7 @@ const CronJobs = () => {
                         <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleStart(row.original.id, row.original.name)}
+                            onClick={() => handleStart(row.original.id)}
                         >
                             <Play className="h-4 w-4 mr-1" />
                             Start
@@ -161,7 +213,7 @@ const CronJobs = () => {
                         <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleStop(row.original.id, row.original.name)}
+                            onClick={() => handleStop(row.original.id)}
                         >
                             <StopCircle className="h-4 w-4 mr-1" />
                             Stop
@@ -170,7 +222,7 @@ const CronJobs = () => {
                     <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleRestart(row.original.id, row.original.name)}
+                        onClick={() => handleRestart(row.original.id)}
                     >
                         <RefreshCw className="h-4 w-4 mr-1" />
                         Restart
@@ -180,6 +232,22 @@ const CronJobs = () => {
         },
     ];
 
+    const handleCreateCronJob = () => {
+        const data: CreateCronJobData = {
+            name: newCronJob.name,
+            schedule: newCronJob.schedule,
+            description: newCronJob.description,
+            job_type: newCronJob.jobType,
+            status: "stopped",
+        };
+
+        createMutation.mutate(data);
+    };
+
+    const handleInputChange = (field: keyof NewCronJob, value: string) => {
+        setNewCronJob(prev => ({ ...prev, [field]: value }));
+    };
+
     return (
         <PageHeader
             title="Cron Jobs Management"
@@ -187,10 +255,18 @@ const CronJobs = () => {
         >
             <Card>
                 <CardHeader>
-                    <CardTitle>Active Cron Jobs</CardTitle>
-                    <CardDescription>
-                        Monitor and control all automated tasks and scheduled jobs
-                    </CardDescription>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle>Active Cron Jobs</CardTitle>
+                            <CardDescription>
+                                Monitor and control all automated tasks and scheduled jobs
+                            </CardDescription>
+                        </div>
+                        <Button onClick={() => setShowCreateDialog(true)}>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Create Cron Job
+                        </Button>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <DataTable
@@ -201,6 +277,231 @@ const CronJobs = () => {
                     />
                 </CardContent>
             </Card>
+
+            <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+                <DialogContent className="sm:max-w-[600px]">
+                    <DialogHeader>
+                        <DialogTitle>Create New Cron Job</DialogTitle>
+                        <DialogDescription>
+                            Configure a new cron job for automated email tasks
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="name">Job Name</Label>
+                            <Input
+                                id="name"
+                                placeholder="e.g., Birthday Email Sender"
+                                value={newCronJob.name}
+                                onChange={(e) => handleInputChange("name", e.target.value)}
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="jobType">Email Category Type</Label>
+                            <Select
+                                value={newCronJob.jobType}
+                                onValueChange={(value) => handleInputChange("jobType", value)}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select email category" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="NORMAL">Normal Email</SelectItem>
+                                    <SelectItem value="BIRTHDAY">Birthday</SelectItem>
+                                    <SelectItem value="NEW_YEARS">New Years</SelectItem>
+                                    <SelectItem value="ST_PATRICKS_DAY">St. Patrick's Day</SelectItem>
+                                    <SelectItem value="FOURTH_OF_JULY">4th of July</SelectItem>
+                                    <SelectItem value="HALLOWEEN">Halloween</SelectItem>
+                                    <SelectItem value="SUMMER">Summer</SelectItem>
+                                    <SelectItem value="THANKSGIVING">Thanksgiving</SelectItem>
+                                    <SelectItem value="VETERANS_DAY">Veterans Day</SelectItem>
+                                    <SelectItem value="SPRING">Spring</SelectItem>
+                                    <SelectItem value="LABOR_DAY">Labor Day</SelectItem>
+                                    <SelectItem value="DECEMBER_HOLIDAYS">December Holidays</SelectItem>
+                                    <SelectItem value="FALL">Fall</SelectItem>
+                                    <SelectItem value="VALENTINES_DAY">Valentine's Day</SelectItem>
+                                    <SelectItem value="MEMORIAL_DAY">Memorial Day</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid gap-2">
+                            <div className="flex items-center gap-2">
+                                <Label htmlFor="schedule">Cron Schedule</Label>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCronHelp(true)}
+                                    className="inline-flex items-center"
+                                >
+                                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-pointer" />
+                                </button>
+                            </div>
+                            <Input
+                                id="schedule"
+                                placeholder="e.g., 0 9 * * * (daily at 9 AM)"
+                                value={newCronJob.schedule}
+                                onChange={(e) => handleInputChange("schedule", e.target.value)}
+                            />
+                            <p className="text-sm text-muted-foreground">
+                                Format: minute hour day month day_of_week
+                            </p>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="description">Description</Label>
+                            <Textarea
+                                id="description"
+                                placeholder="Describe what this job does..."
+                                value={newCronJob.description}
+                                onChange={(e) => handleInputChange("description", e.target.value)}
+                                rows={3}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleCreateCronJob}
+                            disabled={!newCronJob.name || !newCronJob.schedule || createMutation.isPending}
+                        >
+                            {createMutation.isPending ? "Creating..." : "Create Cron Job"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Cron Schedule Help Dialog */}
+            <Dialog open={showCronHelp} onOpenChange={setShowCronHelp}>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Cron Schedule Format Guide</DialogTitle>
+                        <DialogDescription>
+                            Learn how to create cron schedules for automated jobs
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div>
+                            <h4 className="font-semibold mb-2">Cron Schedule Format</h4>
+                            <code className="text-sm bg-muted px-3 py-2 rounded block">
+                                minute hour day month day_of_week
+                            </code>
+                        </div>
+
+                        <div>
+                            <p className="text-sm font-semibold mb-2">Common Examples:</p>
+                            <div className="space-y-2 text-sm">
+                                <div className="flex items-start gap-3">
+                                    <code className="bg-muted px-2 py-1 rounded text-xs whitespace-nowrap font-mono">0 9 * * *</code>
+                                    <span className="text-muted-foreground">Daily at 9:00 AM</span>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <code className="bg-muted px-2 py-1 rounded text-xs whitespace-nowrap font-mono">0 10 * * 1</code>
+                                    <span className="text-muted-foreground">Every Monday at 10:00 AM</span>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <code className="bg-muted px-2 py-1 rounded text-xs whitespace-nowrap font-mono">0 8 1 * *</code>
+                                    <span className="text-muted-foreground">1st day of every month at 8:00 AM</span>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <code className="bg-muted px-2 py-1 rounded text-xs whitespace-nowrap font-mono">0 23 * * *</code>
+                                    <span className="text-muted-foreground">Daily at 11:00 PM</span>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <code className="bg-muted px-2 py-1 rounded text-xs whitespace-nowrap font-mono">*/15 * * * *</code>
+                                    <span className="text-muted-foreground">Every 15 minutes</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p className="text-sm font-semibold mb-2">Weekly Schedules:</p>
+                            <div className="space-y-2 text-sm">
+                                <div className="flex items-start gap-3">
+                                    <code className="bg-muted px-2 py-1 rounded text-xs whitespace-nowrap font-mono">0 0 * * 0</code>
+                                    <span className="text-muted-foreground">Every Sunday at midnight</span>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <code className="bg-muted px-2 py-1 rounded text-xs whitespace-nowrap font-mono">0 9 * * 1-5</code>
+                                    <span className="text-muted-foreground">Weekdays (Mon-Fri) at 9:00 AM</span>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <code className="bg-muted px-2 py-1 rounded text-xs whitespace-nowrap font-mono">0 14 * * 6</code>
+                                    <span className="text-muted-foreground">Every Saturday at 2:00 PM</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p className="text-sm font-semibold mb-2">Monthly & Yearly:</p>
+                            <div className="space-y-2 text-sm">
+                                <div className="flex items-start gap-3">
+                                    <code className="bg-muted px-2 py-1 rounded text-xs whitespace-nowrap font-mono">0 12 15 * *</code>
+                                    <span className="text-muted-foreground">15th of every month at noon</span>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <code className="bg-muted px-2 py-1 rounded text-xs whitespace-nowrap font-mono">0 9 1 1 *</code>
+                                    <span className="text-muted-foreground">January 1st at 9:00 AM (yearly)</span>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <code className="bg-muted px-2 py-1 rounded text-xs whitespace-nowrap font-mono">0 10 25 12 *</code>
+                                    <span className="text-muted-foreground">December 25th at 10:00 AM</span>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <code className="bg-muted px-2 py-1 rounded text-xs whitespace-nowrap font-mono">0 8 1 */3 *</code>
+                                    <span className="text-muted-foreground">1st of every 3rd month (quarterly)</span>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <code className="bg-muted px-2 py-1 rounded text-xs whitespace-nowrap font-mono">0 0 1 6,12 *</code>
+                                    <span className="text-muted-foreground">June 1st & Dec 1st at midnight</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p className="text-sm font-semibold mb-2">Advanced Patterns:</p>
+                            <div className="space-y-2 text-sm">
+                                <div className="flex items-start gap-3">
+                                    <code className="bg-muted px-2 py-1 rounded text-xs whitespace-nowrap font-mono">0 */2 * * *</code>
+                                    <span className="text-muted-foreground">Every 2 hours</span>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <code className="bg-muted px-2 py-1 rounded text-xs whitespace-nowrap font-mono">30 8-17 * * *</code>
+                                    <span className="text-muted-foreground">Every hour at :30 from 8 AM to 5 PM</span>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <code className="bg-muted px-2 py-1 rounded text-xs whitespace-nowrap font-mono">0 9 * * 1,3,5</code>
+                                    <span className="text-muted-foreground">Mon, Wed, Fri at 9:00 AM</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="border-t pt-3">
+                            <p className="text-sm font-semibold mb-2">Field Descriptions:</p>
+                            <ul className="text-sm text-muted-foreground space-y-1">
+                                <li>• <strong>minute:</strong> 0-59</li>
+                                <li>• <strong>hour:</strong> 0-23 (0 = midnight, 12 = noon)</li>
+                                <li>• <strong>day:</strong> 1-31</li>
+                                <li>• <strong>month:</strong> 1-12 (1 = January, 12 = December)</li>
+                                <li>• <strong>day_of_week:</strong> 0-6 (0 = Sunday, 6 = Saturday)</li>
+                            </ul>
+                            <p className="text-sm text-muted-foreground mt-3">
+                                <strong>Special characters:</strong>
+                            </p>
+                            <ul className="text-sm text-muted-foreground space-y-1 mt-1">
+                                <li>• <code className="bg-muted px-1 rounded">*</code> = any value</li>
+                                <li>• <code className="bg-muted px-1 rounded">*/n</code> = every n (e.g., */15 = every 15)</li>
+                                <li>• <code className="bg-muted px-1 rounded">n-m</code> = range (e.g., 1-5 = Monday to Friday)</li>
+                                <li>• <code className="bg-muted px-1 rounded">n,m</code> = list (e.g., 1,3,5 = Mon, Wed, Fri)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={() => setShowCronHelp(false)}>
+                            Got it
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </PageHeader>
     );
 };

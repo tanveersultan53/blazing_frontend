@@ -100,16 +100,26 @@ export default function EcardForm() {
   const [usersList, setUsersList] = useState<Array<{ id: number; name: string; email: string; company: string }>>([]);
 
   // Fetch ecard data if editing
-  const { data: ecardData, isLoading: isLoadingEcard } = useQuery({
+  const { data: ecardData, isLoading: isLoadingEcard, error: ecardError } = useQuery({
     queryKey: ["default-email", id],
     queryFn: () => getDefaultEmail(Number(id)),
     enabled: isEditMode,
+    retry: 1,
   });
+
+  // Log any errors
+  useEffect(() => {
+    if (ecardError) {
+      console.error("Error loading ecard:", ecardError);
+      toast.error("Failed to load ecard data. Please try again.");
+    }
+  }, [ecardError]);
 
   // Handle ecard data when it changes
   useEffect(() => {
     if (ecardData?.data) {
       const data = ecardData.data;
+      console.log("Loading ecard data:", data);
       setFormData(data);
 
       if (data.ecard_image && typeof data.ecard_image === "string") {
@@ -334,6 +344,15 @@ export default function EcardForm() {
     setIsLoadingPreview(true);
     try {
       // Call backend API to get filled HTML preview
+      console.log("🔍 Calling preview API: /email/ecard-preview/1");
+      console.log("📤 Request payload:", {
+        email_html_length: formData.email_html?.length,
+        ecard_text: formData.ecard_text?.substring(0, 50) + "...",
+        email_preheader: formData.email_preheader,
+        greeting: formData.greeting,
+        ecard_image: ecardImagePreview,
+      });
+
       const response = await previewEcardHtml(1, {
         email_html: formData.email_html,
         ecard_text: formData.ecard_text || "",
@@ -344,6 +363,8 @@ export default function EcardForm() {
         last_name: "Doe",
       });
 
+      console.log("✅ Preview response received:", response.data);
+
       if (response.data.success && response.data.html_content) {
         setPreviewHtml(response.data.html_content);
         toast.success("Preview updated with filled placeholders");
@@ -351,8 +372,19 @@ export default function EcardForm() {
         toast.error("Failed to generate preview");
       }
     } catch (error: any) {
-      console.error("Preview error:", error);
-      toast.error(error.response?.data?.error || "Failed to generate preview");
+      console.error("❌ Preview error details:", {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        url: error.config?.url,
+        baseURL: error.config?.baseURL,
+      });
+      toast.error(
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        `API Error: ${error.response?.status || 'Network Error'}`
+      );
     } finally {
       setIsLoadingPreview(false);
     }
@@ -697,12 +729,13 @@ export default function EcardForm() {
                       handleImageUpload(e.target.files?.[0] || null)
                     }
                   />
-                  {ecardImagePreview && !formData.email_html && (
+                  {ecardImagePreview && (
                     <div className="mt-2 p-4 border rounded-lg">
+                      <p className="text-sm text-muted-foreground mb-2">Current Image:</p>
                       <img
                         src={ecardImagePreview}
                         alt="Ecard Preview"
-                        className="max-w-full h-auto"
+                        className="max-w-full h-auto rounded"
                       />
                     </div>
                   )}

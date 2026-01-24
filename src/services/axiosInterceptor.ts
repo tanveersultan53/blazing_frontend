@@ -11,6 +11,9 @@ const api = axios.create({
   // },
 });
 
+// Log the base URL for debugging
+console.log("🌐 API Base URL:", api.defaults.baseURL);
+
 // Request Interceptor: Automatically add the access token to headers
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
