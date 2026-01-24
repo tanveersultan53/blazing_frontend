@@ -18,8 +18,8 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
     const navigate = useNavigate();
     const { currentUser } = useSelector((state: RootState) => state.user);
 
-    // Show loan fields only if current user's industry type is Mortgage
-    const showLoanFields = currentUser?.industry_type === 'Mortgage';
+    // Show loan fields only if current user's industry type is Mortgage AND it's a contact (not referral partner)
+    const showLoanFields = currentUser?.industry_type === 'Mortgage' && type === 'contact';
 
     // Calculate age from birthday
     const calculateAge = (birthday: Date): number => {
