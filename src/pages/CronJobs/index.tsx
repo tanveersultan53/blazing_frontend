@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import { Play, StopCircle, RefreshCw, Clock, Plus, Info } from "lucide-react";
+import { Play, StopCircle, RefreshCw, Clock, Plus, Info, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
     Dialog,
@@ -30,13 +30,26 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
     getCronJobs,
     createCronJob,
+    updateCronJob,
+    deleteCronJob,
     startCronJob,
     stopCronJob,
     restartCronJob,
     type CronJob as CronJobType,
     type CreateCronJobData,
+    type UpdateCronJobData,
 } from "@/services/cronJobService";
 import { getDefaultEmails } from "@/services/ecardService";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Using CronJob type from service
 type CronJob = CronJobType;
@@ -59,7 +72,11 @@ const CronJobs = () => {
     const queryClient = useQueryClient();
 
     const [showCreateDialog, setShowCreateDialog] = useState(false);
+    const [showEditDialog, setShowEditDialog] = useState(false);
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [showCronHelp, setShowCronHelp] = useState(false);
+    const [editingCronJob, setEditingCronJob] = useState<CronJob | null>(null);
+    const [deletingCronJobId, setDeletingCronJobId] = useState<number | null>(null);
     const [newCronJob, setNewCronJob] = useState<NewCronJob>({
         name: "",
         schedule: "",
@@ -100,7 +117,17 @@ const CronJobs = () => {
             toast.success("Cron job created successfully");
         },
         onError: (error: any) => {
-            toast.error(error?.response?.data?.message || "Failed to create cron job");
+            console.error("Create cron job error:", error);
+            console.error("Error response:", error?.response);
+            console.error("Error data:", error?.response?.data);
+
+            const errorMessage = error?.response?.data?.schedule?.[0]
+                || error?.response?.data?.message
+                || error?.response?.data?.detail
+                || Object.values(error?.response?.data || {})[0]
+                || "Failed to create cron job";
+
+            toast.error(errorMessage);
         },
     });
 
@@ -140,6 +167,40 @@ const CronJobs = () => {
         },
     });
 
+    // Update cron job mutation
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: UpdateCronJobData }) => updateCronJob(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['cronJobs'] });
+            setShowEditDialog(false);
+            setEditingCronJob(null);
+            toast.success("Cron job updated successfully");
+        },
+        onError: (error: any) => {
+            console.error("Update cron job error:", error);
+            const errorMessage = error?.response?.data?.schedule?.[0]
+                || error?.response?.data?.message
+                || error?.response?.data?.detail
+                || Object.values(error?.response?.data || {})[0]
+                || "Failed to update cron job";
+            toast.error(errorMessage);
+        },
+    });
+
+    // Delete cron job mutation
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => deleteCronJob(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['cronJobs'] });
+            setShowDeleteDialog(false);
+            setDeletingCronJobId(null);
+            toast.success("Cron job deleted successfully");
+        },
+        onError: (error: any) => {
+            toast.error(error?.response?.data?.message || "Failed to delete cron job");
+        },
+    });
+
     const handleStart = (jobId: number) => {
         startMutation.mutate(jobId);
     };
@@ -150,6 +211,29 @@ const CronJobs = () => {
 
     const handleRestart = (jobId: number) => {
         restartMutation.mutate(jobId);
+    };
+
+    const handleEdit = (cronJob: CronJob) => {
+        setEditingCronJob(cronJob);
+        setNewCronJob({
+            name: cronJob.name,
+            schedule: cronJob.schedule,
+            description: cronJob.description || "",
+            jobType: cronJob.job_type,
+            ecardId: cronJob.ecard,
+        });
+        setShowEditDialog(true);
+    };
+
+    const handleDelete = (jobId: number) => {
+        setDeletingCronJobId(jobId);
+        setShowDeleteDialog(true);
+    };
+
+    const confirmDelete = () => {
+        if (deletingCronJobId) {
+            deleteMutation.mutate(deletingCronJobId);
+        }
     };
 
     const getStatusBadge = (status: CronJob["status"]) => {
@@ -216,7 +300,7 @@ const CronJobs = () => {
             id: "actions",
             header: "Actions",
             cell: ({ row }) => (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                     {row.original.status === "stopped" ? (
                         <Button
                             size="sm"
@@ -244,6 +328,23 @@ const CronJobs = () => {
                         <RefreshCw className="h-4 w-4 mr-1" />
                         Restart
                     </Button>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEdit(row.original)}
+                    >
+                        <Pencil className="h-4 w-4 mr-1" />
+                        Edit
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDelete(row.original.id)}
+                        className="text-red-600 hover:text-red-700"
+                    >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Delete
+                    </Button>
                 </div>
             ),
         },
@@ -259,7 +360,23 @@ const CronJobs = () => {
             status: "stopped",
         };
 
+        console.log("Creating cron job with data:", data);
         createMutation.mutate(data);
+    };
+
+    const handleUpdateCronJob = () => {
+        if (!editingCronJob) return;
+
+        const data: UpdateCronJobData = {
+            name: newCronJob.name,
+            schedule: newCronJob.schedule,
+            description: newCronJob.description,
+            job_type: newCronJob.jobType,
+            ecard: newCronJob.ecardId,
+        };
+
+        console.log("Updating cron job with data:", data);
+        updateMutation.mutate({ id: editingCronJob.id, data });
     };
 
     const handleInputChange = (field: keyof NewCronJob, value: string | number | undefined) => {
@@ -345,14 +462,14 @@ const CronJobs = () => {
                         <div className="grid gap-2">
                             <Label htmlFor="ecard">Ecard/Email Template (Optional)</Label>
                             <Select
-                                value={newCronJob.ecardId?.toString() || ""}
-                                onValueChange={(value) => handleInputChange("ecardId", value ? parseInt(value) : undefined as any)}
+                                value={newCronJob.ecardId?.toString() || "none"}
+                                onValueChange={(value) => handleInputChange("ecardId", value === "none" ? undefined : parseInt(value) as any)}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select an ecard (optional)" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">None</SelectItem>
+                                    <SelectItem value="none">None</SelectItem>
                                     {ecards.map((ecard: any) => (
                                         <SelectItem key={ecard.id} value={ecard.id.toString()}>
                                             {ecard.email_name || `Ecard #${ecard.id}`}
@@ -409,6 +526,140 @@ const CronJobs = () => {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Edit Cron Job Dialog */}
+            <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+                <DialogContent className="sm:max-w-[600px]">
+                    <DialogHeader>
+                        <DialogTitle>Edit Cron Job</DialogTitle>
+                        <DialogDescription>
+                            Update the cron job configuration
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="edit-name">Job Name</Label>
+                            <Input
+                                id="edit-name"
+                                placeholder="e.g., Birthday Email Sender"
+                                value={newCronJob.name}
+                                onChange={(e) => handleInputChange("name", e.target.value)}
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="edit-jobType">Email Category Type</Label>
+                            <Select
+                                value={newCronJob.jobType}
+                                onValueChange={(value) => handleInputChange("jobType", value)}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select email category" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="NORMAL">Normal Email</SelectItem>
+                                    <SelectItem value="BIRTHDAY">Birthday</SelectItem>
+                                    <SelectItem value="NEW_YEARS">New Years</SelectItem>
+                                    <SelectItem value="ST_PATRICKS_DAY">St. Patrick's Day</SelectItem>
+                                    <SelectItem value="FOURTH_OF_JULY">4th of July</SelectItem>
+                                    <SelectItem value="HALLOWEEN">Halloween</SelectItem>
+                                    <SelectItem value="SUMMER">Summer</SelectItem>
+                                    <SelectItem value="THANKSGIVING">Thanksgiving</SelectItem>
+                                    <SelectItem value="VETERANS_DAY">Veterans Day</SelectItem>
+                                    <SelectItem value="SPRING">Spring</SelectItem>
+                                    <SelectItem value="LABOR_DAY">Labor Day</SelectItem>
+                                    <SelectItem value="DECEMBER_HOLIDAYS">December Holidays</SelectItem>
+                                    <SelectItem value="FALL">Fall</SelectItem>
+                                    <SelectItem value="VALENTINES_DAY">Valentine's Day</SelectItem>
+                                    <SelectItem value="MEMORIAL_DAY">Memorial Day</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="edit-ecard">Ecard/Email Template (Optional)</Label>
+                            <Select
+                                value={newCronJob.ecardId?.toString() || "none"}
+                                onValueChange={(value) => handleInputChange("ecardId", value === "none" ? undefined : parseInt(value) as any)}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select an ecard (optional)" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">None</SelectItem>
+                                    {ecards.map((ecard: any) => (
+                                        <SelectItem key={ecard.id} value={ecard.id.toString()}>
+                                            {ecard.email_name || `Ecard #${ecard.id}`}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid gap-2">
+                            <div className="flex items-center gap-2">
+                                <Label htmlFor="edit-schedule">Cron Schedule</Label>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCronHelp(true)}
+                                    className="inline-flex items-center"
+                                >
+                                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-pointer" />
+                                </button>
+                            </div>
+                            <Input
+                                id="edit-schedule"
+                                placeholder="e.g., 0 9 * * * (daily at 9 AM)"
+                                value={newCronJob.schedule}
+                                onChange={(e) => handleInputChange("schedule", e.target.value)}
+                            />
+                            <p className="text-sm text-muted-foreground">
+                                Format: minute hour day month day_of_week
+                            </p>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="edit-description">Description</Label>
+                            <Textarea
+                                id="edit-description"
+                                placeholder="Describe what this job does..."
+                                value={newCronJob.description}
+                                onChange={(e) => handleInputChange("description", e.target.value)}
+                                rows={3}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleUpdateCronJob}
+                            disabled={!newCronJob.name || !newCronJob.schedule || updateMutation.isPending}
+                        >
+                            {updateMutation.isPending ? "Updating..." : "Update Cron Job"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Confirmation Dialog */}
+            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the cron job.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmDelete}
+                            className="bg-red-600 hover:bg-red-700"
+                            disabled={deleteMutation.isPending}
+                        >
+                            {deleteMutation.isPending ? "Deleting..." : "Delete"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
             {/* Cron Schedule Help Dialog */}
             <Dialog open={showCronHelp} onOpenChange={setShowCronHelp}>
