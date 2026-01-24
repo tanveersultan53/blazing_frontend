@@ -10,6 +10,7 @@ import {
   Newspaper,
   Heart,
   Share2,
+  Activity,
 } from "lucide-react"
 
 import { NavMain, type NavMainProps } from "@/components/nav-main"
@@ -87,6 +88,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Email Library",
       url: ["/my-email-templates"],
       icon: Mail,
+      items: [],
+    },
+    {
+      title: "Email Activity",
+      url: ["/email-activity"],
+      icon: Activity,
       items: [],
     },
     {

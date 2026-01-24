@@ -28,6 +28,7 @@ import EcardsList from './pages/EcardManagement';
 import { EcardForm, EcardPreview } from './pages/EcardManagement';
 import SocialIconsList from './pages/SocialIconManagement';
 import { SocialIconForm } from './pages/SocialIconManagement';
+import EmailActivity from './pages/EmailActivity';
 
 function App() {
   return (
@@ -51,6 +52,7 @@ function App() {
           <Route path="my-email-templates/edit/:id" element={<CreateCustomerTemplate />} />
           <Route path="my-email-templates/duplicate/:id" element={<CreateCustomerTemplate />} />
           <Route path="my-email-templates/browse" element={<BrowseTemplates />} />
+          <Route path="email-activity" element={<EmailActivity />} />
           <Route path="send-email/:templateId" element={<SendEmail />} />
           <Route path="email-template-editor" element={<EmailTemplate />} />
           <Route path="react-quill-editor" element={<ReactQuillEditor />} />

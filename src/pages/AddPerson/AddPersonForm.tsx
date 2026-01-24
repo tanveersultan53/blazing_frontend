@@ -17,9 +17,44 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
     const { register, formState: { errors }, setValue, watch } = form;
     const navigate = useNavigate();
     const { currentUser } = useSelector((state: RootState) => state.user);
-    
+
     // Show loan fields only if current user's industry type is Mortgage
     const showLoanFields = currentUser?.industry_type === 'Mortgage';
+
+    // Calculate age from birthday
+    const calculateAge = (birthday: Date): number => {
+        const today = new Date();
+        let age = today.getFullYear() - birthday.getFullYear();
+        const monthDiff = today.getMonth() - birthday.getMonth();
+
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthday.getDate())) {
+            age--;
+        }
+
+        return age;
+    };
+
+    // Handle birthday change and auto-calculate age
+    const handleBirthdayChange = (date: Date | undefined) => {
+        setValue('birthday', date ? format(date, 'yyyy-MM-dd') : null);
+        if (date) {
+            const age = calculateAge(date);
+            setValue('age', age.toString());
+        } else {
+            setValue('age', '');
+        }
+    };
+
+    // Handle secondary birthday change and auto-calculate secondary age
+    const handleSecondaryBirthdayChange = (date: Date | undefined) => {
+        setValue('secondary_birthday', date ? format(date, 'yyyy-MM-dd') : null);
+        if (date) {
+            const age = calculateAge(date);
+            setValue('secondary_age', age.toString());
+        } else {
+            setValue('secondary_age', '');
+        }
+    };
 
     return (
         <form onSubmit={onSubmit} className="space-y-6">
@@ -249,7 +284,10 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                             <div className="w-full">
                                 <DatePicker
                                     value={watch('birthday') ? new Date(watch('birthday')!) : undefined}
-                                    onChange={(date: Date | undefined) => setValue('birthday', date ? format(date, 'yyyy-MM-dd') : null)}
+                                    onChange={handleBirthdayChange}
+                                    captionLayout="dropdown"
+                                    fromYear={1900}
+                                    toYear={new Date().getFullYear()}
                                 />
                             </div>
                             {errors.birthday && (
@@ -260,19 +298,20 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                         {/* Age */}
                         <div className="space-y-2">
                             <label htmlFor="age" className="text-sm font-medium">
-                                Age
+                                Age (Auto-calculated)
                             </label>
                             <Input
                                 id="age"
                                 type="number"
-                                placeholder="Enter age"
+                                placeholder="Select birthday to auto-calculate"
                                 min="0"
                                 max="150"
+                                readOnly
                                 {...register('age', {
                                     min: { value: 0, message: 'Age must be a positive number' },
                                     max: { value: 150, message: 'Age must be less than 150' }
                                 })}
-                                className={errors.age ? 'border-red-500' : ''}
+                                className={`bg-muted ${errors.age ? 'border-red-500' : ''}`}
                             />
                             {errors.age && (
                                 <p className="text-sm text-red-500">{errors.age.message}</p>
@@ -373,7 +412,7 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                                     Loan Status
                                 </label>
                                 <Select onValueChange={(value) => setValue('loan_status', value)} value={watch('loan_status')}>
-                                    <SelectTrigger className="w-full">
+                                    <SelectTrigger className={`w-full ${errors.loan_status ? 'border-red-500' : ''}`}>
                                         <SelectValue placeholder="Select loan status" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -384,6 +423,9 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                                         <SelectItem value="Denied">Denied</SelectItem>
                                     </SelectContent>
                                 </Select>
+                                {errors.loan_status && (
+                                    <p className="text-sm text-red-500">{errors.loan_status.message}</p>
+                                )}
                             </div>
 
                             {/* Interest Rate */}
@@ -396,7 +438,11 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                                     type="text"
                                     placeholder="e.g., 6.5%"
                                     {...register('interest_rate')}
+                                    className={errors.interest_rate ? 'border-red-500' : ''}
                                 />
+                                {errors.interest_rate && (
+                                    <p className="text-sm text-red-500">{errors.interest_rate.message}</p>
+                                )}
                             </div>
 
                             {/* Sales Price */}
@@ -409,7 +455,11 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                                     type="text"
                                     placeholder="e.g., $500,000"
                                     {...register('sales_price')}
+                                    className={errors.sales_price ? 'border-red-500' : ''}
                                 />
+                                {errors.sales_price && (
+                                    <p className="text-sm text-red-500">{errors.sales_price.message}</p>
+                                )}
                             </div>
 
                             {/* Loan Amount */}
@@ -422,7 +472,11 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                                     type="text"
                                     placeholder="e.g., $400,000"
                                     {...register('loan_amount')}
+                                    className={errors.loan_amount ? 'border-red-500' : ''}
                                 />
+                                {errors.loan_amount && (
+                                    <p className="text-sm text-red-500">{errors.loan_amount.message}</p>
+                                )}
                             </div>
 
                             {/* % Down */}
@@ -435,7 +489,11 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                                     type="text"
                                     placeholder="e.g., 20%"
                                     {...register('percent_down')}
+                                    className={errors.percent_down ? 'border-red-500' : ''}
                                 />
+                                {errors.percent_down && (
+                                    <p className="text-sm text-red-500">{errors.percent_down.message}</p>
+                                )}
                             </div>
 
                             {/* LTV */}
@@ -448,7 +506,11 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                                     type="text"
                                     placeholder="e.g., 80%"
                                     {...register('ltv')}
+                                    className={errors.ltv ? 'border-red-500' : ''}
                                 />
+                                {errors.ltv && (
+                                    <p className="text-sm text-red-500">{errors.ltv.message}</p>
+                                )}
                             </div>
 
                             {/* Close Date */}
@@ -461,6 +523,9 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                                         value={watch('close_date') ? new Date(watch('close_date')!) : undefined}
                                         onChange={(date: Date | undefined) => setValue('close_date', date ? format(date, 'yyyy-MM-dd') : null)}
                                         placeholder="Select close date"
+                                        captionLayout="dropdown"
+                                        fromYear={2000}
+                                        toYear={new Date().getFullYear() + 10}
                                     />
                                 </div>
                                 {errors.close_date && (
@@ -478,7 +543,11 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                                     type="text"
                                     placeholder="e.g., Conventional, FHA, VA"
                                     {...register('loan_program')}
+                                    className={errors.loan_program ? 'border-red-500' : ''}
                                 />
+                                {errors.loan_program && (
+                                    <p className="text-sm text-red-500">{errors.loan_program.message}</p>
+                                )}
                             </div>
 
                             {/* Loan Type */}
@@ -487,7 +556,7 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                                     Loan Type
                                 </label>
                                 <Select onValueChange={(value) => setValue('loan_type', value)} value={watch('loan_type')}>
-                                    <SelectTrigger className="w-full">
+                                    <SelectTrigger className={`w-full ${errors.loan_type ? 'border-red-500' : ''}`}>
                                         <SelectValue placeholder="Select loan type" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -497,6 +566,9 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                                         <SelectItem value="Reverse">Reverse</SelectItem>
                                     </SelectContent>
                                 </Select>
+                                {errors.loan_type && (
+                                    <p className="text-sm text-red-500">{errors.loan_type.message}</p>
+                                )}
                             </div>
 
                             {/* Property Type */}
@@ -505,7 +577,7 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                                     Property Type
                                 </label>
                                 <Select onValueChange={(value) => setValue('property_type', value)} value={watch('property_type')}>
-                                    <SelectTrigger className="w-full">
+                                    <SelectTrigger className={`w-full ${errors.property_type ? 'border-red-500' : ''}`}>
                                         <SelectValue placeholder="Select property type" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -515,6 +587,9 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                                         <SelectItem value="Construction">Construction</SelectItem>
                                     </SelectContent>
                                 </Select>
+                                {errors.property_type && (
+                                    <p className="text-sm text-red-500">{errors.property_type.message}</p>
+                                )}
                             </div>
                         </div>
                     </CardContent>
@@ -591,7 +666,10 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                                 <div className="w-full">
                                     <DatePicker
                                         value={watch('secondary_birthday') ? new Date(watch('secondary_birthday')!) : undefined}
-                                        onChange={(date: Date | undefined) => setValue('secondary_birthday', date ? format(date, 'yyyy-MM-dd') : null)}
+                                        onChange={handleSecondaryBirthdayChange}
+                                        captionLayout="dropdown"
+                                        fromYear={1900}
+                                        toYear={new Date().getFullYear()}
                                     />
                                 </div>
                                 {errors.secondary_birthday && (
@@ -602,19 +680,20 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                             {/* Secondary Age */}
                             <div className="space-y-2">
                                 <label htmlFor="secondary_age" className="text-sm font-medium">
-                                    Age
+                                    Age (Auto-calculated)
                                 </label>
                                 <Input
                                     id="secondary_age"
                                     type="number"
-                                    placeholder="Enter secondary age"
+                                    placeholder="Select birthday to auto-calculate"
                                     min="0"
                                     max="150"
+                                    readOnly
                                     {...register('secondary_age', {
                                         min: { value: 0, message: 'Age must be a positive number' },
                                         max: { value: 150, message: 'Age must be less than 150' }
                                     })}
-                                    className={errors.secondary_age ? 'border-red-500' : ''}
+                                    className={`bg-muted ${errors.secondary_age ? 'border-red-500' : ''}`}
                                 />
                                 {errors.secondary_age && (
                                     <p className="text-sm text-red-500">{errors.secondary_age.message}</p>
