@@ -31,8 +31,8 @@ const useAddPerson = (): AddPersonHookReturn => {
       birthday: '',
       age: '',
       group: '',
-      send_status: 'dont_send',
-      optout: 'dont_send',
+      send_status: 'send',
+      optout: 'send',
       newsletter_version: 'none',
 
       // Secondary Contact
