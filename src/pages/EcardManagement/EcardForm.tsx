@@ -36,6 +36,7 @@ import {
   FileImage,
   FileCode,
   Send,
+  Mail,
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import {
@@ -427,14 +428,6 @@ export default function EcardForm() {
       return;
     }
 
-    if (recipientType === 'custom') {
-      const emails = customEmails.split(',').map(email => email.trim()).filter(email => email);
-      if (emails.length === 0) {
-        toast.error("Please enter at least one email address");
-        return;
-      }
-    }
-
     // Generate preview with selected user's data
     setIsLoadingPreview(true);
     try {
@@ -473,25 +466,47 @@ export default function EcardForm() {
       return;
     }
 
-    if (recipientType === 'custom') {
-      const emails = customEmails.split(',').map(email => email.trim()).filter(email => email);
-      if (emails.length === 0) {
-        toast.error("Please enter at least one email address");
-        return;
-      }
-      sendMutation.mutate({
-        ecardId: Number(id),
-        recipient_type: recipientType,
-        custom_emails: emails,
-        user_id: selectedUserId
-      });
-    } else {
-      sendMutation.mutate({
-        ecardId: Number(id),
-        recipient_type: recipientType,
-        user_id: selectedUserId
-      });
+    // Find the selected user's email
+    const selectedUser = usersList.find((user) => user.id === selectedUserId);
+    if (!selectedUser) {
+      toast.error("Selected user not found");
+      return;
     }
+
+    // Send to the selected user
+    sendMutation.mutate({
+      ecardId: Number(id),
+      recipient_type: 'custom',
+      custom_emails: [selectedUser.email],
+      user_id: selectedUserId
+    });
+  };
+
+  const handleSendTestEcard = () => {
+    if (!id) {
+      toast.error("Please save the ecard first before sending");
+      return;
+    }
+
+    if (!selectedUserId) {
+      toast.error("Please select a user to send test email");
+      return;
+    }
+
+    // Find the selected user's email
+    const selectedUser = usersList.find((user) => user.id === selectedUserId);
+    if (!selectedUser) {
+      toast.error("Selected user not found");
+      return;
+    }
+
+    // Send test email to the selected user
+    sendMutation.mutate({
+      ecardId: Number(id),
+      recipient_type: 'custom',
+      custom_emails: [selectedUser.email],
+      user_id: selectedUserId
+    });
   };
 
   const handleSelectEcardForEdit = (ecard: IEcard) => {
@@ -955,8 +970,8 @@ export default function EcardForm() {
             </DialogTitle>
             <DialogDescription>
               {showSendPreview
-                ? "Review the ecard preview below and confirm to send to recipients"
-                : "Select recipients and preview the ecard before sending"}
+                ? "Review the ecard preview below and confirm to send"
+                : "Select a user and preview the ecard before sending"}
             </DialogDescription>
           </DialogHeader>
 
@@ -965,7 +980,7 @@ export default function EcardForm() {
             <>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="user_select">Select User (Whose Data to Fill)</Label>
+                  <Label htmlFor="user_select">Select User</Label>
                   <Select
                     value={selectedUserId?.toString()}
                     onValueChange={(value) => setSelectedUserId(Number(value))}
@@ -981,44 +996,7 @@ export default function EcardForm() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-muted-foreground">
-                    This user's data (photo, logo, address, etc.) will be used to fill the ecard placeholders
-                  </p>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="recipient_type">Recipient Type</Label>
-                  <Select
-                    value={recipientType}
-                    onValueChange={(value: 'contacts' | 'partners' | 'all' | 'custom') => setRecipientType(value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select recipient type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Contacts & Partners</SelectItem>
-                      <SelectItem value="contacts">Contacts Only</SelectItem>
-                      <SelectItem value="partners">Partners Only</SelectItem>
-                      <SelectItem value="custom">Custom Email Addresses</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {recipientType === 'custom' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="custom_emails">Email Addresses</Label>
-                    <Textarea
-                      id="custom_emails"
-                      placeholder="Enter email addresses separated by commas (e.g., user1@example.com, user2@example.com)"
-                      value={customEmails}
-                      onChange={(e) => setCustomEmails(e.target.value)}
-                      rows={4}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Separate multiple email addresses with commas
-                    </p>
-                  </div>
-                )}
               </div>
               <div className="flex justify-end gap-2">
                 <Button
@@ -1030,8 +1008,26 @@ export default function EcardForm() {
                 </Button>
                 <Button
                   type="button"
+                  variant="secondary"
+                  onClick={handleSendTestEcard}
+                  disabled={!selectedUserId || sendMutation.isPending}
+                >
+                  {sendMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="mr-2 h-4 w-4" />
+                      Send Test Email
+                    </>
+                  )}
+                </Button>
+                <Button
+                  type="button"
                   onClick={handlePreviewBeforeSend}
-                  disabled={isLoadingPreview}
+                  disabled={isLoadingPreview || !selectedUserId}
                 >
                   {isLoadingPreview ? (
                     <>
@@ -1039,7 +1035,7 @@ export default function EcardForm() {
                       Loading Preview...
                     </>
                   ) : (
-                    "Next: Preview"
+                    "Verify & Preview"
                   )}
                 </Button>
               </div>
@@ -1050,7 +1046,7 @@ export default function EcardForm() {
               <div className="space-y-4 py-4">
                 <div className="border rounded-lg overflow-hidden">
                   <div className="bg-muted px-4 py-2 text-sm font-medium">
-                    Email Preview (with sample data: John Doe)
+                    Email Preview
                   </div>
                   {sendPreviewHtml && (
                     <iframe
@@ -1062,24 +1058,10 @@ export default function EcardForm() {
                   )}
                 </div>
                 <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-md text-sm">
-                  <p className="font-medium text-blue-900 dark:text-blue-100">
-                    Ready to Send
-                  </p>
-                  <p className="text-blue-700 dark:text-blue-300 mt-1">
-                    Filled with data from: <span className="font-medium">
+                  <p className="text-blue-700 dark:text-blue-300">
+                    User: <span className="font-medium">
                       {usersList.find(u => u.id === selectedUserId)?.name || 'Selected User'}
                     </span>
-                  </p>
-                  <p className="text-blue-700 dark:text-blue-300 mt-1">
-                    Recipients: <span className="font-medium">
-                      {recipientType === 'all' ? 'All Contacts & Partners' :
-                       recipientType === 'contacts' ? 'Contacts Only' :
-                       recipientType === 'partners' ? 'Partners Only' :
-                       'Custom Email Addresses'}
-                    </span>
-                  </p>
-                  <p className="text-blue-600 dark:text-blue-400 text-xs mt-1">
-                    Each recipient will receive a personalized version with their own name but with the selected user's branding/contact info.
                   </p>
                 </div>
               </div>

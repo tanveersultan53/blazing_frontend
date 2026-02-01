@@ -6,21 +6,21 @@ export interface INewsletter {
   econ_text: string;
   article1_text: string;
   article2_text: string;
-  news_image?: File | null;
-  rate_image?: File | null;
-  econ_image?: File | null;
-  article1_image?: File | null;
-  article2_image?: File | null;
+  news_image?: File | string | null;
+  rate_image?: File | string | null;
+  econ_image?: File | string | null;
+  article1_image?: File | string | null;
+  article2_image?: File | string | null;
   scheduled_date: string;
   scheduled_time: string;
   is_active?: boolean;
   created?: string;
   modified?: string;
   // Branding fields
-  companylogo?: File | null;
-  photo?: File | null;
-  logo?: File | null;
-  qrcode?: File | null;
+  companylogo?: File | string | null;
+  photo?: File | string | null;
+  logo?: File | string | null;
+  qrcode?: File | string | null;
   personaltext?: string;
   disclosure?: string;
   hlogo?: number;
@@ -39,6 +39,16 @@ export interface INewsletter {
   yp?: string;
   gg?: string;
   bg?: string;
+  // Image URLs (returned by API in view/edit mode)
+  news_image_url?: string;
+  rate_image_url?: string;
+  econ_image_url?: string;
+  article1_image_url?: string;
+  article2_image_url?: string;
+  companylogo_url?: string;
+  photo_url?: string;
+  logo_url?: string;
+  qrcode_url?: string;
 }
 
 export interface NewsletterLog {

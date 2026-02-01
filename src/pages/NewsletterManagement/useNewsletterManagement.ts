@@ -96,7 +96,6 @@ export const useNewsletterManagement = () => {
   } | null>(null);
 
   // Test email states
-  const [testEmail, setTestEmail] = useState("");
   const [newsletterVersion, setNewsletterVersion] = useState<"long" | "short">("long");
 
 
@@ -121,6 +120,7 @@ export const useNewsletterManagement = () => {
       const data = newsletterData.data;
 
       // Reset form with newsletter data
+      // NOTE: Keep image fields as null - we only store URLs in preview state
       reset({
         newsletter_label: data.newsletter_label || '',
         econ_text: data.econ_text || '',
@@ -131,7 +131,7 @@ export const useNewsletterManagement = () => {
         scheduled_date: data.scheduled_date || '',
         scheduled_time: data.scheduled_time || '',
         is_active: data.is_active ?? true,
-        // Keep existing defaults for other fields
+        // Keep image fields as null - previews are handled separately
         news_image: null,
         rate_image: null,
         econ_image: null,
@@ -165,21 +165,33 @@ export const useNewsletterManagement = () => {
         setScheduleDate(new Date(data.scheduled_date));
       }
 
-      // Set image previews if URLs exist
-      if (data.econ_image && typeof data.econ_image === 'string') {
-        setEconImagePreview(data.econ_image);
+      // Set image previews if URLs exist - use the full URL fields
+      if (data.econ_image_url) {
+        setEconImagePreview(data.econ_image_url);
       }
-      if (data.rate_image && typeof data.rate_image === 'string') {
-        setRateImagePreview(data.rate_image);
+      if (data.rate_image_url) {
+        setRateImagePreview(data.rate_image_url);
       }
-      if (data.news_image && typeof data.news_image === 'string') {
-        setNewsImagePreview(data.news_image);
+      if (data.news_image_url) {
+        setNewsImagePreview(data.news_image_url);
       }
-      if (data.article1_image && typeof data.article1_image === 'string') {
-        setArticle1ImagePreview(data.article1_image);
+      if (data.article1_image_url) {
+        setArticle1ImagePreview(data.article1_image_url);
       }
-      if (data.article2_image && typeof data.article2_image === 'string') {
-        setArticle2ImagePreview(data.article2_image);
+      if (data.article2_image_url) {
+        setArticle2ImagePreview(data.article2_image_url);
+      }
+      if (data.companylogo_url) {
+        setCompanyLogoPreview(data.companylogo_url);
+      }
+      if (data.photo_url) {
+        setPhotoPreview(data.photo_url);
+      }
+      if (data.logo_url) {
+        setLogoPreview(data.logo_url);
+      }
+      if (data.qrcode_url) {
+        setQrcodePreview(data.qrcode_url);
       }
     }
   }, [newsletterData, isEditMode, reset]);
@@ -201,14 +213,21 @@ export const useNewsletterManagement = () => {
   // Send test email mutation (first verifies to get URLs, then sends test email)
   const sendTestMutation = useMutation({
     mutationFn: async () => {
-      if (!selectedUserId || !testEmail) {
-        throw new Error("User ID and test email are required");
+      if (!selectedUserId) {
+        throw new Error("User ID is required");
+      }
+
+      // Find the selected user's email
+      const selectedUser = users.find((user) => user.id === selectedUserId);
+      if (!selectedUser) {
+        throw new Error("Selected user not found");
       }
 
       // Step 1: Get the newsletter data
       const verifyFormData = new FormData();
       const currentValues = watch();
 
+      // Add all form values to FormData
       Object.entries(currentValues).forEach(([key, value]) => {
         if (value !== null && value !== undefined && value !== "") {
           if (value instanceof File || value instanceof FileList) {
@@ -223,13 +242,18 @@ export const useNewsletterManagement = () => {
         }
       });
 
+      // If in edit mode, add the newsletter ID so backend can fetch existing images
+      if (isEditMode && id) {
+        verifyFormData.append('id', id);
+      }
+
       // Step 2: Call verify endpoint to get template URLs
       const verifyResponse = await verifyNewsletter(selectedUserId, verifyFormData);
       const { short_newsletter_url, long_newsletter_url } = verifyResponse.data;
 
-      // Step 3: Send test email with the URLs
+      // Step 3: Send test email with the URLs and selected user's email
       const testEmailFormData = new FormData();
-      testEmailFormData.append("test_email", testEmail);
+      testEmailFormData.append("test_email", selectedUser.email);
       testEmailFormData.append("newsletter_version", newsletterVersion);
       testEmailFormData.append("short_newsletter_url", short_newsletter_url);
       testEmailFormData.append("long_newsletter_url", long_newsletter_url);
@@ -241,7 +265,6 @@ export const useNewsletterManagement = () => {
       // Close the verify dialog and reset
       setIsVerifyDialogOpen(false);
       setSelectedUserId(null);
-      setTestEmail("");
     },
     onError: (error: any) => {
       console.error("Send test email error:", error);
@@ -546,6 +569,11 @@ export const useNewsletterManagement = () => {
       formData.append(key, String(value));
     });
 
+    // If in edit mode, add the newsletter ID so backend can fetch existing images
+    if (isEditMode && id) {
+      formData.append('id', id);
+    }
+
     verifyMutation.mutate({ userId: selectedUserId, formData });
   };
 
@@ -559,10 +587,6 @@ export const useNewsletterManagement = () => {
   };
 
   const handleSendTestEmail = () => {
-    if (!testEmail) {
-      toast.error("Please enter a test email address");
-      return;
-    }
     sendTestMutation.mutate();
   };
 
@@ -728,8 +752,6 @@ export const useNewsletterManagement = () => {
     isLoadingUsers,
     verifyMutation,
     // Test email
-    testEmail,
-    setTestEmail,
     newsletterVersion,
     setNewsletterVersion,
     sendTestMutation,

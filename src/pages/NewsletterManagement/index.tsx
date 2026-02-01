@@ -81,8 +81,6 @@ export default function NewsletterManagement() {
     isLoadingUsers,
     verifyMutation,
     // Test email
-    testEmail,
-    setTestEmail,
     newsletterVersion,
     setNewsletterVersion,
     sendTestMutation,
@@ -101,6 +99,18 @@ export default function NewsletterManagement() {
   const article1Image = watch("article1_image");
   const article2Image = watch("article2_image");
   const scheduleTime = watch("scheduled_time");
+
+  // Helper function to get display name for both File and URL string
+  const getImageDisplayName = (image: File | string | null | undefined): string | null => {
+    if (!image) return null;
+    if (image instanceof File) return image.name;
+    if (typeof image === 'string') {
+      // Extract filename from URL
+      const urlParts = image.split('/');
+      return urlParts[urlParts.length - 1] || image;
+    }
+    return null;
+  };
 
   if (isEditMode && isLoadingNewsletter) {
     return <Loading />;
@@ -490,7 +500,7 @@ export default function NewsletterManagement() {
                           className="w-full h-24 object-cover rounded-lg"
                         />
                         <p className="text-xs text-muted-foreground mt-2">
-                          {econImage?.name}
+                          {getImageDisplayName(econImage)}
                         </p>
                       </div>
                     )}
@@ -519,7 +529,7 @@ export default function NewsletterManagement() {
                           className="w-full h-24 object-cover rounded-lg"
                         />
                         <p className="text-xs text-muted-foreground mt-2">
-                          {rateImage?.name}
+                          {getImageDisplayName(rateImage)}
                         </p>
                       </div>
                     )}
@@ -548,7 +558,7 @@ export default function NewsletterManagement() {
                           className="w-full h-24 object-cover rounded-lg"
                         />
                         <p className="text-xs text-muted-foreground mt-2">
-                          {newsImage?.name}
+                          {getImageDisplayName(newsImage)}
                         </p>
                       </div>
                     )}
@@ -577,7 +587,7 @@ export default function NewsletterManagement() {
                           className="w-full h-24 object-cover rounded-lg"
                         />
                         <p className="text-xs text-muted-foreground mt-2">
-                          {article1Image?.name}
+                          {getImageDisplayName(article1Image)}
                         </p>
                       </div>
                     )}
@@ -606,7 +616,7 @@ export default function NewsletterManagement() {
                           className="w-full h-24 object-cover rounded-lg"
                         />
                         <p className="text-xs text-muted-foreground mt-2">
-                          {article2Image?.name}
+                          {getImageDisplayName(article2Image)}
                         </p>
                       </div>
                     )}
@@ -628,13 +638,14 @@ export default function NewsletterManagement() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            {/* User Selection Section */}
             <div className="space-y-2">
               <Label htmlFor="user-select">Select User</Label>
               <Select
                 value={selectedUserId?.toString()}
                 onValueChange={(value) => setSelectedUserId(Number(value))}
               >
-                <SelectTrigger id="user-select">
+                <SelectTrigger id="user-select" className="w-full">
                   <SelectValue placeholder="Choose a user..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -657,33 +668,18 @@ export default function NewsletterManagement() {
               </Select>
             </div>
 
-            {/* Test Email Section */}
-            <div className="border-t pt-4">
-              <Label className="text-sm font-semibold mb-3 block">Test Email Settings</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="test-email">Test Email Address</Label>
-                  <Input
-                    id="test-email"
-                    type="email"
-                    placeholder="test@example.com"
-                    value={testEmail}
-                    onChange={(e) => setTestEmail(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="newsletter-version">Newsletter Version</Label>
-                  <Select value={newsletterVersion} onValueChange={(value) => setNewsletterVersion(value as "long" | "short")}>
-                    <SelectTrigger id="newsletter-version">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="long">Long Newsletter</SelectItem>
-                      <SelectItem value="short">Short Newsletter</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+            {/* Newsletter Version Section */}
+            <div className="space-y-2">
+              <Label htmlFor="newsletter-version">Newsletter Version</Label>
+              <Select value={newsletterVersion} onValueChange={(value) => setNewsletterVersion(value as "long" | "short")}>
+                <SelectTrigger id="newsletter-version" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="long">Long Newsletter</SelectItem>
+                  <SelectItem value="short">Short Newsletter</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter className="flex-col sm:flex-row gap-2">
@@ -699,7 +695,7 @@ export default function NewsletterManagement() {
               type="button"
               variant="secondary"
               onClick={handleSendTestEmail}
-              disabled={!selectedUserId || !testEmail || sendTestMutation.isPending || verifyMutation.isPending}
+              disabled={!selectedUserId || sendTestMutation.isPending || verifyMutation.isPending}
               className="sm:flex-1"
             >
               {sendTestMutation.isPending ? (
@@ -710,7 +706,7 @@ export default function NewsletterManagement() {
               ) : (
                 <>
                   <Mail className="mr-2 h-4 w-4" />
-                  Test Email
+                  Send Test Email
                 </>
               )}
             </Button>
@@ -726,7 +722,7 @@ export default function NewsletterManagement() {
                   Verifying...
                 </>
               ) : (
-                "Verify"
+                "Verify & Preview"
               )}
             </Button>
           </DialogFooter>
