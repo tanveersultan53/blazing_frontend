@@ -6,6 +6,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { createNewsletter, updateNewsletter, getNewsletter, verifyNewsletter, sendTestEmail } from "@/services/newsletterService";
 import { getUsers } from "@/services/userManagementService";
+import { createNewsletterDistribution, type CreateNewsletterDistributionData } from "@/services/newsletterDistributionService";
 import type { INewsletter } from "./interface";
 import type { User as UserType } from "@/redux/features/userSlice";
 
@@ -98,6 +99,14 @@ export const useNewsletterManagement = () => {
   // Test email states
   const [newsletterVersion, setNewsletterVersion] = useState<"long" | "short">("long");
 
+  // Distribute dialog states
+  const [isDistributeDialogOpen, setIsDistributeDialogOpen] = useState(false);
+  const [distributeToAllUsers, setDistributeToAllUsers] = useState(true);
+  const [selectedDistributeUsers, setSelectedDistributeUsers] = useState<number[]>([]);
+  const [distributeRecipientType, setDistributeRecipientType] = useState<'all' | 'partner' | 'contact'>('all');
+  const [distributeVersion, setDistributeVersion] = useState<'long' | 'short' | 'both'>('both');
+  const [distributeDate, setDistributeDate] = useState<Date | undefined>(undefined);
+  const [distributeTime, setDistributeTime] = useState<string>("");
 
   // Fetch users for verify dialog
   const { data: usersData, isLoading: isLoadingUsers } = useQuery({
@@ -305,6 +314,26 @@ export const useNewsletterManagement = () => {
     onError: (error: any) => {
       console.error(`${isEditMode ? 'Update' : 'Create'} newsletter error:`, error);
       toast.error(error.response?.data?.error || `Failed to ${isEditMode ? 'update' : 'save'} newsletter`);
+    },
+  });
+
+  // Distribute newsletter mutation
+  const distributeMutation = useMutation({
+    mutationFn: (data: CreateNewsletterDistributionData) => createNewsletterDistribution(data),
+    onSuccess: (response) => {
+      toast.success("Newsletter distribution scheduled successfully!");
+      setIsDistributeDialogOpen(false);
+      // Reset distribute dialog state
+      setDistributeToAllUsers(true);
+      setSelectedDistributeUsers([]);
+      setDistributeRecipientType('all');
+      setDistributeVersion('both');
+      setDistributeDate(undefined);
+      setDistributeTime("");
+    },
+    onError: (error: any) => {
+      console.error("Distribute newsletter error:", error);
+      toast.error(error.response?.data?.error || "Failed to schedule newsletter distribution");
     },
   });
 
@@ -650,8 +679,47 @@ export const useNewsletterManagement = () => {
       return;
     }
 
-    // TODO: Backend API to distribute newsletter to all users
-    toast.info("Distributing newsletter to all users...");
+    if (!isEditMode || !id) {
+      toast.error("Please save the newsletter first before distributing");
+      return;
+    }
+
+    setIsDistributeDialogOpen(true);
+  };
+
+  const handleDistributeSubmit = () => {
+    if (!isEditMode || !id) {
+      toast.error("Newsletter ID is required");
+      return;
+    }
+
+    // Validate user selection
+    if (!distributeToAllUsers && selectedDistributeUsers.length === 0) {
+      toast.error("Please select at least one user");
+      return;
+    }
+
+    // Prepare scheduled_at timestamp
+    let scheduledAt = new Date().toISOString(); // Send immediately by default
+
+    if (distributeDate && distributeTime) {
+      const [hours, minutes] = distributeTime.split(':');
+      const scheduledDate = new Date(distributeDate);
+      scheduledDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+      scheduledAt = scheduledDate.toISOString();
+    }
+
+    const distributionData: CreateNewsletterDistributionData = {
+      newsletter: Number(id),
+      send_to_all: distributeToAllUsers,
+      users: distributeToAllUsers ? [] : selectedDistributeUsers,
+      recipient_type: distributeRecipientType,
+      version: distributeVersion,
+      scheduled_at: scheduledAt,
+      is_active: true,
+    };
+
+    distributeMutation.mutate(distributionData);
   };
 
   const handleSchedule = () => {
@@ -762,5 +830,22 @@ export const useNewsletterManagement = () => {
     // Edit mode
     isEditMode,
     isLoadingNewsletter,
+    // Distribute dialog
+    isDistributeDialogOpen,
+    setIsDistributeDialogOpen,
+    distributeToAllUsers,
+    setDistributeToAllUsers,
+    selectedDistributeUsers,
+    setSelectedDistributeUsers,
+    distributeRecipientType,
+    setDistributeRecipientType,
+    distributeVersion,
+    setDistributeVersion,
+    distributeDate,
+    setDistributeDate,
+    distributeTime,
+    setDistributeTime,
+    handleDistributeSubmit,
+    distributeMutation,
   };
 };

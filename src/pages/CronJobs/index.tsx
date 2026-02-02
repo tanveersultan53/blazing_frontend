@@ -8,6 +8,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Play, StopCircle, RefreshCw, Clock, Plus, Info, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
     Dialog,
     DialogContent,
@@ -40,6 +41,18 @@ import {
     type UpdateCronJobData,
 } from "@/services/cronJobService";
 import { getDefaultEmails } from "@/services/ecardService";
+import {
+    getEcardDistributions,
+    deleteEcardDistribution,
+    updateEcardDistribution,
+    type EcardDistribution,
+} from "@/services/ecardDistributionService";
+import {
+    getNewsletterDistributions,
+    deleteNewsletterDistribution,
+    updateNewsletterDistribution,
+    type NewsletterDistribution,
+} from "@/services/newsletterDistributionService";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -100,6 +113,106 @@ const CronJobs = () => {
     });
 
     const ecards = ecardsData?.data?.results || [];
+
+    // Fetch ecard distributions
+    const { data: ecardDistributionsData } = useQuery({
+        queryKey: ['ecardDistributions'],
+        queryFn: () => getEcardDistributions(),
+    });
+
+    const ecardDistributions = ecardDistributionsData?.data?.results || [];
+
+    // Fetch newsletter distributions
+    const { data: newsletterDistributionsData } = useQuery({
+        queryKey: ['newsletterDistributions'],
+        queryFn: () => getNewsletterDistributions(),
+    });
+
+    const newsletterDistributions = newsletterDistributionsData?.data?.results || [];
+
+    // State for ecard distribution actions
+    const [deletingDistributionId, setDeletingDistributionId] = useState<number | null>(null);
+    const [showDeleteDistributionDialog, setShowDeleteDistributionDialog] = useState(false);
+
+    // State for newsletter distribution actions
+    const [deletingNewsletterDistributionId, setDeletingNewsletterDistributionId] = useState<number | null>(null);
+    const [showDeleteNewsletterDistributionDialog, setShowDeleteNewsletterDistributionDialog] = useState(false);
+
+    // Delete ecard distribution mutation
+    const deleteDistributionMutation = useMutation({
+        mutationFn: (id: number) => deleteEcardDistribution(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['ecardDistributions'] });
+            setShowDeleteDistributionDialog(false);
+            setDeletingDistributionId(null);
+            toast.success("Distribution deleted successfully");
+        },
+        onError: (error: any) => {
+            toast.error(error?.response?.data?.message || "Failed to delete distribution");
+        },
+    });
+
+    // Cancel ecard distribution mutation
+    const cancelDistributionMutation = useMutation({
+        mutationFn: (id: number) => updateEcardDistribution(id, { status: 'cancelled', is_active: false }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['ecardDistributions'] });
+            toast.success("Distribution cancelled successfully");
+        },
+        onError: (error: any) => {
+            toast.error(error?.response?.data?.message || "Failed to cancel distribution");
+        },
+    });
+
+    // Mark completed mutation
+    const markCompletedMutation = useMutation({
+        mutationFn: (id: number) => updateEcardDistribution(id, { status: 'completed' }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['ecardDistributions'] });
+            toast.success("Distribution marked as completed");
+        },
+        onError: (error: any) => {
+            toast.error(error?.response?.data?.message || "Failed to mark as completed");
+        },
+    });
+
+    // Delete newsletter distribution mutation
+    const deleteNewsletterDistributionMutation = useMutation({
+        mutationFn: (id: number) => deleteNewsletterDistribution(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['newsletterDistributions'] });
+            setShowDeleteNewsletterDistributionDialog(false);
+            setDeletingNewsletterDistributionId(null);
+            toast.success("Newsletter distribution deleted successfully");
+        },
+        onError: (error: any) => {
+            toast.error(error?.response?.data?.message || "Failed to delete newsletter distribution");
+        },
+    });
+
+    // Cancel newsletter distribution mutation
+    const cancelNewsletterDistributionMutation = useMutation({
+        mutationFn: (id: number) => updateNewsletterDistribution(id, { status: 'cancelled', is_active: false }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['newsletterDistributions'] });
+            toast.success("Newsletter distribution cancelled successfully");
+        },
+        onError: (error: any) => {
+            toast.error(error?.response?.data?.message || "Failed to cancel newsletter distribution");
+        },
+    });
+
+    // Mark newsletter completed mutation
+    const markNewsletterCompletedMutation = useMutation({
+        mutationFn: (id: number) => updateNewsletterDistribution(id, { status: 'completed' }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['newsletterDistributions'] });
+            toast.success("Newsletter distribution marked as completed");
+        },
+        onError: (error: any) => {
+            toast.error(error?.response?.data?.message || "Failed to mark as completed");
+        },
+    });
 
     // Create cron job mutation
     const createMutation = useMutation({
@@ -383,35 +496,308 @@ const CronJobs = () => {
         setNewCronJob(prev => ({ ...prev, [field]: value }));
     };
 
+    // Ecard distribution handlers
+    const handleDeleteDistribution = (id: number) => {
+        setDeletingDistributionId(id);
+        setShowDeleteDistributionDialog(true);
+    };
+
+    const confirmDeleteDistribution = () => {
+        if (deletingDistributionId) {
+            deleteDistributionMutation.mutate(deletingDistributionId);
+        }
+    };
+
+    const handleCancelDistribution = (id: number) => {
+        cancelDistributionMutation.mutate(id);
+    };
+
+    const handleMarkCompleted = (id: number) => {
+        markCompletedMutation.mutate(id);
+    };
+
+    // Newsletter distribution handlers
+    const handleDeleteNewsletterDistribution = (id: number) => {
+        setDeletingNewsletterDistributionId(id);
+        setShowDeleteNewsletterDistributionDialog(true);
+    };
+
+    const confirmDeleteNewsletterDistribution = () => {
+        if (deletingNewsletterDistributionId) {
+            deleteNewsletterDistributionMutation.mutate(deletingNewsletterDistributionId);
+        }
+    };
+
+    const handleCancelNewsletterDistribution = (id: number) => {
+        cancelNewsletterDistributionMutation.mutate(id);
+    };
+
+    const handleMarkNewsletterCompleted = (id: number) => {
+        markNewsletterCompletedMutation.mutate(id);
+    };
+
+    const getDistributionStatusBadge = (status: EcardDistribution["status"] | NewsletterDistribution["status"]) => {
+        const statusConfig = {
+            pending: { label: "Pending", className: "bg-yellow-100 text-yellow-800 border-yellow-200" },
+            in_progress: { label: "In Progress", className: "bg-blue-100 text-blue-800 border-blue-200" },
+            sent: { label: "Sent", className: "bg-indigo-100 text-indigo-800 border-indigo-200" },
+            delivered: { label: "Delivered", className: "bg-cyan-100 text-cyan-800 border-cyan-200" },
+            completed: { label: "Completed", className: "bg-green-100 text-green-800 border-green-200" },
+            failed: { label: "Failed", className: "bg-red-100 text-red-800 border-red-200" },
+            cancelled: { label: "Cancelled", className: "bg-gray-100 text-gray-800 border-gray-200" },
+        };
+
+        const config = statusConfig[status];
+        return (
+            <Badge variant="outline" className={config.className}>
+                {config.label}
+            </Badge>
+        );
+    };
+
+    // Ecard distributions columns
+    const distributionColumns: ColumnDef<EcardDistribution>[] = [
+        {
+            accessorKey: "ecard_name",
+            header: "Ecard",
+            cell: ({ row }) => (
+                <div>
+                    <p className="font-medium">{row.original.ecard_name || `Ecard #${row.original.ecard}`}</p>
+                    <p className="text-xs text-muted-foreground">
+                        {row.original.send_to_all ? "All Users" : `${row.original.users?.length || 0} Selected Users`}
+                    </p>
+                </div>
+            ),
+        },
+        {
+            accessorKey: "recipient_type",
+            header: "Recipients",
+            cell: ({ row }) => {
+                const typeLabels = {
+                    all: "All Contacts & Partners",
+                    contact: "Contacts Only",
+                    partner: "Partners Only",
+                };
+                return <span className="text-sm">{typeLabels[row.original.recipient_type]}</span>;
+            },
+        },
+        {
+            accessorKey: "status",
+            header: "Status",
+            cell: ({ row }) => getDistributionStatusBadge(row.original.status),
+        },
+        {
+            accessorKey: "scheduled_at",
+            header: "Scheduled",
+            cell: ({ row }) => (
+                <span className="text-sm">{new Date(row.original.scheduled_at).toLocaleString()}</span>
+            ),
+        },
+        {
+            id: "actions",
+            header: "Actions",
+            cell: ({ row }) => (
+                <div className="flex items-center gap-2 flex-wrap">
+                    {row.original.status === "pending" && (
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleCancelDistribution(row.original.id)}
+                        >
+                            Cancel
+                        </Button>
+                    )}
+                    {row.original.status === "in_progress" && (
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleMarkCompleted(row.original.id)}
+                        >
+                            Mark Completed
+                        </Button>
+                    )}
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDeleteDistribution(row.original.id)}
+                        className="text-red-600 hover:text-red-700"
+                    >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Delete
+                    </Button>
+                </div>
+            ),
+        },
+    ];
+
+    // Newsletter distributions columns
+    const newsletterDistributionColumns: ColumnDef<NewsletterDistribution>[] = [
+        {
+            accessorKey: "newsletter_label",
+            header: "Newsletter",
+            cell: ({ row }) => (
+                <div>
+                    <p className="font-medium">{row.original.newsletter_label || `Newsletter #${row.original.newsletter}`}</p>
+                    <p className="text-xs text-muted-foreground">
+                        {row.original.send_to_all ? "All Users" : `${row.original.users?.length || 0} Selected Users`}
+                    </p>
+                </div>
+            ),
+        },
+        {
+            accessorKey: "recipient_type",
+            header: "Recipients",
+            cell: ({ row }) => {
+                const typeLabels = {
+                    all: "All Contacts & Partners",
+                    contact: "Contacts Only",
+                    partner: "Partners Only",
+                };
+                return <span className="text-sm">{typeLabels[row.original.recipient_type]}</span>;
+            },
+        },
+        {
+            accessorKey: "version",
+            header: "Version",
+            cell: ({ row }) => {
+                const versionLabels = {
+                    long: "Long",
+                    short: "Short",
+                    both: "Both",
+                };
+                return <span className="text-sm">{versionLabels[row.original.version]}</span>;
+            },
+        },
+        {
+            accessorKey: "status",
+            header: "Status",
+            cell: ({ row }) => getDistributionStatusBadge(row.original.status),
+        },
+        {
+            accessorKey: "scheduled_at",
+            header: "Scheduled",
+            cell: ({ row }) => (
+                <span className="text-sm">{new Date(row.original.scheduled_at).toLocaleString()}</span>
+            ),
+        },
+        {
+            id: "actions",
+            header: "Actions",
+            cell: ({ row }) => (
+                <div className="flex items-center gap-2 flex-wrap">
+                    {row.original.status === "pending" && (
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleCancelNewsletterDistribution(row.original.id)}
+                        >
+                            Cancel
+                        </Button>
+                    )}
+                    {row.original.status === "in_progress" && (
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleMarkNewsletterCompleted(row.original.id)}
+                        >
+                            Mark Completed
+                        </Button>
+                    )}
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDeleteNewsletterDistribution(row.original.id)}
+                        className="text-red-600 hover:text-red-700"
+                    >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Delete
+                    </Button>
+                </div>
+            ),
+        },
+    ];
+
     return (
         <PageHeader
-            title="Cron Jobs Management"
-            description="View and manage all scheduled cron jobs"
+            title="Jobs Management"
+            description="View and manage scheduled jobs and distributions"
         >
-            <Card>
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <CardTitle>Active Cron Jobs</CardTitle>
-                            <CardDescription>
-                                Monitor and control all automated tasks and scheduled jobs
-                            </CardDescription>
-                        </div>
-                        <Button onClick={() => setShowCreateDialog(true)}>
-                            <Plus className="h-4 w-4 mr-2" />
-                            Create Cron Job
-                        </Button>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <DataTable
-                        columns={columns}
-                        data={cronJobs}
-                        searchColumns={['name', 'description']}
-                        showActionsColumn={false}
-                    />
-                </CardContent>
-            </Card>
+            <Tabs defaultValue="cron-jobs" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="cron-jobs">Cron Jobs</TabsTrigger>
+                    <TabsTrigger value="ecard-distributions">Ecard Distributions</TabsTrigger>
+                    <TabsTrigger value="newsletter-distributions">Newsletter Distributions</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="cron-jobs" className="mt-6">
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <CardTitle>Active Cron Jobs</CardTitle>
+                                    <CardDescription>
+                                        Monitor and control all automated tasks and scheduled jobs
+                                    </CardDescription>
+                                </div>
+                                <Button onClick={() => setShowCreateDialog(true)}>
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Create Cron Job
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <DataTable
+                                columns={columns}
+                                data={cronJobs}
+                                searchColumns={['name', 'description']}
+                                showActionsColumn={false}
+                            />
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                <TabsContent value="ecard-distributions" className="mt-6">
+                    <Card>
+                        <CardHeader>
+                            <div>
+                                <CardTitle>Ecard Distributions</CardTitle>
+                                <CardDescription>
+                                    View and manage scheduled ecard distribution jobs
+                                </CardDescription>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <DataTable
+                                columns={distributionColumns}
+                                data={ecardDistributions}
+                                searchColumns={['ecard_name']}
+                                showActionsColumn={false}
+                            />
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                <TabsContent value="newsletter-distributions" className="mt-6">
+                    <Card>
+                        <CardHeader>
+                            <div>
+                                <CardTitle>Newsletter Distributions</CardTitle>
+                                <CardDescription>
+                                    View and manage scheduled newsletter distribution jobs
+                                </CardDescription>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <DataTable
+                                columns={newsletterDistributionColumns}
+                                data={newsletterDistributions}
+                                searchColumns={['newsletter_label']}
+                                showActionsColumn={false}
+                            />
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
 
             <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
                 <DialogContent className="sm:max-w-[600px]">
@@ -639,7 +1025,7 @@ const CronJobs = () => {
                 </DialogContent>
             </Dialog>
 
-            {/* Delete Confirmation Dialog */}
+            {/* Delete Cron Job Confirmation Dialog */}
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -656,6 +1042,50 @@ const CronJobs = () => {
                             disabled={deleteMutation.isPending}
                         >
                             {deleteMutation.isPending ? "Deleting..." : "Delete"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Delete Distribution Confirmation Dialog */}
+            <AlertDialog open={showDeleteDistributionDialog} onOpenChange={setShowDeleteDistributionDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the ecard distribution.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmDeleteDistribution}
+                            className="bg-red-600 hover:bg-red-700"
+                            disabled={deleteDistributionMutation.isPending}
+                        >
+                            {deleteDistributionMutation.isPending ? "Deleting..." : "Delete"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Delete Newsletter Distribution Confirmation Dialog */}
+            <AlertDialog open={showDeleteNewsletterDistributionDialog} onOpenChange={setShowDeleteNewsletterDistributionDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the newsletter distribution.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmDeleteNewsletterDistribution}
+                            className="bg-red-600 hover:bg-red-700"
+                            disabled={deleteNewsletterDistributionMutation.isPending}
+                        >
+                            {deleteNewsletterDistributionMutation.isPending ? "Deleting..." : "Delete"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

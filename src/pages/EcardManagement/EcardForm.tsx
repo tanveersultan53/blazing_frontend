@@ -44,11 +44,14 @@ import {
   updateDefaultEmail,
   getDefaultEmail,
   deleteDefaultEmail,
-  distributeEcard,
   previewEcardHtml,
   sendEcard,
   getUsersList,
 } from "@/services/ecardService";
+import {
+  createEcardDistribution,
+  type CreateEcardDistributionData,
+} from "@/services/ecardDistributionService";
 import { EMAIL_CATEGORIES } from "./interface";
 import type { IEcard } from "./interface";
 import {
@@ -99,6 +102,13 @@ export default function EcardForm() {
   const [showSendPreview, setShowSendPreview] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [usersList, setUsersList] = useState<Array<{ id: number; name: string; email: string; company: string }>>([]);
+  const [showDistributeDialog, setShowDistributeDialog] = useState(false);
+  const [distributeToAllUsers, setDistributeToAllUsers] = useState(true);
+  const [selectedDistributeUsers, setSelectedDistributeUsers] = useState<number[]>([]);
+  const [distributeRecipientType, setDistributeRecipientType] = useState<'all' | 'contact' | 'partner'>('all');
+  const [distributeDate, setDistributeDate] = useState<Date | undefined>(undefined);
+  const [distributeTime, setDistributeTime] = useState<string>("");
+  const [isLoadingDistributeUsers, setIsLoadingDistributeUsers] = useState(false);
 
   // Fetch ecard data if editing
   const { data: ecardData, isLoading: isLoadingEcard, error: ecardError } = useQuery({
@@ -276,16 +286,22 @@ export default function EcardForm() {
     },
   });
 
-  // Distribute mutation
+  // Distribute mutation - creates a distribution record
   const distributeMutation = useMutation({
-    mutationFn: (ecardId: number) => distributeEcard(ecardId),
+    mutationFn: (data: CreateEcardDistributionData) => createEcardDistribution(data),
     onSuccess: (response) => {
-      const count = response.data?.users_count || 0;
-      toast.success(`Ecard distributed to ${count} users successfully!`);
+      toast.success("Ecard distribution scheduled successfully!");
+      setShowDistributeDialog(false);
+      // Reset distribute dialog states
+      setDistributeToAllUsers(true);
+      setSelectedDistributeUsers([]);
+      setDistributeRecipientType('all');
+      setDistributeDate(undefined);
+      setDistributeTime('');
     },
     onError: (error: any) => {
-      console.error("Distribute ecard error:", error);
-      toast.error(error.response?.data?.error || "Failed to distribute ecard");
+      console.error("Create distribution error:", error);
+      toast.error(error.response?.data?.error || "Failed to schedule distribution");
     },
   });
 
@@ -391,10 +407,74 @@ export default function EcardForm() {
     }
   };
 
-  const handleDistribute = () => {
-    if (id) {
-      distributeMutation.mutate(Number(id));
+  const handleDistribute = async () => {
+    if (!id) {
+      toast.error("Please save the ecard first before distributing");
+      return;
     }
+    // Reset states when opening
+    setDistributeToAllUsers(true);
+    setSelectedDistributeUsers([]);
+    setDistributeRecipientType('all');
+    setDistributeDate(undefined);
+    setDistributeTime('');
+    setShowDistributeDialog(true);
+
+    // Fetch users list for dropdown
+    setIsLoadingDistributeUsers(true);
+    try {
+      const response = await getUsersList();
+      setUsersList(response.data.users);
+    } catch (error) {
+      console.error("Failed to fetch users list:", error);
+      toast.error("Failed to load users list");
+    } finally {
+      setIsLoadingDistributeUsers(false);
+    }
+  };
+
+  const handleConfirmDistribute = () => {
+    if (!id) {
+      toast.error("Please save the ecard first");
+      return;
+    }
+
+    // Validation
+    if (!distributeToAllUsers && selectedDistributeUsers.length === 0) {
+      toast.error("Please select at least one user");
+      return;
+    }
+
+    if (distributeDate && !distributeTime) {
+      toast.error("Please select a time for scheduled distribution");
+      return;
+    }
+
+    // Prepare scheduled_at datetime
+    let scheduledAt: string;
+    if (distributeDate && distributeTime) {
+      // Combine date and time
+      const [hours, minutes] = distributeTime.split(':');
+      const scheduledDate = new Date(distributeDate);
+      scheduledDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+      scheduledAt = scheduledDate.toISOString();
+    } else {
+      // Default to now
+      scheduledAt = new Date().toISOString();
+    }
+
+    // Prepare distribution data
+    const distributionData: CreateEcardDistributionData = {
+      ecard: Number(id),
+      status: "pending",
+      users: distributeToAllUsers ? [] : selectedDistributeUsers,
+      send_to_all: distributeToAllUsers,
+      recipient_type: distributeRecipientType,
+      scheduled_at: scheduledAt,
+      is_active: true,
+    };
+
+    distributeMutation.mutate(distributionData);
   };
 
   const handleSend = async () => {
@@ -1118,6 +1198,179 @@ export default function EcardForm() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Distribute Dialog */}
+      <Dialog
+        open={showDistributeDialog}
+        onOpenChange={(open) => {
+          setShowDistributeDialog(open);
+          if (!open) {
+            // Reset states when closing
+            setDistributeToAllUsers(true);
+            setSelectedDistributeUsers([]);
+            setDistributeRecipientType('all');
+            setDistributeDate(undefined);
+            setDistributeTime('');
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Schedule Ecard Distribution</DialogTitle>
+            <DialogDescription>
+              Configure and schedule distribution for this ecard
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* User Selection */}
+            <div className="space-y-2">
+              <Label>Select Users</Label>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="all-users"
+                  checked={distributeToAllUsers}
+                  onCheckedChange={setDistributeToAllUsers}
+                />
+                <Label htmlFor="all-users" className="font-normal cursor-pointer">
+                  Send to all users
+                </Label>
+              </div>
+            </div>
+
+            {!distributeToAllUsers && (
+              <div className="space-y-2">
+                <Label htmlFor="select-users">Select Specific Users</Label>
+                <Select
+                  value={selectedDistributeUsers.length > 0 ? selectedDistributeUsers[0].toString() : ""}
+                  onValueChange={(value) => {
+                    const userId = Number(value);
+                    if (!selectedDistributeUsers.includes(userId)) {
+                      setSelectedDistributeUsers([...selectedDistributeUsers, userId]);
+                    }
+                  }}
+                  disabled={isLoadingDistributeUsers}
+                >
+                  <SelectTrigger id="select-users">
+                    <SelectValue placeholder={isLoadingDistributeUsers ? "Loading users..." : "Select users..."} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {isLoadingDistributeUsers ? (
+                      <SelectItem value="loading" disabled>
+                        Loading users...
+                      </SelectItem>
+                    ) : usersList.length === 0 ? (
+                      <SelectItem value="no-users" disabled>
+                        No users found
+                      </SelectItem>
+                    ) : (
+                      usersList.map((user) => (
+                        <SelectItem key={user.id} value={user.id.toString()}>
+                          {user.name} ({user.email})
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                {selectedDistributeUsers.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {selectedDistributeUsers.map((userId) => {
+                      const user = usersList.find((u) => u.id === userId);
+                      return user ? (
+                        <div
+                          key={userId}
+                          className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-1 rounded-md text-sm"
+                        >
+                          <span>{user.name}</span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setSelectedDistributeUsers(
+                                selectedDistributeUsers.filter((id) => id !== userId)
+                              )
+                            }
+                            className="ml-1 hover:text-primary/70"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Recipient Type */}
+            <div className="space-y-2">
+              <Label htmlFor="recipient-type">Recipient Type</Label>
+              <Select
+                value={distributeRecipientType}
+                onValueChange={(value: 'all' | 'contact' | 'partner') =>
+                  setDistributeRecipientType(value)
+                }
+              >
+                <SelectTrigger id="recipient-type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Contacts & Partners</SelectItem>
+                  <SelectItem value="contact">Contacts Only</SelectItem>
+                  <SelectItem value="partner">Partners Only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Send Date */}
+            <div className="space-y-2">
+              <Label>Send Date (Optional)</Label>
+              <DatePicker
+                value={distributeDate}
+                onChange={setDistributeDate}
+                placeholder="Select a date"
+              />
+            </div>
+
+            {/* Send Time */}
+            {distributeDate && (
+              <div className="space-y-2">
+                <Label htmlFor="send-time">Send Time</Label>
+                <Input
+                  id="send-time"
+                  type="time"
+                  value={distributeTime}
+                  onChange={(e) => setDistributeTime(e.target.value)}
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowDistributeDialog(false)}
+              disabled={distributeMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleConfirmDistribute}
+              disabled={distributeMutation.isPending}
+            >
+              {distributeMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Scheduling...
+                </>
+              ) : (
+                "Schedule Distribution"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </PageHeader>
   );

@@ -41,7 +41,10 @@ import {
   ExternalLink,
   Loader2,
   Mail,
+  X,
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { useNewsletterManagement } from "./useNewsletterManagement";
 import Loading from "@/components/Loading";
 
@@ -91,6 +94,23 @@ export default function NewsletterManagement() {
     // Edit mode
     isEditMode,
     isLoadingNewsletter,
+    // Distribute dialog
+    isDistributeDialogOpen,
+    setIsDistributeDialogOpen,
+    distributeToAllUsers,
+    setDistributeToAllUsers,
+    selectedDistributeUsers,
+    setSelectedDistributeUsers,
+    distributeRecipientType,
+    setDistributeRecipientType,
+    distributeVersion,
+    setDistributeVersion,
+    distributeDate,
+    setDistributeDate,
+    distributeTime,
+    setDistributeTime,
+    handleDistributeSubmit,
+    distributeMutation,
   } = useNewsletterManagement();
 
   const econImage = watch("econ_image");
@@ -787,6 +807,192 @@ export default function NewsletterManagement() {
           <DialogFooter>
             <Button type="button" onClick={handleClosePreview}>
               Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Distribute Newsletter Dialog */}
+      <Dialog open={isDistributeDialogOpen} onOpenChange={setIsDistributeDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Distribute Newsletter</DialogTitle>
+            <DialogDescription>
+              Configure distribution settings for this newsletter
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            {/* Send to All Users Toggle */}
+            <div className="flex items-center justify-between space-x-2">
+              <div className="space-y-0.5">
+                <Label htmlFor="distribute-all-users">Send to All Users</Label>
+                <p className="text-sm text-muted-foreground">
+                  Toggle to send to all users or select specific users
+                </p>
+              </div>
+              <Switch
+                id="distribute-all-users"
+                checked={distributeToAllUsers}
+                onCheckedChange={setDistributeToAllUsers}
+              />
+            </div>
+
+            {/* User Selection (only show if not sending to all) */}
+            {!distributeToAllUsers && (
+              <div className="space-y-2">
+                <Label htmlFor="distribute-users">Select Users</Label>
+                <Select
+                  value={selectedDistributeUsers.length > 0 ? "selected" : ""}
+                  onValueChange={(value) => {
+                    if (value && !selectedDistributeUsers.includes(Number(value))) {
+                      setSelectedDistributeUsers([...selectedDistributeUsers, Number(value)]);
+                    }
+                  }}
+                >
+                  <SelectTrigger id="distribute-users">
+                    <SelectValue placeholder="Choose users..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {isLoadingUsers ? (
+                      <SelectItem value="loading" disabled>
+                        Loading users...
+                      </SelectItem>
+                    ) : users.length === 0 ? (
+                      <SelectItem value="no-users" disabled>
+                        No users found
+                      </SelectItem>
+                    ) : (
+                      users.map((user) => (
+                        <SelectItem key={user.id} value={user.id.toString()}>
+                          {user.first_name} {user.last_name} ({user.email})
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+
+                {/* Selected Users Display */}
+                {selectedDistributeUsers.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {selectedDistributeUsers.map((userId) => {
+                      const user = users.find((u) => u.id === userId);
+                      return (
+                        <Badge key={userId} variant="secondary" className="flex items-center gap-1">
+                          {user ? `${user.first_name} ${user.last_name}` : `User ${userId}`}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedDistributeUsers(
+                                selectedDistributeUsers.filter((id) => id !== userId)
+                              );
+                            }}
+                            className="ml-1 hover:bg-destructive/20 rounded-full"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Recipient Type */}
+            <div className="space-y-2">
+              <Label htmlFor="recipient-type">Recipient Type</Label>
+              <Select
+                value={distributeRecipientType}
+                onValueChange={(value) => setDistributeRecipientType(value as 'all' | 'partner' | 'contact')}
+              >
+                <SelectTrigger id="recipient-type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Contacts & Partners</SelectItem>
+                  <SelectItem value="contact">Contacts Only</SelectItem>
+                  <SelectItem value="partner">Partners Only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Newsletter Version */}
+            <div className="space-y-2">
+              <Label htmlFor="distribute-version">Newsletter Version</Label>
+              <Select
+                value={distributeVersion}
+                onValueChange={(value) => setDistributeVersion(value as 'long' | 'short' | 'both')}
+              >
+                <SelectTrigger id="distribute-version">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="both">Both (Long & Short)</SelectItem>
+                  <SelectItem value="long">Long Newsletter Only</SelectItem>
+                  <SelectItem value="short">Short Newsletter Only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Schedule Date/Time (Optional) */}
+            <div className="space-y-3">
+              <Label>Send Date/Time (Optional)</Label>
+              <p className="text-sm text-muted-foreground">
+                Leave empty to send immediately
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "justify-start text-left font-normal",
+                        !distributeDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {distributeDate ? format(distributeDate, "PPP") : "Pick a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={distributeDate}
+                      onSelect={setDistributeDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <Input
+                  type="time"
+                  value={distributeTime}
+                  onChange={(e) => setDistributeTime(e.target.value)}
+                  placeholder="Select time"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsDistributeDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleDistributeSubmit}
+              disabled={distributeMutation.isPending || (!distributeToAllUsers && selectedDistributeUsers.length === 0)}
+            >
+              {distributeMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Scheduling...
+                </>
+              ) : (
+                "Schedule Distribution"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
