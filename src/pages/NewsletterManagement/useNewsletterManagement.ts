@@ -320,7 +320,7 @@ export const useNewsletterManagement = () => {
   // Distribute newsletter mutation
   const distributeMutation = useMutation({
     mutationFn: (data: CreateNewsletterDistributionData) => createNewsletterDistribution(data),
-    onSuccess: (response) => {
+    onSuccess: () => {
       toast.success("Newsletter distribution scheduled successfully!");
       setIsDistributeDialogOpen(false);
       // Reset distribute dialog state

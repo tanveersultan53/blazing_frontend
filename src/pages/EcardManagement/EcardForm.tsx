@@ -96,8 +96,6 @@ export default function EcardForm() {
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [showSendDialog, setShowSendDialog] = useState(false);
-  const [recipientType, setRecipientType] = useState<'contacts' | 'partners' | 'all' | 'custom'>('all');
-  const [customEmails, setCustomEmails] = useState<string>('');
   const [sendPreviewHtml, setSendPreviewHtml] = useState<string | null>(null);
   const [showSendPreview, setShowSendPreview] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
@@ -289,7 +287,7 @@ export default function EcardForm() {
   // Distribute mutation - creates a distribution record
   const distributeMutation = useMutation({
     mutationFn: (data: CreateEcardDistributionData) => createEcardDistribution(data),
-    onSuccess: (response) => {
+    onSuccess: () => {
       toast.success("Ecard distribution scheduled successfully!");
       setShowDistributeDialog(false);
       // Reset distribute dialog states
@@ -315,8 +313,6 @@ export default function EcardForm() {
       setShowSendDialog(false);
       setShowSendPreview(false);
       setSendPreviewHtml(null);
-      setCustomEmails('');
-      setRecipientType('all');
       setSelectedUserId(null);
     },
     onError: (error: any) => {
@@ -1038,8 +1034,6 @@ export default function EcardForm() {
             setShowSendPreview(false);
             setSendPreviewHtml(null);
             setSelectedUserId(null);
-            setCustomEmails('');
-            setRecipientType('all');
           }
         }}
       >
