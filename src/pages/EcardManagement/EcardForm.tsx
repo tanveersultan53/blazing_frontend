@@ -1295,26 +1295,6 @@ export default function EcardForm() {
               </div>
             )}
 
-            {/* Recipient Type */}
-            <div className="space-y-2">
-              <Label htmlFor="recipient-type">Recipient Type</Label>
-              <Select
-                value={distributeRecipientType}
-                onValueChange={(value: 'all' | 'contact' | 'partner') =>
-                  setDistributeRecipientType(value)
-                }
-              >
-                <SelectTrigger id="recipient-type">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Contacts & Partners</SelectItem>
-                  <SelectItem value="contact">Contacts Only</SelectItem>
-                  <SelectItem value="partner">Partners Only</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
             {/* Send Date */}
             <div className="space-y-2">
               <Label>Send Date (Optional)</Label>

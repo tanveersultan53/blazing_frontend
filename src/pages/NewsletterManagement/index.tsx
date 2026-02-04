@@ -456,14 +456,6 @@ export default function NewsletterManagement() {
                     >
                       Add HTML Codes
                     </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleSchedule}
-                      disabled={createMutation.isPending}
-                    >
-                      Schedule
-                    </Button>
                   </div>
 
                   {/* Second Row */}
@@ -482,7 +474,7 @@ export default function NewsletterManagement() {
                       onClick={handleDistribute}
                       disabled={createMutation.isPending}
                     >
-                      Distribute
+                      Schedule
                     </Button>
                   </div>
                 </div>
@@ -812,13 +804,13 @@ export default function NewsletterManagement() {
         </DialogContent>
       </Dialog>
 
-      {/* Distribute Newsletter Dialog */}
+      {/* Schedule Newsletter Dialog */}
       <Dialog open={isDistributeDialogOpen} onOpenChange={setIsDistributeDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Distribute Newsletter</DialogTitle>
+            <DialogTitle>Schedule Newsletter</DialogTitle>
             <DialogDescription>
-              Configure distribution settings for this newsletter
+              Configure schedule settings for this newsletter
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-6 py-4">
@@ -898,42 +890,6 @@ export default function NewsletterManagement() {
               </div>
             )}
 
-            {/* Recipient Type */}
-            <div className="space-y-2">
-              <Label htmlFor="recipient-type">Recipient Type</Label>
-              <Select
-                value={distributeRecipientType}
-                onValueChange={(value) => setDistributeRecipientType(value as 'all' | 'partner' | 'contact')}
-              >
-                <SelectTrigger id="recipient-type">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Contacts & Partners</SelectItem>
-                  <SelectItem value="contact">Contacts Only</SelectItem>
-                  <SelectItem value="partner">Partners Only</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Newsletter Version */}
-            <div className="space-y-2">
-              <Label htmlFor="distribute-version">Newsletter Version</Label>
-              <Select
-                value={distributeVersion}
-                onValueChange={(value) => setDistributeVersion(value as 'long' | 'short' | 'both')}
-              >
-                <SelectTrigger id="distribute-version">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="both">Both (Long & Short)</SelectItem>
-                  <SelectItem value="long">Long Newsletter Only</SelectItem>
-                  <SelectItem value="short">Short Newsletter Only</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
             {/* Schedule Date/Time (Optional) */}
             <div className="space-y-3">
               <Label>Send Date/Time (Optional)</Label>
@@ -991,7 +947,7 @@ export default function NewsletterManagement() {
                   Scheduling...
                 </>
               ) : (
-                "Schedule Distribution"
+                "Schedule"
               )}
             </Button>
           </DialogFooter>

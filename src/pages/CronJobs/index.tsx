@@ -570,18 +570,6 @@ const CronJobs = () => {
             ),
         },
         {
-            accessorKey: "recipient_type",
-            header: "Recipients",
-            cell: ({ row }) => {
-                const typeLabels = {
-                    all: "All Contacts & Partners",
-                    contact: "Contacts Only",
-                    partner: "Partners Only",
-                };
-                return <span className="text-sm">{typeLabels[row.original.recipient_type]}</span>;
-            },
-        },
-        {
             accessorKey: "status",
             header: "Status",
             cell: ({ row }) => getDistributionStatusBadge(row.original.status),
@@ -643,30 +631,6 @@ const CronJobs = () => {
                     </p>
                 </div>
             ),
-        },
-        {
-            accessorKey: "recipient_type",
-            header: "Recipients",
-            cell: ({ row }) => {
-                const typeLabels = {
-                    all: "All Contacts & Partners",
-                    contact: "Contacts Only",
-                    partner: "Partners Only",
-                };
-                return <span className="text-sm">{typeLabels[row.original.recipient_type]}</span>;
-            },
-        },
-        {
-            accessorKey: "version",
-            header: "Version",
-            cell: ({ row }) => {
-                const versionLabels = {
-                    long: "Long",
-                    short: "Short",
-                    both: "Both",
-                };
-                return <span className="text-sm">{versionLabels[row.original.version]}</span>;
-            },
         },
         {
             accessorKey: "status",
