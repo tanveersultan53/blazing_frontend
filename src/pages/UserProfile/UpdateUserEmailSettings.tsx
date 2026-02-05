@@ -280,10 +280,10 @@ const UpdateUserEmailSettings = ({
                     <SelectField
                         label="Recipient"
                         value={watch("whobday") ?? ""}
-                        onChange={(value) => setValue("whobday", value as "contact" | "parent" | "both")}
+                        onChange={(value) => setValue("whobday", value as "contacts_only" | "partners_only" | "both")}
                         options={[
-                            { value: "contact", label: "Contact" },
-                            { value: "parent", label: "Parent" },
+                            { value: "contacts_only", label: "Contacts Only" },
+                            { value: "partners_only", label: "Partners Only" },
                             { value: "both", label: "Both" },
                         ]}
                     />
@@ -328,10 +328,10 @@ const UpdateUserEmailSettings = ({
                     <SelectField
                         label="Recipient"
                         value={watch("whoecards") ?? ""}
-                        onChange={(value) => setValue("whoecards", value as "contact" | "parent" | "both")}
+                        onChange={(value) => setValue("whoecards", value as "contacts_only" | "partners_only" | "both")}
                         options={[
-                            { value: "contact", label: "Contact" },
-                            { value: "parent", label: "Parent" },
+                            { value: "contacts_only", label: "Contacts Only" },
+                            { value: "partners_only", label: "Partners Only" },
                             { value: "both", label: "Both" },
                         ]}
                     />

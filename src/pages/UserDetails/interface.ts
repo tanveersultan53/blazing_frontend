@@ -98,9 +98,9 @@ export interface IEmailSettings {
   birthday: boolean
   spouse_birthday: boolean
   birthday_status: 'send' | 'dont_send' | null
-  whobday: 'contact' | 'parent' | 'both' | null
+  whobday: 'contacts_only' | 'partners_only' | 'both' | null
   ecard_status: 'send' | 'dont_send' | null
-  whoecards: 'contact' | 'parent' | 'both' | null
+  whoecards: 'contacts_only' | 'partners_only' | 'both' | null
   newyears: boolean
   stpatrick: boolean
   july4: boolean

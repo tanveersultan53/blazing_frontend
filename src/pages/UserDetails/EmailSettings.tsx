@@ -409,14 +409,14 @@ const EmailSettings = () => {
                                     <label className="text-xs font-medium text-muted-foreground">Recipient</label>
                                     <Select
                                         value={watch('whobday') || ''}
-                                        onValueChange={(value) => setValue('whobday', value as 'contact' | 'parent' | 'both')}
+                                        onValueChange={(value) => setValue('whobday', value as 'contacts_only' | 'partners_only' | 'both')}
                                     >
                                         <SelectTrigger className="w-full">
                                             <SelectValue placeholder="Select recipient" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="contact">Contact's Only</SelectItem>
-                                            <SelectItem value="parent">Parent's Only</SelectItem>
+                                            <SelectItem value="contacts_only">Contacts Only</SelectItem>
+                                            <SelectItem value="partners_only">Partners Only</SelectItem>
                                             <SelectItem value="both">Both</SelectItem>
                                         </SelectContent>
                                     </Select>
@@ -570,14 +570,14 @@ const EmailSettings = () => {
                                     <label className="text-xs font-medium text-muted-foreground">Recipient</label>
                                     <Select
                                         value={watch('whoecards') || ''}
-                                        onValueChange={(value) => setValue('whoecards', value as 'contact' | 'parent' | 'both')}
+                                        onValueChange={(value) => setValue('whoecards', value as 'contacts_only' | 'partners_only' | 'both')}
                                     >
                                         <SelectTrigger className="w-full">
                                             <SelectValue placeholder="Select Recipient" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="contact">Contact's Only</SelectItem>
-                                            <SelectItem value="parent">Parent's Only</SelectItem>
+                                            <SelectItem value="contacts_only">Contacts Only</SelectItem>
+                                            <SelectItem value="partners_only">Partners Only</SelectItem>
                                             <SelectItem value="both">Both</SelectItem>
                                         </SelectContent>
                                     </Select>
