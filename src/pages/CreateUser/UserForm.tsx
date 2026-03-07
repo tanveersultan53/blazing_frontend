@@ -206,16 +206,6 @@ const UserForm = () => {
               )}
             </div>
             <div className="space-y-2">
-              <label htmlFor="rep_name" className="text-sm font-medium">
-                Representative Name
-              </label>
-              <Input
-                id="rep_name"
-                placeholder="Enter representative name"
-                {...register('rep_name')}
-              />
-            </div>
-            <div className="space-y-2">
               <label htmlFor="website" className="text-sm font-medium">
                 Website
               </label>
