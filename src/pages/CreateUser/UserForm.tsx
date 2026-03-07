@@ -232,21 +232,21 @@ const UserForm = () => {
             </div>
             <div className="space-y-2">
               <label htmlFor="branch_id" className="text-sm font-medium">
-                Branch Lisence
+                Branch License
               </label>
               <Input
                 id="branch_id"
-                placeholder="Enter branch lisence"
+                placeholder="Enter branch License"
                 {...register('branch_id')}
               />
             </div>
             <div className="space-y-2">
               <label htmlFor="personal_license" className="text-sm font-medium">
-                Personal Lisence
+                Personal License
               </label>
               <Input
                 id="personal_license"
-                placeholder="Enter personal lisence"
+                placeholder="Enter personal License"
                 {...register('personal_license')}
               />
             </div>
