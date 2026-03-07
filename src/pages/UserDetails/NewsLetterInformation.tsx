@@ -41,6 +41,10 @@ const NewsLetterInformation = ({ user }: { user: IUserDetails | undefined, }) =>
         custom: data?.data?.custom || false,
         company: data?.data?.company || '',
         discloure: data?.data?.discloure || '',
+        hlogo: data?.data?.hlogo || undefined,
+        wlogo: data?.data?.wlogo || undefined,
+        hphoto: data?.data?.hphoto || undefined,
+        wphoto: data?.data?.wphoto || undefined,
     }
 
     const form = useForm<INewsletterInfo>({
@@ -231,6 +235,29 @@ const NewsLetterInformation = ({ user }: { user: IUserDetails | undefined, }) =>
                                         </div>
                                     </div>
                                 )}
+                            </div>
+
+                            {/* Image Dimensions Section */}
+                            <div className="border-t pt-6 mt-6">
+                                <h3 className="text-lg font-semibold mb-4">Image Dimensions (Optional)</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-muted-foreground">Logo Height (px)</label>
+                                        <p className="text-sm font-semibold">{data?.data?.hlogo ?? '-'}</p>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-muted-foreground">Logo Width (px)</label>
+                                        <p className="text-sm font-semibold">{data?.data?.wlogo ?? '-'}</p>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-muted-foreground">Photo Height (px)</label>
+                                        <p className="text-sm font-semibold">{data?.data?.hphoto ?? '-'}</p>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-muted-foreground">Photo Width (px)</label>
+                                        <p className="text-sm font-semibold">{data?.data?.wphoto ?? '-'}</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     }
@@ -464,6 +491,49 @@ const NewsLetterInformation = ({ user }: { user: IUserDetails | undefined, }) =>
                                         className={(errors as any).disclaimer ? 'border-red-500' : ''}
                                     />
                                     <p className="text-xs text-gray-500">Add any disclaimer or additional information about the user</p>
+                                </div>
+                            </div>
+
+                            {/* Image Dimensions Section */}
+                            <div className="border-t pt-6 mt-6">
+                                <h3 className="text-lg font-semibold mb-4">Image Dimensions (Optional)</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label htmlFor="hlogo" className="text-sm font-medium">Logo Height (px)</label>
+                                        <Input
+                                            id="hlogo"
+                                            type="number"
+                                            placeholder="Height"
+                                            {...register('hlogo', { valueAsNumber: true })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label htmlFor="wlogo" className="text-sm font-medium">Logo Width (px)</label>
+                                        <Input
+                                            id="wlogo"
+                                            type="number"
+                                            placeholder="Width"
+                                            {...register('wlogo', { valueAsNumber: true })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label htmlFor="hphoto" className="text-sm font-medium">Photo Height (px)</label>
+                                        <Input
+                                            id="hphoto"
+                                            type="number"
+                                            placeholder="Height"
+                                            {...register('hphoto', { valueAsNumber: true })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label htmlFor="wphoto" className="text-sm font-medium">Photo Width (px)</label>
+                                        <Input
+                                            id="wphoto"
+                                            type="number"
+                                            placeholder="Width"
+                                            {...register('wphoto', { valueAsNumber: true })}
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>)

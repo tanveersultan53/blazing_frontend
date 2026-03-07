@@ -175,6 +175,10 @@ export interface INewsletterInfo {
   custom: boolean;
   company?: string;
   discloure?: string;
+  hlogo?: number;
+  wlogo?: number;
+  hphoto?: number;
+  wphoto?: number;
 }
 
 export interface ICallToAction {
