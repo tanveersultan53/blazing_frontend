@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -42,6 +43,7 @@ import {
   Loader2,
   Mail,
   X,
+  ArrowLeft,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +51,7 @@ import { useNewsletterManagement } from "./useNewsletterManagement";
 import Loading from "@/components/Loading";
 
 export default function NewsletterManagement() {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -116,12 +119,14 @@ export default function NewsletterManagement() {
   const scheduleTime = watch("scheduled_time");
 
   // Helper function to get display name for both File and URL string
-  const getImageDisplayName = (image: File | string | null | undefined): string | null => {
+  const getImageDisplayName = (
+    image: File | string | null | undefined,
+  ): string | null => {
     if (!image) return null;
     if (image instanceof File) return image.name;
-    if (typeof image === 'string') {
+    if (typeof image === "string") {
       // Extract filename from URL
-      const urlParts = image.split('/');
+      const urlParts = image.split("/");
       return urlParts[urlParts.length - 1] || image;
     }
     return null;
@@ -134,17 +139,33 @@ export default function NewsletterManagement() {
   return (
     <PageHeader
       title={isEditMode ? "Edit Newsletter" : "Newsletter Management"}
-      description={isEditMode ? "Update newsletter information" : "Create and schedule newsletters for your subscribers"}
+      description={
+        isEditMode
+          ? "Update newsletter information"
+          : "Create and schedule newsletters for your subscribers"
+      }
+      actions={[
+        {
+          label: "Back to List",
+          icon: ArrowLeft,
+          variant: "outline",
+          onClick: () => navigate("/newsletters"),
+        },
+      ]}
     >
       <form onSubmit={handleSubmit}>
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
               <Newspaper className="h-5 w-5 text-primary" />
-              <CardTitle>{isEditMode ? "Edit Newsletter" : "Create Newsletter"}</CardTitle>
+              <CardTitle>
+                {isEditMode ? "Edit Newsletter" : "Create Newsletter"}
+              </CardTitle>
             </div>
             <CardDescription>
-              {isEditMode ? "Update the newsletter content and schedule" : "Fill in the newsletter content and schedule for delivery"}
+              {isEditMode
+                ? "Update the newsletter content and schedule"
+                : "Fill in the newsletter content and schedule for delivery"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -164,19 +185,65 @@ export default function NewsletterManagement() {
                 <Alert className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
                   <Info className="h-4 w-4 text-green-600" />
                   <AlertDescription className="text-sm space-y-2">
-                    <div className="font-semibold">HTML Codes - Quick Formatting Guide:</div>
+                    <div className="font-semibold">
+                      HTML Codes - Quick Formatting Guide:
+                    </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1 text-xs">
-                      <div><code className="bg-white dark:bg-gray-800 px-1 rounded">*1</code> = Start bold</div>
-                      <div><code className="bg-white dark:bg-gray-800 px-1 rounded">*2</code> = End bold</div>
-                      <div><code className="bg-white dark:bg-gray-800 px-1 rounded">*3</code> = Start italic</div>
-                      <div><code className="bg-white dark:bg-gray-800 px-1 rounded">*4</code> = End italic</div>
-                      <div><code className="bg-white dark:bg-gray-800 px-1 rounded">*5</code> = Paragraph break</div>
-                      <div><code className="bg-white dark:bg-gray-800 px-1 rounded">*6</code> = Line break</div>
-                      <div><code className="bg-white dark:bg-gray-800 px-1 rounded">*7</code> = Start underline</div>
-                      <div><code className="bg-white dark:bg-gray-800 px-1 rounded">*8</code> = End underline</div>
+                      <div>
+                        <code className="bg-white dark:bg-gray-800 px-1 rounded">
+                          *1
+                        </code>{" "}
+                        = Start bold
+                      </div>
+                      <div>
+                        <code className="bg-white dark:bg-gray-800 px-1 rounded">
+                          *2
+                        </code>{" "}
+                        = End bold
+                      </div>
+                      <div>
+                        <code className="bg-white dark:bg-gray-800 px-1 rounded">
+                          *3
+                        </code>{" "}
+                        = Start italic
+                      </div>
+                      <div>
+                        <code className="bg-white dark:bg-gray-800 px-1 rounded">
+                          *4
+                        </code>{" "}
+                        = End italic
+                      </div>
+                      <div>
+                        <code className="bg-white dark:bg-gray-800 px-1 rounded">
+                          *5
+                        </code>{" "}
+                        = Paragraph break
+                      </div>
+                      <div>
+                        <code className="bg-white dark:bg-gray-800 px-1 rounded">
+                          *6
+                        </code>{" "}
+                        = Line break
+                      </div>
+                      <div>
+                        <code className="bg-white dark:bg-gray-800 px-1 rounded">
+                          *7
+                        </code>{" "}
+                        = Start underline
+                      </div>
+                      <div>
+                        <code className="bg-white dark:bg-gray-800 px-1 rounded">
+                          *8
+                        </code>{" "}
+                        = End underline
+                      </div>
                     </div>
                     <div className="text-xs mt-2 italic">
-                      Example: <code className="bg-white dark:bg-gray-800 px-1 rounded">*1This text will be bold*2</code> → Click "Add HTML Codes" to convert
+                      Example:{" "}
+                      <code className="bg-white dark:bg-gray-800 px-1 rounded">
+                        *1This text will be bold*2
+                      </code>{" "}
+                      → Click "Add HTML Codes" to convert
                     </div>
                   </AlertDescription>
                 </Alert>
@@ -200,7 +267,7 @@ export default function NewsletterManagement() {
                       rows={4}
                       className={cn(
                         "resize-none",
-                        errors.econ_text && "border-red-500"
+                        errors.econ_text && "border-red-500",
                       )}
                     />
                     {errors.econ_text && (
@@ -228,7 +295,7 @@ export default function NewsletterManagement() {
                       rows={4}
                       className={cn(
                         "resize-none",
-                        errors.rate_text && "border-red-500"
+                        errors.rate_text && "border-red-500",
                       )}
                     />
                     {errors.rate_text && (
@@ -260,7 +327,7 @@ export default function NewsletterManagement() {
                       rows={4}
                       className={cn(
                         "resize-none",
-                        errors.news_text && "border-red-500"
+                        errors.news_text && "border-red-500",
                       )}
                     />
                     {errors.news_text && (
@@ -288,7 +355,7 @@ export default function NewsletterManagement() {
                       rows={4}
                       className={cn(
                         "resize-none",
-                        errors.article1_text && "border-red-500"
+                        errors.article1_text && "border-red-500",
                       )}
                     />
                     {errors.article1_text && (
@@ -301,27 +368,25 @@ export default function NewsletterManagement() {
 
                 {/* Row 3: Article 2 (Full Width) */}
                 <div className="space-y-2">
-                  <Label htmlFor="article2_text">
-                    Article 2
-                  </Label>
-                    <Textarea
-                      id="article2_text"
-                      placeholder="Enter second article content..."
-                      {...register("article2_text", {
-                        // optional field
-                        validate: value => {
-                          if (value && value.length < 10) {
-                            return "Minimum 10 characters required";
-                          }
-                          return true; // valid if empty
+                  <Label htmlFor="article2_text">Article 2</Label>
+                  <Textarea
+                    id="article2_text"
+                    placeholder="Enter second article content..."
+                    {...register("article2_text", {
+                      // optional field
+                      validate: (value) => {
+                        if (value && value.length < 10) {
+                          return "Minimum 10 characters required";
                         }
-                      })}
-                      rows={4}
-                      className={cn(
-                        "resize-none",
-                        errors.article2_text && "border-red-500"
-                      )}
-                    />
+                        return true; // valid if empty
+                      },
+                    })}
+                    rows={4}
+                    className={cn(
+                      "resize-none",
+                      errors.article2_text && "border-red-500",
+                    )}
+                  />
                   {errors.article2_text && (
                     <p className="text-sm text-red-500">
                       {errors.article2_text.message}
@@ -340,9 +405,7 @@ export default function NewsletterManagement() {
                     {...register("newsletter_label", {
                       required: "Newsletter Label is required",
                     })}
-                    className={cn(
-                      errors.newsletter_label && "border-red-500"
-                    )}
+                    className={cn(errors.newsletter_label && "border-red-500")}
                   />
                   {errors.newsletter_label && (
                     <p className="text-sm text-red-500">
@@ -350,7 +413,8 @@ export default function NewsletterManagement() {
                     </p>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    This will be used to name the email files (e.g., "december 29 2025 real estate report.htm")
+                    This will be used to name the email files (e.g., "december
+                    29 2025 real estate report.htm")
                   </p>
                 </div>
 
@@ -366,7 +430,7 @@ export default function NewsletterManagement() {
                           variant="outline"
                           className={cn(
                             "w-full justify-start text-left font-normal",
-                            !scheduleDate && "text-muted-foreground"
+                            !scheduleDate && "text-muted-foreground",
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
@@ -384,7 +448,7 @@ export default function NewsletterManagement() {
                             if (date) {
                               setValue(
                                 "scheduled_date",
-                                format(date, "yyyy-MM-dd")
+                                format(date, "yyyy-MM-dd"),
                               );
                             }
                           }}
@@ -437,10 +501,12 @@ export default function NewsletterManagement() {
                       {createMutation.isPending ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {isEditMode ? 'Updating...' : 'Saving...'}
+                          {isEditMode ? "Updating..." : "Saving..."}
                         </>
+                      ) : isEditMode ? (
+                        "Update"
                       ) : (
-                        isEditMode ? 'Update' : 'Save'
+                        "Save"
                       )}
                     </Button>
                     <Button
@@ -678,7 +744,12 @@ export default function NewsletterManagement() {
             {/* Newsletter Version Section */}
             <div className="space-y-2">
               <Label htmlFor="newsletter-version">Newsletter Version</Label>
-              <Select value={newsletterVersion} onValueChange={(value) => setNewsletterVersion(value as "long" | "short")}>
+              <Select
+                value={newsletterVersion}
+                onValueChange={(value) =>
+                  setNewsletterVersion(value as "long" | "short")
+                }
+              >
                 <SelectTrigger id="newsletter-version" className="w-full">
                   <SelectValue />
                 </SelectTrigger>
@@ -702,7 +773,11 @@ export default function NewsletterManagement() {
               type="button"
               variant="secondary"
               onClick={handleSendTestEmail}
-              disabled={!selectedUserId || sendTestMutation.isPending || verifyMutation.isPending}
+              disabled={
+                !selectedUserId ||
+                sendTestMutation.isPending ||
+                verifyMutation.isPending
+              }
               className="sm:flex-1"
             >
               {sendTestMutation.isPending ? (
@@ -720,7 +795,11 @@ export default function NewsletterManagement() {
             <Button
               type="button"
               onClick={handleVerifySubmit}
-              disabled={!selectedUserId || verifyMutation.isPending || sendTestMutation.isPending}
+              disabled={
+                !selectedUserId ||
+                verifyMutation.isPending ||
+                sendTestMutation.isPending
+              }
               className="sm:flex-1"
             >
               {verifyMutation.isPending ? (
@@ -760,7 +839,10 @@ export default function NewsletterManagement() {
                       type="button"
                       size="sm"
                       onClick={() =>
-                        window.open(newsletterUrls.short_newsletter_url, "_blank")
+                        window.open(
+                          newsletterUrls.short_newsletter_url,
+                          "_blank",
+                        )
                       }
                     >
                       <ExternalLink className="h-4 w-4 mr-2" />
@@ -780,7 +862,10 @@ export default function NewsletterManagement() {
                       type="button"
                       size="sm"
                       onClick={() =>
-                        window.open(newsletterUrls.long_newsletter_url, "_blank")
+                        window.open(
+                          newsletterUrls.long_newsletter_url,
+                          "_blank",
+                        )
                       }
                     >
                       <ExternalLink className="h-4 w-4 mr-2" />
@@ -800,7 +885,10 @@ export default function NewsletterManagement() {
       </Dialog>
 
       {/* Schedule Newsletter Dialog */}
-      <Dialog open={isDistributeDialogOpen} onOpenChange={setIsDistributeDialogOpen}>
+      <Dialog
+        open={isDistributeDialogOpen}
+        onOpenChange={setIsDistributeDialogOpen}
+      >
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Schedule Newsletter</DialogTitle>
@@ -831,8 +919,14 @@ export default function NewsletterManagement() {
                 <Select
                   value={selectedDistributeUsers.length > 0 ? "selected" : ""}
                   onValueChange={(value) => {
-                    if (value && !selectedDistributeUsers.includes(Number(value))) {
-                      setSelectedDistributeUsers([...selectedDistributeUsers, Number(value)]);
+                    if (
+                      value &&
+                      !selectedDistributeUsers.includes(Number(value))
+                    ) {
+                      setSelectedDistributeUsers([
+                        ...selectedDistributeUsers,
+                        Number(value),
+                      ]);
                     }
                   }}
                 >
@@ -864,13 +958,21 @@ export default function NewsletterManagement() {
                     {selectedDistributeUsers.map((userId) => {
                       const user = users.find((u) => u.id === userId);
                       return (
-                        <Badge key={userId} variant="secondary" className="flex items-center gap-1">
-                          {user ? `${user.first_name} ${user.last_name}` : `User ${userId}`}
+                        <Badge
+                          key={userId}
+                          variant="secondary"
+                          className="flex items-center gap-1"
+                        >
+                          {user
+                            ? `${user.first_name} ${user.last_name}`
+                            : `User ${userId}`}
                           <button
                             type="button"
                             onClick={() => {
                               setSelectedDistributeUsers(
-                                selectedDistributeUsers.filter((id) => id !== userId)
+                                selectedDistributeUsers.filter(
+                                  (id) => id !== userId,
+                                ),
                               );
                             }}
                             className="ml-1 hover:bg-destructive/20 rounded-full"
@@ -898,11 +1000,13 @@ export default function NewsletterManagement() {
                       variant="outline"
                       className={cn(
                         "justify-start text-left font-normal",
-                        !distributeDate && "text-muted-foreground"
+                        !distributeDate && "text-muted-foreground",
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {distributeDate ? format(distributeDate, "PPP") : "Pick a date"}
+                      {distributeDate
+                        ? format(distributeDate, "PPP")
+                        : "Pick a date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -934,7 +1038,10 @@ export default function NewsletterManagement() {
             <Button
               type="button"
               onClick={handleDistributeSubmit}
-              disabled={distributeMutation.isPending || (!distributeToAllUsers && selectedDistributeUsers.length === 0)}
+              disabled={
+                distributeMutation.isPending ||
+                (!distributeToAllUsers && selectedDistributeUsers.length === 0)
+              }
             >
               {distributeMutation.isPending ? (
                 <>
