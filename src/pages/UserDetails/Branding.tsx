@@ -168,7 +168,7 @@ export default function Branding() {
     <form onSubmit={handleSubmit}>
       <Card>
         <CardHeader>
-          <CardTitle>Branding Assets</CardTitle>
+          <CardTitle>Social Media Branding Assets</CardTitle>
           <CardDescription>
             Manage your company branding assets and content
           </CardDescription>
@@ -178,7 +178,7 @@ export default function Branding() {
           <div className="grid grid-cols-12 gap-6">
             {/* Branding Assets - col-6 */}
             <div className="col-span-12 md:col-span-6 space-y-4">
-              <h3 className="text-lg font-semibold">Branding Assets</h3>
+              <h3 className="text-lg font-semibold">Social Media Branding Assets</h3>
 
               {/* Company Logo */}
               <div className="space-y-2">
@@ -276,7 +276,7 @@ export default function Branding() {
 
             {/* Branding Content - col-6 */}
             <div className="col-span-12 md:col-span-6 space-y-4">
-              <h3 className="text-lg font-semibold">Branding Content</h3>
+              <h3 className="text-lg font-semibold">Social Media Branding Content</h3>
 
               <div className="space-y-2">
                 <Label htmlFor="personaltext">Personal Text / Bio</Label>
