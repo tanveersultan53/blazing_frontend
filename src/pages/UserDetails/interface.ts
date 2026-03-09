@@ -52,6 +52,7 @@ export interface Socials {
   yelp: any
   vimeo: any
   moneyapp: any
+  moneyapplabel: any
   socialapp: any
   customapp: any
 }

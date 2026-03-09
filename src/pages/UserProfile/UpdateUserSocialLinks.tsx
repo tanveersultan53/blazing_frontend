@@ -28,8 +28,8 @@ const createDefaultValues = (socials?: Partial<ISocials>) => ({
     yelp: socials?.yelp || "",
     vimeo: socials?.vimeo || "",
     moneyapp: socials?.moneyapp || "",
+    moneyapplabel: socials?.moneyapplabel || "",
     socialapp: socials?.socialapp || "",
-    customapp: socials?.customapp || "",
 });
 
 const UpdateUserSocialLinks = ({ socials, userId, setIsEditMode, refetch }: UpdateUserSocialLinksProps) => {
@@ -226,6 +226,15 @@ const UpdateUserSocialLinks = ({ socials, userId, setIsEditMode, refetch }: Upda
                     )}
                 </div>
                 <div className="space-y-2">
+                    <label htmlFor="moneyapplabel" className="text-xs font-medium text-muted-foreground">Moneyapp label</label>
+                    <Input
+                        id="moneyapplabel"
+                        type="text"
+                        placeholder="Moneyapp label"
+                        {...register("moneyapplabel")}
+                    />
+                </div>
+                <div className="space-y-2">
                     <label htmlFor="moneyapp" className="text-xs font-medium text-muted-foreground">Moneyapp url</label>
                     <Input
                         id="moneyapp"
@@ -239,7 +248,7 @@ const UpdateUserSocialLinks = ({ socials, userId, setIsEditMode, refetch }: Upda
                     )}
                 </div>
                 <div className="space-y-2">
-                    <label htmlFor="socialapp" className="text-xs font-medium text-muted-foreground">Socialapp url</label>
+                    <label htmlFor="socialapp" className="text-xs font-medium text-muted-foreground">Calendar url</label>
                     <Input
                         id="socialapp"
                         type="url"
@@ -249,19 +258,6 @@ const UpdateUserSocialLinks = ({ socials, userId, setIsEditMode, refetch }: Upda
                     />
                     {errors.socialapp && (
                         <p className="text-sm text-red-500">{errors.socialapp.message as string}</p>
-                    )}
-                </div>
-                <div className="space-y-2">
-                    <label htmlFor="customapp" className="text-xs font-medium text-muted-foreground">Customapp url</label>
-                    <Input
-                        id="customapp"
-                        type="url"
-                        placeholder="https://www.customapp.com/username"
-                        {...register("customapp", urlValidation)}
-                        className={errors.customapp ? "border-red-500" : ""}
-                    />
-                    {errors.customapp && (
-                        <p className="text-sm text-red-500">{errors.customapp.message as string}</p>
                     )}
                 </div>
             </div>
