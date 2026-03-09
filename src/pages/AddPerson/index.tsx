@@ -19,7 +19,7 @@ const AddPerson = () => {
     useBreadcrumbs(breadcrumbs);
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 relative">
             <PageHeader
                 title={pageTitle}
                 description={pageDescription}

@@ -861,7 +861,7 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
       )}
 
       {/* Form Actions */}
-      <div className="flex justify-end items-center mb-6">
+      <div className="flex justify-end items-center mb-6 absolute top-0 right-0">
         <div className="flex space-x-4">
           <Button
             type="button"
