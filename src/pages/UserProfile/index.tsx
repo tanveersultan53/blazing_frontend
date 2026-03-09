@@ -288,6 +288,12 @@ const UserProfile = () => {
                     </div>
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
+                        Company Name
+                      </label>
+                      <p className="text-base mt-1">{displayValue(company)}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">
                         Email
                       </label>
                       <p className="text-base mt-1">{displayValue(email)}</p>
@@ -450,12 +456,6 @@ const UserProfile = () => {
                         State
                       </label>
                       <p className="text-base mt-1">{displayValue(state)}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Company
-                      </label>
-                      <p className="text-base mt-1">{displayValue(company)}</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
