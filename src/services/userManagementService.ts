@@ -108,6 +108,7 @@ export interface IBranding {
     hphoto?: number;
     wphoto?: number;
     custom?: boolean;
+    custom_color?: string;
 }
 
 export const getBranding = (id: string | number): Promise<AxiosResponse<IBranding>> =>

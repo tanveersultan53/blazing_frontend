@@ -22,6 +22,7 @@ interface IBranding {
   hphoto?: number;
   wphoto?: number;
   custom?: boolean;
+  custom_color?: string;
 }
 
 // API functions
@@ -51,6 +52,7 @@ export default function UpdateUserBranding({ userId, setIsEditMode, refetch }: U
     hphoto: undefined,
     wphoto: undefined,
     custom: false,
+    custom_color: "",
   });
 
   // Fetch branding data
@@ -272,6 +274,21 @@ export default function UpdateUserBranding({ userId, setIsEditMode, refetch }: U
             onChange={(e) => handleInputChange("disclosure", e.target.value)}
             rows={4}
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="custom_color">Newsletter Button Color</Label>
+          <div className="flex items-center gap-2">
+            <Input
+              id="custom_color"
+              placeholder="e.g. 43B02A"
+              value={formData.custom_color || ""}
+              onChange={(e) => handleInputChange("custom_color", e.target.value)}
+            />
+            {formData.custom_color && /^[0-9A-Fa-f]{6}$/.test(formData.custom_color) && (
+              <span className="inline-block w-9 h-9 rounded border shrink-0" style={{ backgroundColor: `#${formData.custom_color}` }} />
+            )}
+          </div>
         </div>
       </div>
 
