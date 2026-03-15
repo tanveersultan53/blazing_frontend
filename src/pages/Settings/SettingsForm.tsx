@@ -23,7 +23,6 @@ const SettingsForm = ({ userId }: { userId: string }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSocialEditMode, setIsSocialEditMode] = useState(false);
     const [isSocialSubmitting, setIsSocialSubmitting] = useState(false);
-    const [sendGridPassword, setSendGridPassword] = useState("");
 
     const { data, isLoading, refetch } = useQuery<AxiosResponse<IEmailSettings>>({
         queryKey: [queryKeys.getEmailSettings, userId],
@@ -858,8 +857,8 @@ const SettingsForm = ({ userId }: { userId: string }) => {
             <Card className="mb-12">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <div>
-                        <CardTitle>Social Links & SendGrid Settings</CardTitle>
-                        <CardDescription>You can also update social links information and SendGrid password here by clicking the update button.</CardDescription>
+                        <CardTitle>Social Links</CardTitle>
+                        <CardDescription>You can also update social links information by clicking the update button.</CardDescription>
                     </div>
                     {isSocialEditMode &&
                         <div className="flex items-center gap-2">
@@ -920,14 +919,6 @@ const SettingsForm = ({ userId }: { userId: string }) => {
                                 <div className="space-y-2">
                                     <label className="text-xs font-medium text-muted-foreground">Vimeo</label>
                                     <p className="text-sm font-semibold">{socialsData?.data?.vimeo || 'Not set'}</p>
-                                </div>
-                            </div>
-                            <Separator />
-                            <label className="text-sm font-medium">SendGrid Settings</label>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-medium text-muted-foreground">SendGrid Password</label>
-                                    <p className="text-sm font-semibold">{sendGridPassword ? '••••••••' : 'Not set'}</p>
                                 </div>
                             </div>
                         </div>
@@ -1006,20 +997,6 @@ const SettingsForm = ({ userId }: { userId: string }) => {
                                         id="vimeo"
                                         placeholder="https://vimeo.com/..."
                                         {...socialForm.register('vimeo')}
-                                    />
-                                </div>
-                            </div>
-                            <Separator />
-                            <label className="text-sm font-medium">SendGrid Settings</label>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="space-y-2">
-                                    <label htmlFor="sendgrid_password" className="text-xs font-medium text-muted-foreground">SendGrid Password</label>
-                                    <Input
-                                        id="sendgrid_password"
-                                        type="password"
-                                        placeholder="Enter SendGrid password"
-                                        value={sendGridPassword}
-                                        onChange={(e) => setSendGridPassword(e.target.value)}
                                     />
                                 </div>
                             </div>

@@ -168,7 +168,7 @@ export default function Branding() {
     <form onSubmit={handleSubmit}>
       <Card>
         <CardHeader>
-          <CardTitle>Branding Assets</CardTitle>
+          <CardTitle>Social Media Branding Assets</CardTitle>
           <CardDescription>
             Manage your company branding assets and content
           </CardDescription>
@@ -178,7 +178,7 @@ export default function Branding() {
           <div className="grid grid-cols-12 gap-6">
             {/* Branding Assets - col-6 */}
             <div className="col-span-12 md:col-span-6 space-y-4">
-              <h3 className="text-lg font-semibold">Branding Assets</h3>
+              <h3 className="text-lg font-semibold">Social Media Branding Assets</h3>
 
               {/* Company Logo */}
               <div className="space-y-2">
@@ -276,7 +276,7 @@ export default function Branding() {
 
             {/* Branding Content - col-6 */}
             <div className="col-span-12 md:col-span-6 space-y-4">
-              <h3 className="text-lg font-semibold">Branding Content</h3>
+              <h3 className="text-lg font-semibold">Social Media Branding Content</h3>
 
               <div className="space-y-2">
                 <Label htmlFor="personaltext">Personal Text / Bio</Label>
@@ -287,72 +287,6 @@ export default function Branding() {
                   onChange={(e) => handleInputChange("personaltext", e.target.value)}
                   rows={4}
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="disclosure">Legal Disclosure</Label>
-                <Textarea
-                  id="disclosure"
-                  placeholder="Enter legal disclosure text..."
-                  value={formData.disclosure || ""}
-                  onChange={(e) => handleInputChange("disclosure", e.target.value)}
-                  rows={4}
-                />
-              </div>
-
-              {/* Image Dimensions */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Image Dimensions (Optional)</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="hlogo">Logo Height (px)</Label>
-                    <Input
-                      id="hlogo"
-                      type="number"
-                      placeholder="Height"
-                      value={formData.hlogo || ""}
-                      onChange={(e) =>
-                        handleInputChange("hlogo", e.target.value ? Number(e.target.value) : undefined)
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="wlogo">Logo Width (px)</Label>
-                    <Input
-                      id="wlogo"
-                      type="number"
-                      placeholder="Width"
-                      value={formData.wlogo || ""}
-                      onChange={(e) =>
-                        handleInputChange("wlogo", e.target.value ? Number(e.target.value) : undefined)
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="hphoto">Photo Height (px)</Label>
-                    <Input
-                      id="hphoto"
-                      type="number"
-                      placeholder="Height"
-                      value={formData.hphoto || ""}
-                      onChange={(e) =>
-                        handleInputChange("hphoto", e.target.value ? Number(e.target.value) : undefined)
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="wphoto">Photo Width (px)</Label>
-                    <Input
-                      id="wphoto"
-                      type="number"
-                      placeholder="Width"
-                      value={formData.wphoto || ""}
-                      onChange={(e) =>
-                        handleInputChange("wphoto", e.target.value ? Number(e.target.value) : undefined)
-                      }
-                    />
-                  </div>
-                </div>
               </div>
 
               {/* Custom Branding Toggle */}

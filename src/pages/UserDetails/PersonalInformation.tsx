@@ -37,7 +37,6 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
         zip_code: user?.zip_code || '',
         title: user?.title || '',
         company: user?.company || '',
-        rep_name: user?.rep_name || '',
         mid: user?.mid || '',
         website: user?.website || '',
         company_id: user?.company_id?.toString() || '',
@@ -247,10 +246,6 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                 <div className="space-y-2">
                                     <label htmlFor="industry_type" className="text-xs font-medium text-muted-foreground">Industry Type</label>
                                     <p className="text-sm font-semibold">{user?.industry_type ?? '-'}</p>
-                                </div>
-                                <div className="space-y-2">
-                                    <label htmlFor="rep_name" className="text-xs font-medium text-muted-foreground">Representative Name</label>
-                                    <p className="text-sm font-semibold">{user?.rep_name}</p>
                                 </div>
 
                                 {/* System Information */}
@@ -588,20 +583,6 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                 )}
                             </div>
 
-                            <div className="space-y-2">
-                                <label htmlFor="rep_name" className="text-sm font-medium">
-                                    Representative Name
-                                </label>
-                                <Input
-                                    id="rep_name"
-                                    placeholder="Enter representative name"
-                                    {...register('rep_name')}
-                                    className={errors.rep_name ? 'border-red-500' : ''}
-                                />
-                                {errors.rep_name && (
-                                    <p className="text-sm text-red-500">{errors.rep_name.message}</p>
-                                )}
-                            </div>
 
                             <div className="space-y-2">
                                 <label htmlFor="company_id" className="text-sm font-medium">

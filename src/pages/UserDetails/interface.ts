@@ -52,6 +52,7 @@ export interface Socials {
   yelp: any
   vimeo: any
   moneyapp: any
+  moneyapplabel: any
   socialapp: any
   customapp: any
 }
@@ -156,6 +157,7 @@ export interface ISocials {
   yelp: any
   vimeo: any
   moneyapp: any
+  moneyapplabel: any
   socialapp: any
   customapp: any
 }
@@ -175,6 +177,10 @@ export interface INewsletterInfo {
   custom: boolean;
   company?: string;
   discloure?: string;
+  hlogo?: number;
+  wlogo?: number;
+  hphoto?: number;
+  wphoto?: number;
 }
 
 export interface ICallToAction {

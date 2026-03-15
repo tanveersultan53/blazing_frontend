@@ -67,7 +67,7 @@ const useAddPerson = (): AddPersonHookReturn => {
   const { mutate: addContactMutation } = useMutation({
     mutationFn: createContact,
     onSuccess: () => {
-      toast.success(type === 'contact' ? 'Contact added successfully' : 'Referal partner added successfully');
+      toast.success(type === 'contact' ? 'Contact added successfully' : 'Referral partner added successfully');
       setIsSubmitting(false);
       navigate('/user-dashboard?tab=' + type);
     },
@@ -98,7 +98,7 @@ const useAddPerson = (): AddPersonHookReturn => {
       toast.error("Please fix the validation errors below");
     } else {
       // Handle other types of errors
-      toast.error(type === 'contact' ? 'Failed to add contact. Please try again.' : 'Failed to add referal partner. Please try again.');
+      toast.error(type === 'contact' ? 'Failed to add contact. Please try again.' : 'Failed to add referral partner. Please try again.');
     }
   }
 
