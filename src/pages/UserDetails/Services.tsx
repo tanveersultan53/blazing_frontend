@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckIcon, PencilIcon, XIcon, Upload, Trash2 } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
+import { CheckIcon, PencilIcon, XIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 import type { IServiceSettings } from "./interface";
 import { useForm } from "react-hook-form";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -18,8 +18,6 @@ const Services = () => {
     const { id } = useParams();
     const [isEditMode, setIsEditMode] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [comingHomeFile, setComingHomeFile] = useState<File | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
     const queryClient = useQueryClient();
 
     const { data, isLoading } = useQuery<AxiosResponse<IServiceSettings>>({
@@ -33,10 +31,6 @@ const Services = () => {
             queryClient.invalidateQueries({ queryKey: [queryKeys.getServiceSettings, id] });
             setIsEditMode(false);
             setIsSubmitting(false);
-            setComingHomeFile(null);
-            if (fileInputRef.current) {
-                fileInputRef.current.value = '';
-            }
             toast.success("Service settings updated successfully!");
         },
         onError: (error: any) => {
@@ -49,10 +43,6 @@ const Services = () => {
     const handleCancel = () => {
         setIsEditMode(false);
         form.reset(data?.data || initialValues);
-        setComingHomeFile(null);
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
     };
 
     const initialValues = {
@@ -61,7 +51,7 @@ const Services = () => {
         send_post_service: false,
         send_newsletter: false,
         send_cominghome: false,
-        coming_home_file: '', // later to be removed coming_home_file
+        coming_home_file: '',
         no_branding: false,
         email_service_amt: 0,
         bs_service_amt: 0,
@@ -95,30 +85,12 @@ const Services = () => {
         }
     };
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            // Validate file type (only HTML files)
-            if (file.type !== 'text/html' && !file.name.endsWith('.html')) {
-                toast.error('Please upload an HTML file');
-                return;
-            }
-            setComingHomeFile(file);
-            toast.success('File selected: ' + file.name);
-        }
-    };
-
-    const handleClearFile = () => {
-        setComingHomeFile(null);
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
-        // Clear the coming_home_file field in the backend
-        setValue('coming_home_file', '');
-        toast.success('File cleared');
-    };
-
     const onSubmit = (formData: IServiceSettings) => {
+        if (formData.send_cominghome && !formData.coming_home_file?.trim()) {
+            toast.error('Coming Home Newsletter file name is required when the service is enabled');
+            return;
+        }
+
         // Filter out null, undefined, and empty string values
         const filteredData = Object.fromEntries(
             Object.entries(formData).filter(([_, value]) =>
@@ -127,23 +99,7 @@ const Services = () => {
         ) as IServiceSettings;
 
         setIsSubmitting(true);
-
-        // If there's a file to upload, use FormData
-        if (comingHomeFile) {
-            const formDataWithFile = new FormData();
-
-            // Append all the service settings
-            Object.entries(filteredData).forEach(([key, value]) => {
-                formDataWithFile.append(key, String(value));
-            });
-
-            // Append the file
-            formDataWithFile.append('coming_home_file', comingHomeFile);
-
-            updateServiceSettingsMutation.mutate(formDataWithFile as any);
-        } else {
-            updateServiceSettingsMutation.mutate({...filteredData, coming_home_file: watch('send_cominghome') ? 'yes' : 'no'});
-        }
+        updateServiceSettingsMutation.mutate(filteredData);
     };
 
     useEffect(() => {
@@ -439,51 +395,18 @@ const Services = () => {
                             </div>
                         </div>
 
-                        {/* Coming Home Newsletter File Upload */}
+                        {/* Coming Home Newsletter File Name */}
                         {watch('send_cominghome') && (
-                            <div className="space-y-4 border-t pt-4 mt-4">
-                                <label className="text-sm font-medium">Coming Home Newsletter</label>
-                                <div className="flex items-center gap-4">
-                                    <div className="flex-1">
-                                        <input
-                                            ref={fileInputRef}
-                                            type="file"
-                                            accept=".html,text/html"
-                                            onChange={handleFileChange}
-                                            className="hidden"
-                                            id="coming-home-file-input"
-                                        />
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            onClick={() => fileInputRef.current?.click()}
-                                            className="w-full"
-                                        >
-                                            <Upload className="w-4 h-4 mr-2" />
-                                            {comingHomeFile ? comingHomeFile.name : 'Upload HTML File'}
-                                        </Button>
-                                    </div>
-                                    {(comingHomeFile || data?.data?.coming_home_file) && (
-                                        <Button
-                                            type="button"
-                                            variant="destructive"
-                                            size="icon"
-                                            onClick={handleClearFile}
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                    )}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <label htmlFor="coming_home_file" className="text-sm font-medium">Coming Home Newsletter File Name</label>
+                                    <Input
+                                        id="coming_home_file"
+                                        type="text"
+                                        placeholder="Enter newsletter file name"
+                                        {...register('coming_home_file')}
+                                    />
                                 </div>
-                                {data?.data?.coming_home_file && !comingHomeFile && (
-                                    <p className="text-sm text-muted-foreground">
-                                        Current file: {data.data.coming_home_file}
-                                    </p>
-                                )}
-                                {comingHomeFile && (
-                                    <p className="text-sm text-green-600">
-                                        New file selected: {comingHomeFile.name}
-                                    </p>
-                                )}
                             </div>
                         )}
 

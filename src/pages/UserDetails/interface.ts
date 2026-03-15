@@ -216,7 +216,7 @@ export interface IServiceSettings {
   send_post_service: boolean
   send_newsletter: boolean
   send_cominghome: boolean
-  coming_home_file?: string // later to be removed coming_home_file
+  coming_home_file?: string
   no_branding: boolean
   email_service_amt: number
   bs_service_amt: number
