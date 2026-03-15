@@ -1,8 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { IUserDetails } from "./interface";
-import { CheckIcon, PencilIcon, XIcon } from "lucide-react";
-import { useState } from "react";
+import { CheckIcon, EyeIcon, PencilIcon, XIcon } from "lucide-react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { CreateUserFormData } from "../CreateUser/useCreateUser";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ import { SelectTrigger } from "@/components/ui/select";
 import { SelectValue } from "@/components/ui/select";
 import { PasswordInput } from "@/components/ui/password-input";
 import { formatCellPhone, formatWorkPhone, autoFormatPhoneNumber, cleanPhoneNumber } from "@/lib/phoneFormatter";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined, refetch: () => void }) => {
     const { id } = useParams();
@@ -43,10 +44,18 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
         personal_license: user?.personal_license || '',
         industry_type: user?.industry_type || '',
         password: user?.password || '',
+        disclaimer: user?.disclaimer || '',
     }
 
     const [isEditMode, setIsEditMode] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [viewDialogOpen, setViewDialogOpen] = useState(false);
+    const [photoFile, setPhotoFile] = useState<File | null>(null);
+    const [logoFile, setLogoFile] = useState<File | null>(null);
+    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+    const [logoPreview, setLogoPreview] = useState<string | null>(null);
+    const photoInputRef = useRef<HTMLInputElement>(null);
+    const logoInputRef = useRef<HTMLInputElement>(null);
     const form = useForm<CreateUserFormData>({
         defaultValues: initialValues,
         mode: 'onChange'
@@ -59,6 +68,10 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
         onSuccess: () => {
             toast.success("User updated successfully");
             setIsEditMode(false);
+            setPhotoFile(null);
+            setLogoFile(null);
+            setPhotoPreview(null);
+            setLogoPreview(null);
             refetch();
             setIsSubmitting(false);
         },
@@ -111,19 +124,26 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
         // Add all form fields to FormData
         Object.keys(data).forEach((key) => {
             const value = data[key as keyof CreateUserFormData];
-            if (key !== 'email') { // Skip email field but include all other fields
-                // Handle regular fields - include all values except undefined
-                if (value !== undefined) {
-                    if (key === 'cellphone' || key === 'work_phone') {
-                        formData.append(key, cleanPhoneNumber(value as string));
-                    } else if (key === 'is_active') {
-                        formData.append(key, (value as boolean).toString());
-                    } else {
-                        formData.append(key, value as string);
-                    }
+            if (key === 'email' || key === 'photo' || key === 'logo') return; // Skip - handled separately
+            // Handle regular fields - include all values except undefined
+            if (value !== undefined) {
+                if (key === 'cellphone' || key === 'work_phone') {
+                    formData.append(key, cleanPhoneNumber(value as string));
+                } else if (key === 'is_active') {
+                    formData.append(key, (value as boolean).toString());
+                } else {
+                    formData.append(key, value as string);
                 }
             }
         });
+
+        // Append photo/logo files if selected
+        if (photoFile) {
+            formData.append('photo', photoFile);
+        }
+        if (logoFile) {
+            formData.append('logo', logoFile);
+        }
 
         updateUserMutation({ id: id as string | number, user: formData as any });
     };
@@ -131,6 +151,23 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
     const handleCancel = () => {
         setIsEditMode(false);
         form.reset(initialValues);
+        setPhotoFile(null);
+        setLogoFile(null);
+        setPhotoPreview(null);
+        setLogoPreview(null);
+    };
+
+    const handleFileChange = (type: 'photo' | 'logo') => (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const previewUrl = URL.createObjectURL(file);
+        if (type === 'photo') {
+            setPhotoFile(file);
+            setPhotoPreview(previewUrl);
+        } else {
+            setLogoFile(file);
+            setLogoPreview(previewUrl);
+        }
     };
 
     return (
@@ -260,6 +297,39 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                     <p className="text-sm font-semibold">{user?.date_joined ? dayjs(user?.date_joined).format('MMMM DD, YYYY') : ''}</p>
                                 </div>
 
+                            </div>
+
+                            {/* Photo, Logo & Disclaimer */}
+                            <div className="border-t pt-4 mt-4">
+                                <div className="flex items-center justify-between mb-3">
+                                    <h3 className="text-sm font-semibold">Photo, Logo & Disclaimer</h3>
+                                    <Button type="button" variant="outline" size="sm" className="flex items-center gap-1" onClick={() => setViewDialogOpen(true)}>
+                                        <EyeIcon className="w-4 h-4" />
+                                        View
+                                    </Button>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-muted-foreground">Photo</label>
+                                        {user?.photo ? (
+                                            <img src={user.photo} alt="User photo" className="w-16 h-16 rounded-full object-cover border" />
+                                        ) : (
+                                            <p className="text-sm text-muted-foreground">Not set</p>
+                                        )}
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-muted-foreground">Logo</label>
+                                        {user?.logo ? (
+                                            <img src={user.logo} alt="User logo" className="w-16 h-16 object-contain border rounded" />
+                                        ) : (
+                                            <p className="text-sm text-muted-foreground">Not set</p>
+                                        )}
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-muted-foreground">Disclaimer</label>
+                                        <p className="text-sm font-semibold">{user?.disclaimer || 'Not set'}</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     }
@@ -592,10 +662,98 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                 />
                             </div>
                         </div>
+
+                        {/* Photo, Logo & Disclaimer */}
+                        <div className="border-t pt-4 mt-4">
+                            <h3 className="text-sm font-semibold mb-3">Photo, Logo & Disclaimer</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Photo</label>
+                                    {(photoPreview || user?.photo) && (
+                                        <img
+                                            src={photoPreview || user?.photo}
+                                            alt="Photo preview"
+                                            className="w-16 h-16 rounded-full object-cover border mb-2"
+                                        />
+                                    )}
+                                    <input
+                                        ref={photoInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleFileChange('photo')}
+                                        className="hidden"
+                                    />
+                                    <Button type="button" variant="outline" size="sm" onClick={() => photoInputRef.current?.click()}>
+                                        {photoPreview || user?.photo ? 'Change Photo' : 'Upload Photo'}
+                                    </Button>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Logo</label>
+                                    {(logoPreview || user?.logo) && (
+                                        <img
+                                            src={logoPreview || user?.logo}
+                                            alt="Logo preview"
+                                            className="w-16 h-16 object-contain border rounded mb-2"
+                                        />
+                                    )}
+                                    <input
+                                        ref={logoInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleFileChange('logo')}
+                                        className="hidden"
+                                    />
+                                    <Button type="button" variant="outline" size="sm" onClick={() => logoInputRef.current?.click()}>
+                                        {logoPreview || user?.logo ? 'Change Logo' : 'Upload Logo'}
+                                    </Button>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="disclaimer" className="text-sm font-medium">
+                                        Disclaimer
+                                    </label>
+                                    <Input
+                                        id="disclaimer"
+                                        placeholder="Enter disclaimer text"
+                                        {...register('disclaimer')}
+                                    />
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 }
             </CardContent>
         </Card>
+
+        {/* View Photo, Logo & Disclaimer Dialog */}
+        <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+            <DialogContent className="max-w-lg">
+                <DialogHeader>
+                    <DialogTitle>Photo, Logo & Disclaimer</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-6">
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-muted-foreground">Photo</label>
+                        {user?.photo ? (
+                            <img src={user.photo} alt="User photo" className="max-w-full max-h-48 rounded object-contain border" />
+                        ) : (
+                            <p className="text-sm text-muted-foreground">Not set</p>
+                        )}
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-muted-foreground">Logo</label>
+                        {user?.logo ? (
+                            <img src={user.logo} alt="User logo" className="max-w-full max-h-48 object-contain border rounded" />
+                        ) : (
+                            <p className="text-sm text-muted-foreground">Not set</p>
+                        )}
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-muted-foreground">Disclaimer</label>
+                        <p className="text-sm">{user?.disclaimer || 'Not set'}</p>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
         </form >
     )
 }
