@@ -30,6 +30,7 @@ import SocialIconsList from './pages/SocialIconManagement';
 import { SocialIconForm } from './pages/SocialIconManagement';
 import EmailActivity from './pages/EmailActivity';
 import CronJobs from './pages/CronJobs';
+import Import from './pages/Import';
 
 function App() {
   return (
@@ -70,6 +71,7 @@ function App() {
           <Route path="social-icons" element={<SocialIconsList />} />
           <Route path="social-icons/create" element={<SocialIconForm />} />
           <Route path="social-icons/edit/:id" element={<SocialIconForm />} />
+          <Route path="import" element={<Import />} />
         </Route>
         <Route path="/login" element={<WithoutAuth><Login /></WithoutAuth>} />
         <Route path="*" element={<Navigate to="/" replace />} />

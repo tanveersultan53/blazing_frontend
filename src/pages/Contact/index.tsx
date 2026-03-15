@@ -12,6 +12,7 @@ import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { useBreadcrumbs } from "@/hooks/usePageTitle";
 import PageHeader from "@/components/PageHeader";
+import { format } from "date-fns";
 
 // Choice constants matching the backend
 const CUSTOMER_TYPE_CHOICES = [
@@ -185,13 +186,23 @@ const Contact = () => {
             );
         }
 
+        // Format date values to US format (mm/dd/yyyy)
+        let displayValue = value;
+        if (type === 'date' && value) {
+            try {
+                displayValue = format(new Date(value), 'MM/dd/yyyy');
+            } catch {
+                displayValue = value; // Fallback to original value if formatting fails
+            }
+        }
+
         return (
-            <div 
+            <div
                 className="cursor-pointer hover:bg-gray-50 p-1 rounded transition-colors"
                 onClick={() => handleEditField(fieldName, value)}
             >
                 <label className="text-sm font-medium text-gray-500">{label}</label>
-                <p className="text-sm">{value || 'Not specified'}</p>
+                <p className="text-sm">{displayValue || 'Not specified'}</p>
             </div>
         );
     };
@@ -346,7 +357,7 @@ const Contact = () => {
                                         <label className="text-sm font-medium text-gray-500">Secondary Birthday</label>
                                         <div className="flex items-center">
                                             <Gift className="w-4 h-4 mr-2 text-gray-400" />
-                                            <p>{new Date(contact.secondary_birthday).toLocaleDateString()}</p>
+                                            <p>{format(new Date(contact.secondary_birthday), 'MM/dd/yyyy')}</p>
                                         </div>
                                     </div>
                                 )}
@@ -413,14 +424,14 @@ const Contact = () => {
                                         <label className="text-sm font-medium text-gray-500">Created</label>
                                         <div className="flex items-center">
                                             <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                                            <p>{new Date(contact.created).toLocaleDateString()}</p>
+                                            <p>{format(new Date(contact.created), 'MM/dd/yyyy')}</p>
                                         </div>
                                     </div>
                                     <div>
                                         <label className="text-sm font-medium text-gray-500">Last Modified</label>
                                         <div className="flex items-center">
                                             <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                                            <p>{new Date(contact.modified).toLocaleDateString()}</p>
+                                            <p>{format(new Date(contact.modified), 'MM/dd/yyyy')}</p>
                                         </div>
                                     </div>
                                 </div>

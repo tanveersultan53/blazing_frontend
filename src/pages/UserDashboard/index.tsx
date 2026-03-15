@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useBreadcrumbs } from "@/hooks/usePageTitle";
 import PageHeader from "@/components/PageHeader";
-import { FileDown, UserPlus } from "lucide-react";
+import { FileDown, UserPlus, Users, UserCheck, UsersRound, Upload } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { DataTable } from "@/components/data-table";
@@ -58,6 +58,8 @@ const UserDashboard = () => {
         closeSendEmailModal,
         emailTemplates,
         isLoadingTemplates,
+        contactsCount,
+        partnersCount,
     } = useUserDashboard();
 
     const handleTabChange = (value: string) => {
@@ -98,6 +100,12 @@ const UserDashboard = () => {
                 icon: UserPlus,
             }] : []),
             {
+                label: "Import",
+                onClick: () => navigate('/import'),
+                variant: "outline" as const,
+                icon: Upload,
+            },
+            {
                 label: "Export Users",
                 onClick: () => console.log("Export clicked"),
                 variant: "outline" as const,
@@ -106,9 +114,6 @@ const UserDashboard = () => {
         ]}
     >
         <div className="flex w-full flex-col gap-6">
-            {/* Email Templates Section */}
-           
-
             {/* Contacts Section */}
             <Card>
                 <CardHeader>
@@ -116,13 +121,49 @@ const UserDashboard = () => {
                     <CardDescription>Manage your contacts and referral partners</CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
-                    <Tabs defaultValue={activeTab} onValueChange={handleTabChange} className="px-6 pt-6">
-                        <TabsList>
-                            <TabsTrigger value="contact">Contact</TabsTrigger>
-                            <TabsTrigger value="referal_partner">Referal Partner</TabsTrigger>
-                            <TabsTrigger value="all">All</TabsTrigger>
-                        </TabsList>
-                    </Tabs>
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-6 pt-6">
+                        {/* Tabs Section */}
+                        <div>
+                            <Tabs defaultValue={activeTab} onValueChange={handleTabChange}>
+                                <TabsList>
+                                    <TabsTrigger value="contact">
+                                        Contact ({contactsCount})
+                                    </TabsTrigger>
+                                    <TabsTrigger value="referal_partner">
+                                        Referal Partner ({partnersCount})
+                                    </TabsTrigger>
+                                    <TabsTrigger value="all">
+                                        All ({contactsCount + partnersCount})
+                                    </TabsTrigger>
+                                </TabsList>
+                            </Tabs>
+                        </div>
+
+                        {/* Count Cards on Right */}
+                        <div className="flex gap-2">
+                            <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 rounded-lg border w-[120px] h-[60px]">
+                                <Users className="h-4 w-4 text-primary flex-shrink-0" />
+                                <div className="flex flex-col justify-center">
+                                    <p className="text-xs text-muted-foreground whitespace-nowrap">Contacts</p>
+                                    <p className="text-lg font-bold leading-tight">{contactsCount}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 rounded-lg border w-[120px] h-[60px]">
+                                <UserCheck className="h-4 w-4 text-primary flex-shrink-0" />
+                                <div className="flex flex-col justify-center">
+                                    <p className="text-xs text-muted-foreground whitespace-nowrap">Partners</p>
+                                    <p className="text-lg font-bold leading-tight">{partnersCount}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 rounded-lg border w-[120px] h-[60px]">
+                                <UsersRound className="h-4 w-4 text-primary flex-shrink-0" />
+                                <div className="flex flex-col justify-center">
+                                    <p className="text-xs text-muted-foreground whitespace-nowrap">Total</p>
+                                    <p className="text-lg font-bold leading-tight">{contactsCount + partnersCount}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div className="px-6 pb-6">
                         <DataTable
                             columns={columns}

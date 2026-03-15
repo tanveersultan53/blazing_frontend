@@ -105,6 +105,20 @@ export const useUserDashboard = () => {
     staleTime: 30000, // Consider data fresh for 30 seconds
   });
 
+  // Query for contact count (customer_type = 'contact')
+  const { data: contactsCountData } = useQuery({
+    queryKey: [queryKeys.contacts, 'contact', 'count'],
+    queryFn: () => getContacts({ customer_type: 'contact' }),
+    staleTime: 30000,
+  });
+
+  // Query for referral partner count (customer_type = 'partner')
+  const { data: partnersCountData } = useQuery({
+    queryKey: [queryKeys.contacts, 'partner', 'count'],
+    queryFn: () => getContacts({ customer_type: 'partner' }),
+    staleTime: 30000,
+  });
+
   // Get customer email templates (created by the logged-in user)
   const { data: emailTemplatesData, isLoading: isLoadingTemplates } = useQuery({
     queryKey: ['customer-email-templates'],
@@ -383,5 +397,7 @@ export const useUserDashboard = () => {
     closeSendEmailModal,
     emailTemplates,
     isLoadingTemplates,
+    contactsCount: contactsCountData?.data?.count || 0,
+    partnersCount: partnersCountData?.data?.count || 0,
   };
 };
