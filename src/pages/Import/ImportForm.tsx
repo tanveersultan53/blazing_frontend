@@ -42,8 +42,8 @@ const ImportForm = ({ template, isNew, onBack }: ImportFormProps) => {
     const [importHeaders, setImportHeaders] = useState<string[]>([]);
     const [showMapFields, setShowMapFields] = useState(false);
     const [showOptions, setShowOptions] = useState(false);
-    const [previewData, setPreviewData] = useState<ImportPreviewRow[]>([]);
-    const [showPreview, setShowPreview] = useState(false);
+    const [previewData] = useState<ImportPreviewRow[]>([]);
+    const [showPreview] = useState(false);
 
     const breadcrumbs = useMemo(() => [
         { label: 'Import Contacts', onClick: onBack },

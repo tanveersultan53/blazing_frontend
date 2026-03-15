@@ -6,9 +6,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import type { CreateUserFormData } from "../CreateUser/useCreateUser";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import dayjs from "dayjs";
-import { Badge } from "@/components/ui/badge";
 import { useMutation } from "@tanstack/react-query";
 import { updateUser } from "@/services/userManagementService";
 import { toast } from "sonner";
@@ -262,23 +260,6 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                     <p className="text-sm font-semibold">{user?.date_joined ? dayjs(user?.date_joined).format('MMMM DD, YYYY') : ''}</p>
                                 </div>
 
-                                {/* Status & Permissions */}
-                                <div className="space-y-2">
-                                    <label htmlFor="is_active" className="text-xs font-medium text-muted-foreground">Active</label>
-                                    <div className="flex items-center gap-2">
-                                        <Badge variant={user?.is_active ? "default" : "secondary"}>
-                                            {user?.is_active ? "Active" : "Inactive"}
-                                        </Badge>
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label htmlFor="is_superuser" className="text-xs font-medium text-muted-foreground">Superuser</label>
-                                    <div className="flex items-center gap-2">
-                                        <Badge variant={user?.is_superuser ? "default" : "secondary"}>
-                                            {user?.is_superuser ? "Yes" : "No"}
-                                        </Badge>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     }
@@ -610,16 +591,6 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                     {...register('branch_id')}
                                 />
                             </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <Checkbox
-                                id="is_active"
-                                checked={form.watch('is_active') as boolean}
-                                onCheckedChange={(checked) => form.setValue('is_active', checked as boolean)}
-                            />
-                            <label htmlFor="is_active" className="text-sm font-medium">
-                                Make this user active/deactive
-                            </label>
                         </div>
                     </div>
                 }
