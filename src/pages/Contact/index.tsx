@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useBreadcrumbs } from "@/hooks/usePageTitle";
 import PageHeader from "@/components/PageHeader";
 import { format } from "date-fns";
+import { formatCellPhone, formatWorkPhone, autoFormatPhoneNumber, cleanPhoneNumber } from "@/lib/phoneFormatter";
 
 // Choice constants matching the backend
 const CUSTOMER_TYPE_CHOICES = [
@@ -110,9 +111,11 @@ const Contact = () => {
         },
     });
 
+    const isPhoneField = (fieldName: string) => ['cell', 'work_phone'].includes(fieldName);
+
     const handleEditField = (fieldName: string, currentValue: string | boolean) => {
         setEditingField(fieldName);
-        
+
         // Handle boolean fields
         if (fieldName === 'optout') {
             if (currentValue === 'true' || currentValue === true) {
@@ -122,6 +125,9 @@ const Contact = () => {
             } else {
                 setEditValue('false'); // default to false
             }
+        } else if (isPhoneField(fieldName)) {
+            // Format phone number for editing
+            setEditValue(formatCellPhone(String(currentValue)) || '');
         } else {
             setEditValue(String(currentValue) || '');
         }
@@ -129,9 +135,11 @@ const Contact = () => {
 
     const handleSaveField = () => {
         if (editingField && editValue !== undefined) {
+            // Clean phone numbers before saving
+            const valueToSave = isPhoneField(editingField) ? cleanPhoneNumber(editValue) : editValue;
             updateContactMutation.mutate({
                 field: editingField,
-                value: editValue
+                value: valueToSave
             });
             setEditingField(null);
             setEditValue('');
@@ -162,7 +170,14 @@ const Contact = () => {
                     <Input
                         type={type}
                         value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
+                        onChange={(e) => {
+                            if (isPhoneField(fieldName)) {
+                                setEditValue(autoFormatPhoneNumber(e.target.value));
+                            } else {
+                                setEditValue(e.target.value);
+                            }
+                        }}
+                        placeholder={isPhoneField(fieldName) ? '(858) 369-5555' : undefined}
                         className="flex-1"
                         autoFocus
                         disabled={updateContactMutation.isPending}
@@ -186,14 +201,18 @@ const Contact = () => {
             );
         }
 
-        // Format date values to US format (mm/dd/yyyy)
+        // Format display values
         let displayValue = value;
         if (type === 'date' && value) {
             try {
                 displayValue = format(new Date(value), 'MM/dd/yyyy');
             } catch {
-                displayValue = value; // Fallback to original value if formatting fails
+                displayValue = value;
             }
+        } else if (isPhoneField(fieldName) && value) {
+            displayValue = fieldName === 'work_phone'
+                ? formatWorkPhone(value, contact?.work_ext)
+                : formatCellPhone(value);
         }
 
         return (

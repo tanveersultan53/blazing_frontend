@@ -197,12 +197,6 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                     <p className="text-sm font-semibold">
                                         {user?.work_phone ? formatWorkPhone(user.work_phone, user.work_ext) : 'Not provided'}
                                     </p>
-                                    {/* Debug info - remove this after testing */}
-                                    {process.env.NODE_ENV === 'development' && (
-                                        <p className="text-xs text-gray-500">
-                                            Raw: {user?.work_phone} | Ext: {user?.work_ext}
-                                        </p>
-                                    )}
                                 </div>
 
 
