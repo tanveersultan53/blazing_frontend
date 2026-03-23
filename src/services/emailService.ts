@@ -88,6 +88,24 @@ export const getAvailableTemplates = (filters?: {
 export const getSystemTemplateById = (id: number): Promise<AxiosResponse<SystemEmailTemplate>> =>
     api.get(`/email/templates/${id}`);
 
+// ==================== UNIFIED EMAIL LIBRARY ====================
+
+export interface UnifiedEmailTemplate {
+    id: number;
+    source: 'customer' | 'library';
+    email_name: string;
+    email_subject: string;
+    type: string;
+    email_type: number | string;
+    html_content: string;
+    is_active: boolean;
+    created_at: string | null;
+    updated_at: string | null;
+}
+
+export const getMyLibrary = (): Promise<AxiosResponse<UnifiedEmailTemplate[]>> =>
+    api.get('/email/templates/my-library');
+
 // ==================== CUSTOMER EMAIL TEMPLATES ====================
 
 export const getCustomerEmailTemplates = (filters?: {

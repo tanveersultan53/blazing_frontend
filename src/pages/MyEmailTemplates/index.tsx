@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import {
-  getCustomerEmailTemplates,
+  getMyLibrary,
   deleteCustomerEmailTemplate,
-  type CustomerEmailTemplate
+  type UnifiedEmailTemplate,
 } from '@/services/emailService';
 import PageHeader from '@/components/PageHeader';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/data-table';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -34,39 +34,28 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
-const EMAIL_TYPE_LABELS: Record<number, string> = {
-  1: 'Holiday Ecard 1', 2: 'Holiday Ecard 2', 3: 'Holiday Ecard 3',
-  4: 'Holiday Ecard 4', 5: 'Holiday Ecard 5', 6: 'Holiday Ecard 6',
-  7: 'Holiday Ecard 7', 8: 'Holiday Ecard 8', 9: 'Holiday Ecard 9',
-  10: 'Holiday Ecard 10', 11: 'Holiday Ecard 11', 12: 'Holiday Ecard 12',
-  13: 'Holiday Ecard 13', 14: 'Birthday Ecard', 15: 'Newsletter', 99: 'Custom Email'
-};
-
 export default function MyEmailTemplates() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [templateToDelete, setTemplateToDelete] = useState<CustomerEmailTemplate | null>(null);
+  const [templateToDelete, setTemplateToDelete] = useState<UnifiedEmailTemplate | null>(null);
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
-  const [previewTemplate, setPreviewTemplate] = useState<CustomerEmailTemplate | null>(null);
+  const [previewTemplate, setPreviewTemplate] = useState<UnifiedEmailTemplate | null>(null);
 
-  // Fetch customer email templates (created by the logged-in customer)
+  // Fetch unified email library (both CustomerEmailTemplate + EmailTemplate)
   const { data, isLoading } = useQuery({
-    queryKey: ['customer-email-templates', searchQuery],
-    queryFn: () => getCustomerEmailTemplates({ search: searchQuery }),
+    queryKey: ['my-email-library'],
+    queryFn: () => getMyLibrary(),
   });
 
-  // Handle both array response and paginated response formats
-  const templates = Array.isArray(data?.data)
-    ? data.data
-    : (data?.data?.results || []);
+  const templates = data?.data || [];
 
-  // Delete mutation
+  // Delete mutation (only works for customer-source templates)
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deleteCustomerEmailTemplate(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['customer-email-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['my-email-library'] });
       toast.success('Template deleted successfully');
       setDeleteDialogOpen(false);
       setTemplateToDelete(null);
@@ -76,24 +65,38 @@ export default function MyEmailTemplates() {
     },
   });
 
-  const handleDelete = (template: CustomerEmailTemplate) => {
+  const handleDelete = (template: UnifiedEmailTemplate) => {
+    if (template.source !== 'customer') {
+      toast.error('Standard library templates cannot be deleted');
+      return;
+    }
     setTemplateToDelete(template);
     setDeleteDialogOpen(true);
   };
 
   const confirmDelete = () => {
-    if (templateToDelete?.email_id) {
-      deleteMutation.mutate(templateToDelete.email_id);
+    if (templateToDelete?.id) {
+      deleteMutation.mutate(templateToDelete.id);
     }
   };
 
-  const handlePreview = (template: CustomerEmailTemplate) => {
+  const handlePreview = (template: UnifiedEmailTemplate) => {
     setPreviewTemplate(template);
     setPreviewDialogOpen(true);
   };
 
+  // Type badge color helper
+  const getTypeBadgeClass = (type: string) => {
+    const lower = type.toLowerCase();
+    if (lower.includes('holiday')) return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
+    if (lower.includes('birthday')) return 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-300';
+    if (lower.includes('newsletter')) return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+    if (lower === 'standard') return 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300';
+    return '';
+  };
+
   // Define table columns
-  const columns: ColumnDef<CustomerEmailTemplate>[] = useMemo(() => [
+  const columns: ColumnDef<UnifiedEmailTemplate>[] = useMemo(() => [
     {
       accessorKey: "email_name",
       header: ({ column }) => (
@@ -112,20 +115,39 @@ export default function MyEmailTemplates() {
       ),
       cell: ({ row }) => {
         const subject = row.getValue("email_subject") as string;
-        return <div className="max-w-[300px] truncate">{subject || 'No subject'}</div>;
+        return <div className="max-w-[300px] truncate">{subject || '-'}</div>;
       },
       enableColumnFilter: true,
     },
     {
-      accessorKey: "email_type",
+      accessorKey: "type",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Type" />
       ),
       cell: ({ row }) => {
-        const type = row.getValue("email_type") as number;
+        const type = row.getValue("type") as string;
         return (
-          <Badge variant="secondary">
-            {EMAIL_TYPE_LABELS[type] || 'Custom'}
+          <Badge variant="secondary" className={getTypeBadgeClass(type)}>
+            {type}
+          </Badge>
+        );
+      },
+      enableColumnFilter: false,
+    },
+    {
+      accessorKey: "source",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Source" />
+      ),
+      cell: ({ row }) => {
+        const source = row.getValue("source") as string;
+        return (
+          <Badge variant="outline" className={
+            source === 'library'
+              ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300'
+              : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
+          }>
+            {source === 'library' ? 'Library' : 'My Template'}
           </Badge>
         );
       },
@@ -153,28 +175,6 @@ export default function MyEmailTemplates() {
       },
       enableColumnFilter: false,
     },
-    {
-      accessorKey: "created_at",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Created Date" />
-      ),
-      cell: ({ row }) => {
-        const date = row.getValue("created_at") as string;
-        return date ? <div>{format(new Date(date), "MMM dd, yyyy")}</div> : <div>-</div>;
-      },
-      enableColumnFilter: false,
-    },
-    {
-      accessorKey: "updated_at",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Last Updated" />
-      ),
-      cell: ({ row }) => {
-        const date = row.getValue("updated_at") as string;
-        return date ? <div>{format(new Date(date), "MMM dd, yyyy")}</div> : <div>-</div>;
-      },
-      enableColumnFilter: false,
-    },
   ], []);
 
   // Action items for each row
@@ -182,18 +182,24 @@ export default function MyEmailTemplates() {
     {
       label: 'Preview',
       icon: Eye,
-      onClick: (row: CustomerEmailTemplate) => handlePreview(row),
+      onClick: (row: UnifiedEmailTemplate) => handlePreview(row),
     },
     {
       label: 'Send Email',
       icon: Send,
-      onClick: (row: CustomerEmailTemplate) => navigate(`/send-email/${row.email_id}`),
+      onClick: (row: UnifiedEmailTemplate) => {
+        if (row.source === 'customer') {
+          navigate(`/send-email/${row.id}`);
+        } else {
+          toast.info('Send functionality is available for your own templates');
+        }
+      },
     },
     {
       label: 'Delete',
       icon: Trash2,
       className: 'text-red-600',
-      onClick: (row: CustomerEmailTemplate) => handleDelete(row),
+      onClick: (row: UnifiedEmailTemplate) => handleDelete(row),
     },
   ];
 
@@ -230,7 +236,7 @@ export default function MyEmailTemplates() {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription className="text-sm">
-            These are your email templates. You can send emails using them or delete them if no longer needed.
+            These are your email templates including standard library templates and templates assigned to you.
           </AlertDescription>
         </Alert>
       )}
@@ -282,7 +288,7 @@ export default function MyEmailTemplates() {
               <DialogTitle className="text-xl">{previewTemplate?.email_name}</DialogTitle>
             </div>
             <DialogDescription className="text-base">
-              Subject: {previewTemplate?.email_subject}
+              {previewTemplate?.email_subject ? `Subject: ${previewTemplate.email_subject}` : `Type: ${previewTemplate?.type}`}
             </DialogDescription>
           </DialogHeader>
           <div className="overflow-auto max-h-[70vh] rounded-lg border-2">
