@@ -73,6 +73,7 @@ interface NewCronJob {
     description: string;
     jobType: string;
     ecardId?: number;
+    testMode: string;
 }
 
 const CronJobs = () => {
@@ -96,6 +97,7 @@ const CronJobs = () => {
         description: "",
         jobType: "NORMAL",
         ecardId: undefined,
+        testMode: "live",
     });
 
     // Fetch cron jobs from API
@@ -226,6 +228,7 @@ const CronJobs = () => {
                 description: "",
                 jobType: "NORMAL",
                 ecardId: undefined,
+                testMode: "live",
             });
             toast.success("Cron job created successfully");
         },
@@ -334,6 +337,7 @@ const CronJobs = () => {
             description: cronJob.description || "",
             jobType: cronJob.job_type,
             ecardId: cronJob.ecard,
+            testMode: cronJob.test_mode || "live",
         });
         setShowEditDialog(true);
     };
@@ -394,6 +398,20 @@ const CronJobs = () => {
             accessorKey: "status",
             header: "Status",
             cell: ({ row }) => getStatusBadge(row.original.status),
+        },
+        {
+            accessorKey: "test_mode",
+            header: "Test Mode",
+            cell: ({ row }) => {
+                const mode = row.original.test_mode;
+                const config: Record<string, { label: string; className: string }> = {
+                    live: { label: "Live", className: "bg-green-100 text-green-800 border-green-200" },
+                    test_only: { label: "Test Only", className: "bg-orange-100 text-orange-800 border-orange-200" },
+                    live_test: { label: "Live Test", className: "bg-blue-100 text-blue-800 border-blue-200" },
+                };
+                const c = config[mode] || config.live;
+                return <Badge variant="outline" className={c.className}>{c.label}</Badge>;
+            },
         },
         {
             accessorKey: "last_run",
@@ -471,6 +489,7 @@ const CronJobs = () => {
             job_type: newCronJob.jobType,
             ecard: newCronJob.ecardId,
             status: "stopped",
+            test_mode: newCronJob.testMode as "live" | "test_only" | "live_test",
         };
 
         console.log("Creating cron job with data:", data);
@@ -486,6 +505,7 @@ const CronJobs = () => {
             description: newCronJob.description,
             job_type: newCronJob.jobType,
             ecard: newCronJob.ecardId,
+            test_mode: newCronJob.testMode as "live" | "test_only" | "live_test",
         };
 
         console.log("Updating cron job with data:", data);
@@ -862,6 +882,22 @@ const CronJobs = () => {
                                 rows={3}
                             />
                         </div>
+                        <div className="grid gap-2">
+                            <Label>Test Mode</Label>
+                            <Select value={newCronJob.testMode} onValueChange={(v) => handleInputChange("testMode", v)}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select test mode" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="live">Live (Production)</SelectItem>
+                                    <SelectItem value="test_only">Test Only</SelectItem>
+                                    <SelectItem value="live_test">Live Test</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <p className="text-sm text-muted-foreground">
+                                Test Only: emails go to test mailbox. Live Test: real emails + BCC test mailbox.
+                            </p>
+                        </div>
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
@@ -973,6 +1009,22 @@ const CronJobs = () => {
                                 onChange={(e) => handleInputChange("description", e.target.value)}
                                 rows={3}
                             />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Test Mode</Label>
+                            <Select value={newCronJob.testMode} onValueChange={(v) => handleInputChange("testMode", v)}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select test mode" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="live">Live (Production)</SelectItem>
+                                    <SelectItem value="test_only">Test Only</SelectItem>
+                                    <SelectItem value="live_test">Live Test</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <p className="text-sm text-muted-foreground">
+                                Test Only: emails go to test mailbox. Live Test: real emails + BCC test mailbox.
+                            </p>
                         </div>
                     </div>
                     <DialogFooter>

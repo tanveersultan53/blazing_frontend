@@ -44,6 +44,8 @@ const useTemplateManagement = () => {
                             return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300";
                         case "announcement":
                             return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300";
+                        case "standard":
+                            return "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300";
                         default:
                             return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
                     }

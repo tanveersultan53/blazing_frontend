@@ -143,6 +143,21 @@ const useEmailSentHistory = () => {
       },
       enableColumnFilter: false,
     },
+    {
+      accessorKey: "is_test",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Type" />
+      ),
+      cell: ({ row }) => {
+        const isTest = row.original.is_test;
+        return isTest ? (
+          <Badge className="bg-orange-100 text-orange-800 border-orange-200" variant="outline">TEST</Badge>
+        ) : (
+          <Badge className="bg-green-100 text-green-800 border-green-200" variant="outline">Live</Badge>
+        );
+      },
+      enableColumnFilter: false,
+    },
   ], []);
 
   // Filter data based on debounced filters (client-side filtering)

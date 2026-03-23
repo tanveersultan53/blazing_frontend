@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import PageHeader from '@/components/PageHeader';
 import { useBreadcrumbs } from '@/hooks/usePageTitle';
 import type { User } from '@/redux/features/userSlice';
@@ -18,6 +20,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import useTemplateManagement from './useTemplateManagement';
 import type { ITemplate } from './interface';
+import { deleteTemplate } from '@/services/templateManagementService';
 
 const TemplateManagement = () => {
   const currentUser = useSelector((state: { user: { currentUser: User } }) => state.user.currentUser);
@@ -70,12 +73,24 @@ const TemplateManagement = () => {
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
-    if (templateToDelete) {
-      console.log('Delete template:', templateToDelete);
-      // TODO: Implement delete template functionality
+  const queryClient = useQueryClient();
+
+  const { mutate: deleteTemplateMutation } = useMutation({
+    mutationFn: deleteTemplate,
+    onSuccess: () => {
+      toast.success('Template deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['templates'] });
       setDeleteDialogOpen(false);
       setTemplateToDelete(null);
+    },
+    onError: () => {
+      toast.error('Failed to delete template');
+    },
+  });
+
+  const confirmDelete = () => {
+    if (templateToDelete?.id) {
+      deleteTemplateMutation(templateToDelete.id);
     }
   };
 

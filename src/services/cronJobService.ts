@@ -13,6 +13,8 @@ export interface CronJob {
     schedule: string;
     status: "running" | "stopped" | "paused";
     status_display?: string;
+    test_mode: "live" | "test_only" | "live_test";
+    test_mode_display?: string;
     last_run?: string;
     next_run?: string;
     is_active: boolean;
@@ -28,6 +30,7 @@ export interface CreateCronJobData {
     ecard?: number;
     schedule: string;
     status?: "running" | "stopped" | "paused";
+    test_mode?: "live" | "test_only" | "live_test";
 }
 
 // Update CronJob Interface
@@ -39,6 +42,7 @@ export interface UpdateCronJobData {
     schedule?: string;
     status?: "running" | "stopped" | "paused";
     is_active?: boolean;
+    test_mode?: "live" | "test_only" | "live_test";
 }
 
 // API Response Interface

@@ -30,6 +30,7 @@ import SocialIconsList from './pages/SocialIconManagement';
 import { SocialIconForm } from './pages/SocialIconManagement';
 import EmailActivity from './pages/EmailActivity';
 import CronJobs from './pages/CronJobs';
+import DailyReports from './pages/DailyReports';
 import Import from './pages/Import';
 
 function App() {
@@ -60,6 +61,7 @@ function App() {
           <Route path="react-quill-editor" element={<ReactQuillEditor />} />
           <Route path="email-sent-history" element={<EmailSentHistory />} />
           <Route path="cron-jobs" element={<CronJobs />} />
+          <Route path="daily-reports" element={<DailyReports />} />
           <Route path="newsletters" element={<NewslettersList />} />
           <Route path="newsletters/create" element={<NewsletterManagement />} />
           <Route path="newsletters/edit/:id" element={<NewsletterManagement />} />

@@ -220,8 +220,8 @@ const useCreateTemplate = ({ templateId, templateData, isAdmin = false }: UseCre
       return;
     }
 
-    // Validate user selection
-    if (!data.assigned_user_id || data.assigned_user_id === 0) {
+    // Validate user selection (not required for Standard templates)
+    if (data.type !== "standard" && (!data.assigned_user_id || data.assigned_user_id === 0)) {
       toast.error("Please select a user");
       return;
     }
@@ -251,7 +251,9 @@ const useCreateTemplate = ({ templateId, templateData, isAdmin = false }: UseCre
       // Create FormData
       const formData = new FormData();
       formData.append("name", data.name);
-      formData.append("customer", data.assigned_user_id.toString());
+      if (data.assigned_user_id && data.assigned_user_id !== 0) {
+        formData.append("customer", data.assigned_user_id.toString());
+      }
       formData.append("type", data.type);
       formData.append("is_active", data.is_active.toString());
 

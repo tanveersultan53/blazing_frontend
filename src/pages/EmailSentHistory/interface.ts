@@ -12,6 +12,7 @@ export interface IEmailSentHistory {
   template_name: string;
   date_sent: string;
   status?: 'sent' | 'failed' | 'pending';
+  is_test?: boolean;
 }
 
 export interface EmailSentHistoryFilters {

@@ -158,7 +158,37 @@ const CreateTemplate = () => {
                 )}
               </div>
 
-              {/* Assigned User Dropdown */}
+              {/* Template Type */}
+              <div className="space-y-2">
+                <Label htmlFor="type">
+                  Template Type <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={selectedType || "newsletter"}
+                  onValueChange={(value) => setValue("type", value)}
+                >
+                  <SelectTrigger
+                    className={
+                      errors.type ? "border-red-500 w-full" : "w-full"
+                    }
+                  >
+                    <SelectValue placeholder="Select template type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newsletter">Newsletter</SelectItem>
+                    <SelectItem value="promotional">Promotional</SelectItem>
+                    <SelectItem value="transactional">Transactional</SelectItem>
+                    <SelectItem value="announcement">Announcement</SelectItem>
+                    <SelectItem value="standard">Standard</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.type && (
+                  <p className="text-sm text-red-500">{errors.type.message}</p>
+                )}
+              </div>
+
+              {/* Assigned User Dropdown - hidden for Standard templates */}
+              {selectedType !== "standard" && (
               <div className="space-y-2">
                 <Label htmlFor="assigned_user_id">
                   Assign to User <span className="text-red-500">*</span>
@@ -199,34 +229,7 @@ const CreateTemplate = () => {
                   </p>
                 )}
               </div>
-
-              {/* Template Type */}
-              <div className="space-y-2">
-                <Label htmlFor="type">
-                  Template Type <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={selectedType || "newsletter"}
-                  onValueChange={(value) => setValue("type", value)}
-                >
-                  <SelectTrigger
-                    className={
-                      errors.type ? "border-red-500 w-full" : "w-full"
-                    }
-                  >
-                    <SelectValue placeholder="Select template type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="newsletter">Newsletter</SelectItem>
-                    <SelectItem value="promotional">Promotional</SelectItem>
-                    <SelectItem value="transactional">Transactional</SelectItem>
-                    <SelectItem value="announcement">Announcement</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.type && (
-                  <p className="text-sm text-red-500">{errors.type.message}</p>
-                )}
-              </div>
+              )}
 
               {/* Is Active Toggle */}
               <div className="space-y-2">
