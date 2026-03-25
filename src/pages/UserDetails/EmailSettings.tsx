@@ -15,6 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
+import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 
 const EmailSettings = () => {
@@ -56,6 +57,7 @@ const EmailSettings = () => {
         frequency2: data?.data?.frequency2 || 'monthly',
         newsletter_date2: data?.data?.newsletter_date2 || format(new Date(), 'yyyy-MM-dd'),
         autooptionscol: data?.data?.autooptionscol,
+        test_mode: data?.data?.test_mode || 'live',
         active_deactive_all_settings: data?.data?.active_deactive_all_settings || false,
     }
 
@@ -226,6 +228,28 @@ const EmailSettings = () => {
             <CardContent>
                 {!isEditMode &&
                     <div className="space-y-6">
+                        <label className="text-sm font-medium">Test Mode</label>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-medium text-muted-foreground">Email Test Mode</label>
+                                <div>
+                                    {(() => {
+                                        const mode = data?.data?.test_mode || 'live';
+                                        const config: Record<string, { label: string; className: string }> = {
+                                            live: { label: "Live", className: "bg-green-100 text-green-800 border-green-200" },
+                                            test_only: { label: "Test Only", className: "bg-orange-100 text-orange-800 border-orange-200" },
+                                            live_test: { label: "Live Test", className: "bg-blue-100 text-blue-800 border-blue-200" },
+                                        };
+                                        const c = config[mode] || config.live;
+                                        return <Badge variant="outline" className={c.className}>{c.label}</Badge>;
+                                    })()}
+                                </div>
+                            </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            <strong>Live:</strong> Normal production behavior. <strong>Test Only:</strong> Sends emails to test mailbox instead of real contacts. <strong>Live Test:</strong> Sends real emails with BCC to test mailbox.
+                        </p>
+                        <Separator />
                         <label className="text-sm font-medium">Birthday Options</label>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                             <div className="space-y-2">
@@ -354,6 +378,29 @@ const EmailSettings = () => {
                 {isEditMode &&
                     <>
                         <div className="space-y-6">
+                            <label className="text-sm font-medium">Test Mode</label>
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-medium text-muted-foreground">Email Test Mode</label>
+                                    <Select
+                                        value={watch('test_mode') || 'live'}
+                                        onValueChange={(value) => setValue('test_mode', value as 'live' | 'test_only' | 'live_test')}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Select test mode" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="live">Live (Production)</SelectItem>
+                                            <SelectItem value="test_only">Test Only</SelectItem>
+                                            <SelectItem value="live_test">Live Test</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                <strong>Live:</strong> Normal production behavior. <strong>Test Only:</strong> Sends emails to test mailbox instead of real contacts. <strong>Live Test:</strong> Sends real emails with BCC to test mailbox.
+                            </p>
+                            <Separator />
                             <div className="flex items-center space-x-2">
                                 <Checkbox
                                     id="active_deactive_all_settings"

@@ -124,6 +124,7 @@ export interface IEmailSettings {
   frequency2: 'weekly' | 'every_2_weeks' | 'monthly' | 'quarterly' | 'none' | null
   newsletter_date2: string | null
   autooptionscol: any
+  test_mode?: 'live' | 'test_only' | 'live_test' | null
   active_deactive_all_settings?: boolean
   no_rate_post?: boolean
   no_emal_report?: boolean
