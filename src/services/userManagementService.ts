@@ -95,6 +95,10 @@ export const getServiceSettings = (id: string | number): Promise<AxiosResponse<I
 export const updateServiceSettings = ({ id, serviceSettings }: { id: string | number, serviceSettings: IServiceSettings }): Promise<AxiosResponse<IServiceSettings>> =>
     api.patch(`/accounts/admin/users/${id}/service-settings`, serviceSettings);
 
+// Coming Home newsletter files
+export const getComingHomeFiles = (): Promise<AxiosResponse<{ files: string[] }>> =>
+    api.get('/accounts/admin/coming-home-files');
+
 // Branding
 export interface IBranding {
     companylogo?: File | string | null;

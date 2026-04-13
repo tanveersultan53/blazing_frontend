@@ -7,12 +7,13 @@ import { useForm } from "react-hook-form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { queryKeys } from "@/helpers/constants";
-import { getServiceSettings, updateServiceSettings } from "@/services/userManagementService";
+import { getServiceSettings, updateServiceSettings, getComingHomeFiles } from "@/services/userManagementService";
 import type { AxiosResponse } from "axios";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import Loading from "@/components/Loading";
 import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Services = () => {
     const { id } = useParams();
@@ -24,6 +25,13 @@ const Services = () => {
         queryKey: [queryKeys.getServiceSettings, id],
         queryFn: () => getServiceSettings(id as string | number),
     });
+
+    const { data: comingHomeFilesData } = useQuery({
+        queryKey: ['coming-home-files'],
+        queryFn: getComingHomeFiles,
+        enabled: isEditMode,
+    });
+    const comingHomeFiles = comingHomeFilesData?.data?.files || [];
 
     const updateServiceSettingsMutation = useMutation({
         mutationFn: (serviceSettings: IServiceSettings) => updateServiceSettings({ id: id as string | number, serviceSettings }),
@@ -395,17 +403,29 @@ const Services = () => {
                             </div>
                         </div>
 
-                        {/* Coming Home Newsletter File Name */}
+                        {/* Coming Home Newsletter File Selection */}
                         {watch('send_cominghome') && (
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="space-y-2">
-                                    <label htmlFor="coming_home_file" className="text-sm font-medium">Coming Home Newsletter File Name</label>
-                                    <Input
-                                        id="coming_home_file"
-                                        type="text"
-                                        placeholder="Enter newsletter file name"
-                                        {...register('coming_home_file')}
-                                    />
+                                    <label htmlFor="coming_home_file" className="text-sm font-medium">Coming Home Newsletter</label>
+                                    <Select
+                                        value={watch('coming_home_file') || ''}
+                                        onValueChange={(value) => setValue('coming_home_file', value)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a newsletter file" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {comingHomeFiles.map((file) => (
+                                                <SelectItem key={file} value={file}>
+                                                    {file}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {comingHomeFiles.length === 0 && (
+                                        <p className="text-xs text-muted-foreground">No newsletter files found. Upload HTML files to media/coming_home/</p>
+                                    )}
                                 </div>
                             </div>
                         )}
