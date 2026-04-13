@@ -94,11 +94,6 @@ const Services = () => {
     };
 
     const onSubmit = (formData: IServiceSettings) => {
-        if (formData.send_cominghome && !formData.coming_home_file?.trim()) {
-            toast.error('Coming Home Newsletter file name is required when the service is enabled');
-            return;
-        }
-
         // Filter out null, undefined, and empty string values
         const filteredData = Object.fromEntries(
             Object.entries(formData).filter(([_, value]) =>
@@ -216,11 +211,11 @@ const Services = () => {
                                     <p className="text-sm font-medium">{data?.data?.send_cominghome_cost || '-'}</p>
                                 </div>
                             </div>
-                            {data?.data?.send_cominghome && data?.data?.coming_home_file && (
+                            {data?.data?.send_cominghome && (
                                 <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mt-4">
                                     <div className="space-y-2">
                                         <label htmlFor="coming_home_newsletter" className="text-xs font-medium text-muted-foreground">Coming Home Newsletter</label>
-                                        <p className="text-sm font-medium">{data?.data?.coming_home_file}</p>
+                                        <p className="text-sm font-medium">{data?.data?.coming_home_file || 'None'}</p>
                                     </div>
                                 </div>
                             )}

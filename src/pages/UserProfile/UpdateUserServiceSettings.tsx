@@ -111,10 +111,6 @@ const UpdateUserServiceSettings = ({
             toast.error("Unable to identify the current user.");
             return;
         }
-        if (data.send_cominghome && !data.coming_home_file?.trim()) {
-            toast.error('Coming Home Newsletter file name is required when the service is enabled');
-            return;
-        }
         setIsSubmitting(true);
         const filteredData = Object.fromEntries(
             Object.entries(data).filter(

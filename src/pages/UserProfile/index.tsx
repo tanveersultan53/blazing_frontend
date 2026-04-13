@@ -1047,12 +1047,12 @@ const ServiceSettingsSummary = ({
           <p className="text-base mt-1">{renderBoolean(item.value)}</p>
         </div>
       ))}
-      {serviceSettings.coming_home_file && (
+      {serviceSettings.send_cominghome && (
         <div className="space-y-2">
           <label className="text-sm font-medium text-muted-foreground">
-            Coming Has Home
+            Coming Home Newsletter
           </label>
-          <p className="text-base mt-1">{serviceSettings.coming_home_file}</p>
+          <p className="text-base mt-1">{serviceSettings.coming_home_file || 'None'}</p>
         </div>
       )}
     </div>
