@@ -653,11 +653,11 @@ export default function NewsletterManagement() {
                       className="cursor-pointer"
                     />
                     {article1ImagePreview && (
-                      <div className="w-full p-4 border rounded-lg bg-white dark:bg-gray-800">
+                      <div className="w-full p-4 border rounded-lg bg-white dark:bg-gray-800 flex flex-col items-center">
                         <img
                           src={article1ImagePreview}
                           alt="Article 1 Preview"
-                          className="w-full h-24 object-cover rounded-lg"
+                          className="h-24 object-cover rounded-lg"
                         />
                         <p className="text-xs text-muted-foreground mt-2">
                           {getImageDisplayName(article1Image)}
@@ -682,11 +682,11 @@ export default function NewsletterManagement() {
                       className="cursor-pointer"
                     />
                     {article2ImagePreview && (
-                      <div className="w-full p-4 border rounded-lg bg-white dark:bg-gray-800">
+                      <div className="w-full p-4 border rounded-lg bg-white dark:bg-gray-800 flex flex-col items-center">
                         <img
                           src={article2ImagePreview}
                           alt="Article 2 Preview"
-                          className="w-full h-24 object-cover rounded-lg"
+                          className="h-24 object-cover rounded-lg"
                         />
                         <p className="text-xs text-muted-foreground mt-2">
                           {getImageDisplayName(article2Image)}
