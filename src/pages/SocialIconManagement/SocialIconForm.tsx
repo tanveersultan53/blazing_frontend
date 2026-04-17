@@ -197,7 +197,7 @@ export default function SocialIconForm() {
                     <img
                       src={imagePreview}
                       alt="Icon Preview"
-                      className="h-16 w-16 object-contain"
+                      className="object-contain" style={{ width: 37, height: 37 }}
                     />
                   </div>
                 )}

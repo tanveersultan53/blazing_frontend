@@ -79,7 +79,7 @@ export default function SocialIconsList() {
             <img
               src={imageUrl}
               alt={row.original.name}
-              className="h-8 w-8 object-contain"
+              className="object-contain" style={{ width: 37, height: 37 }}
             />
           ) : (
             <span className="text-muted-foreground">—</span>
