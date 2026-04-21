@@ -80,7 +80,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   ]
   const userNav: NavMainProps['items'] = [
     {
-      title: "Dashboard",
+      title: "Manage Contacts and Referral Partners",
       url: ["/user-dashboard"],
       icon: Home,
       items: [],

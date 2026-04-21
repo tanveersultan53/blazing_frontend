@@ -29,7 +29,7 @@ const UserDashboard = () => {
   const navigate = useNavigate();
 
   // Memoize breadcrumbs to prevent infinite loops
-  const breadcrumbs = useMemo(() => [{ label: "Dashboard" }], []);
+  const breadcrumbs = useMemo(() => [{ label: "Manage Contacts and Referral Partners" }], []);
 
   useBreadcrumbs(breadcrumbs);
 
@@ -95,7 +95,7 @@ const UserDashboard = () => {
 
   return (
     <PageHeader
-      title="Dashboard"
+      title="Manage Contacts and Referral Partners"
       description=""
       actions={[
         ...(getButtonName()
@@ -126,8 +126,8 @@ const UserDashboard = () => {
         {/* Contacts Section */}
         <Card>
           <CardHeader>
-            <CardTitle>My Contacts</CardTitle>
-            <CardDescription>Manage your contacts and referral partners</CardDescription>
+            <CardTitle>Manage Contacts and Referral Partners</CardTitle>
+            <CardDescription>View, add, and manage your contacts and referral partners</CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-6 pt-6">
@@ -139,7 +139,7 @@ const UserDashboard = () => {
                       Contact ({contactsCount})
                     </TabsTrigger>
                     <TabsTrigger value="referal_partner">
-                      Referal Partner ({partnersCount})
+                      Referral Partner ({partnersCount})
                     </TabsTrigger>
                     <TabsTrigger value="all">
                       All ({contactsCount + partnersCount})
