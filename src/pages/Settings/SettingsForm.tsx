@@ -417,11 +417,11 @@ const SettingsForm = ({ userId }: { userId: string }) => {
                                 <p className="text-sm font-semibold capitalize">{data?.data?.frequency}</p>
                             </div>
                             <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Newsletter Date</label>
-                                <p className="text-sm font-semibold capitalize">{data?.data?.newsletter_date}</p>
+                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Next Newsletter Date</label>
+                                <p className="text-sm font-semibold capitalize">{data?.data?.newsletter_date ? format(new Date(data.data.newsletter_date), 'MM-dd-yyyy') : '-'}</p>
                             </div>
                         </div>
-                        <p className="text-sm font-medium mt-4 mb-2">Contacts</p>
+                        <p className="text-sm font-medium mt-4 mb-2">Referral Partners</p>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                             <div className="space-y-2">
                                 <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Newsletter Status</label>
@@ -436,8 +436,8 @@ const SettingsForm = ({ userId }: { userId: string }) => {
                                 <p className="text-sm font-semibold capitalize">{data?.data?.frequency2}</p>
                             </div>
                             <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Newsletter Date</label>
-                                <p className="text-sm font-semibold capitalize">{data?.data?.newsletter_date2}</p>
+                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Next Newsletter Date</label>
+                                <p className="text-sm font-semibold capitalize">{data?.data?.newsletter_date2 ? format(new Date(data.data.newsletter_date2), 'MM-dd-yyyy') : '-'}</p>
                             </div>
                         </div>
                         <Separator />
@@ -748,7 +748,7 @@ const SettingsForm = ({ userId }: { userId: string }) => {
                                     </Select>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-xs font-medium text-muted-foreground">Newsletter Date</label>
+                                    <label className="text-xs font-medium text-muted-foreground">Next Newsletter Date</label>
                                     <div className="w-full">
                                         <DatePicker
                                             value={watch('newsletter_date') ? new Date(watch('newsletter_date')!) : undefined}
@@ -757,7 +757,7 @@ const SettingsForm = ({ userId }: { userId: string }) => {
                                     </div>
                                 </div>
                             </div>
-                            <p className="text-sm font-medium mt-6 mb-2">Parents</p>
+                            <p className="text-sm font-medium mt-6 mb-2">Referral Partners</p>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div className="space-y-2">
                                     <label className="text-xs font-medium text-muted-foreground">Newsletter Status</label>
@@ -809,7 +809,7 @@ const SettingsForm = ({ userId }: { userId: string }) => {
                                     </Select>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-xs font-medium text-muted-foreground">Newsletter Date</label>
+                                    <label className="text-xs font-medium text-muted-foreground">Next Newsletter Date</label>
                                     <div className="w-full">
                                         <DatePicker
                                             value={watch('newsletter_date2') ? new Date(watch('newsletter_date2')!) : undefined}
