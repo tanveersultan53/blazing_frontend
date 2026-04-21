@@ -205,7 +205,7 @@ const EmailSettings = () => {
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <div>
                     <CardTitle>Email Settings</CardTitle>
-                    <CardDescription>You can also update email settings here by clicking the update button. </CardDescription>
+                    <CardDescription>Configure email automation preferences.</CardDescription>
                 </div>
                 {isEditMode &&
                     <div className="flex items-center gap-2">
@@ -251,125 +251,128 @@ const EmailSettings = () => {
                         </p>
                         <Separator />
                         <label className="text-sm font-medium">Birthday Options</label>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                            <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Main Birthday</label>
-                                <p className="text-sm font-semibold">{data?.data?.birthday ? 'Send' : "Don't Send"}</p>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                            <div className="flex items-center space-x-2">
+                                <Checkbox id="birthday_view" checked={!!data?.data?.birthday} disabled />
+                                <label htmlFor="birthday_view" className="text-sm font-medium">Main Birthday</label>
                             </div>
-                            <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Spouse Birthday</label>
-                                <p className="text-sm font-semibold">{data?.data?.spouse_birthday ? 'Send' : "Don't Send"}</p>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox id="spouse_birthday_view" checked={!!data?.data?.spouse_birthday} disabled />
+                                <label htmlFor="spouse_birthday_view" className="text-sm font-medium">Spouse Birthday</label>
                             </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
                             <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Birthday Status</label>
+                                <label className="text-xs font-medium text-muted-foreground">Birthday Status</label>
                                 <p className="text-sm font-semibold capitalize">{data?.data?.birthday_status}</p>
                             </div>
                             <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Recipient</label>
+                                <label className="text-xs font-medium text-muted-foreground">Recipient</label>
                                 <p className="text-sm font-semibold capitalize">{data?.data?.whobday}</p>
                             </div>
                         </div>
                         <Separator />
                         <label className="text-sm font-medium">Holiday Options</label>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                            <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">New Years</label>
-                                <p className="text-sm font-semibold">{data?.data?.newyears ? 'Send' : "Don't Send"}</p>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                            <div className="flex items-center space-x-2">
+                                <Checkbox checked={!!data?.data?.newyears} disabled />
+                                <label className="text-sm font-medium">New Years</label>
                             </div>
-                            <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Summer Day</label>
-                                <p className="text-sm font-semibold">{data?.data?.summer ? 'Send' : "Don't Send"}</p>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox checked={!!data?.data?.stpatrick} disabled />
+                                <label className="text-sm font-medium">St Patrick</label>
                             </div>
-                            <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Labor Day</label>
-                                <p className="text-sm font-semibold">{data?.data?.laborday ? 'Send' : "Don't Send"}</p>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox checked={!!data?.data?.july4} disabled />
+                                <label className="text-sm font-medium">July 4</label>
                             </div>
-                            <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Memorial Day</label>
-                                <p className="text-sm font-semibold">{data?.data?.memorialday ? 'Send' : "Don't Send"}</p>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox checked={!!data?.data?.halloween} disabled />
+                                <label className="text-sm font-medium">Halloween</label>
                             </div>
-                            <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">St Patrick's Day</label>
-                                <p className="text-sm font-semibold">{data?.data?.stpatrick ? 'Send' : "Don't Send"}</p>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox checked={!!data?.data?.summer} disabled />
+                                <label className="text-sm font-medium">Summer</label>
                             </div>
-                            <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Halloween</label>
-                                <p className="text-sm font-semibold">{data?.data?.halloween ? 'Send' : "Don't Send"}</p>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox checked={!!data?.data?.thanksgiving} disabled />
+                                <label className="text-sm font-medium">Thanksgiving</label>
                             </div>
-                            <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Thanksgiving</label>
-                                <p className="text-sm font-semibold">{data?.data?.thanksgiving ? 'Send' : "Don't Send"}</p>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox checked={!!data?.data?.veteransday} disabled />
+                                <label className="text-sm font-medium">Veterans Day</label>
                             </div>
-                            <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Veterans Day</label>
-                                <p className="text-sm font-semibold">{data?.data?.veteransday ? 'Send' : "Don't Send"}</p>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox checked={!!data?.data?.spring} disabled />
+                                <label className="text-sm font-medium">Spring</label>
                             </div>
-                            <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Spring</label>
-                                <p className="text-sm font-semibold">{data?.data?.spring ? 'Send' : "Don't Send"}</p>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox checked={!!data?.data?.laborday} disabled />
+                                <label className="text-sm font-medium">Labor Day</label>
                             </div>
-                            <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">December Holidays</label>
-                                <p className="text-sm font-semibold">{data?.data?.december ? 'Send' : "Don't Send"}</p>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox checked={!!data?.data?.december} disabled />
+                                <label className="text-sm font-medium">December</label>
                             </div>
-                            <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Fall Holidays</label>
-                                <p className="text-sm font-semibold">{data?.data?.fall ? 'Send' : "Don't Send"}</p>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox checked={!!data?.data?.fall} disabled />
+                                <label className="text-sm font-medium">Fall</label>
                             </div>
-                            <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Valentine's Day</label>
-                                <p className="text-sm font-semibold">{data?.data?.valentine ? 'Send' : "Don't Send"}</p>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox checked={!!data?.data?.valentine} disabled />
+                                <label className="text-sm font-medium">Valentine</label>
                             </div>
-                            <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">July 4th</label>
-                                <p className="text-sm font-semibold">{data?.data?.july4 ? 'Send' : "Don't Send"}</p>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox checked={!!data?.data?.memorialday} disabled />
+                                <label className="text-sm font-medium">Memorial Day</label>
                             </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
                             <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">ECard Status</label>
+                                <label className="text-xs font-medium text-muted-foreground">E-card Status</label>
                                 <p className="text-sm font-semibold capitalize">{data?.data?.ecard_status}</p>
                             </div>
                             <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Recipient</label>
+                                <label className="text-xs font-medium text-muted-foreground">Recipient</label>
                                 <p className="text-sm font-semibold capitalize">{data?.data?.whoecards}</p>
                             </div>
                         </div>
                         <Separator />
-                        <label className="text-sm font-medium">Newsletter Options</label>
-                        <p className="text-sm font-medium mt-4 mb-2">Contacts</p>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        <label className="text-sm font-medium">Newsletter Options (Primary)</label>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
                             <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Newsletter Status</label>
+                                <label className="text-xs font-medium text-muted-foreground">Newsletter Status</label>
                                 <p className="text-sm font-semibold capitalize">{data?.data?.newsletter_status}</p>
                             </div>
                             <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Newsletter Version</label>
+                                <label className="text-xs font-medium text-muted-foreground">Newsletter Version</label>
                                 <p className="text-sm font-semibold capitalize">{data?.data?.newsletter_default}</p>
                             </div>
                             <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Frequency</label>
+                                <label className="text-xs font-medium text-muted-foreground">Frequency</label>
                                 <p className="text-sm font-semibold capitalize">{data?.data?.frequency}</p>
                             </div>
                             <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Newsletter Date</label>
+                                <label className="text-xs font-medium text-muted-foreground">Newsletter Date</label>
                                 <p className="text-sm font-semibold capitalize">{data?.data?.newsletter_date}</p>
                             </div>
                         </div>
-                        <p className="text-sm font-medium mt-4 mb-2">Contacts</p>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        <label className="text-sm font-medium mt-6 block">Newsletter Options (Secondary)</label>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
                             <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Newsletter Status</label>
+                                <label className="text-xs font-medium text-muted-foreground">Newsletter Status</label>
                                 <p className="text-sm font-semibold capitalize">{data?.data?.newsletter_status2}</p>
                             </div>
                             <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Newsletter Version</label>
+                                <label className="text-xs font-medium text-muted-foreground">Newsletter Version</label>
                                 <p className="text-sm font-semibold capitalize">{data?.data?.newsletter_default2}</p>
                             </div>
                             <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Frequency</label>
+                                <label className="text-xs font-medium text-muted-foreground">Frequency</label>
                                 <p className="text-sm font-semibold capitalize">{data?.data?.frequency2}</p>
                             </div>
                             <div className="space-y-2">
-                                <label htmlFor="active_deactive_all_settings" className="text-xs font-medium text-muted-foreground">Newsletter Date</label>
+                                <label className="text-xs font-medium text-muted-foreground">Newsletter Date</label>
                                 <p className="text-sm font-semibold capitalize">{data?.data?.newsletter_date2}</p>
                             </div>
                         </div>
@@ -479,7 +482,7 @@ const EmailSettings = () => {
                                         size="sm"
                                         onClick={handleSetAllHolidays}
                                     >
-                                        Set All
+                                        Select All Holidays
                                     </Button>
                                     <Button
                                         type="button"
@@ -487,7 +490,7 @@ const EmailSettings = () => {
                                         size="sm"
                                         onClick={handleSetNoneHolidays}
                                     >
-                                        Set None
+                                        Clear Holidays
                                     </Button>
                                 </div>
                             </div>
@@ -506,7 +509,7 @@ const EmailSettings = () => {
                                         checked={watch('summer')}
                                         onCheckedChange={(checked) => setValue('summer', checked as boolean)}
                                     />
-                                    <label htmlFor="summer" className="text-sm font-medium">Summer Day</label>
+                                    <label htmlFor="summer" className="text-sm font-medium">Summer</label>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                     <Checkbox
@@ -530,7 +533,7 @@ const EmailSettings = () => {
                                         checked={watch('stpatrick')}
                                         onCheckedChange={(checked) => setValue('stpatrick', checked as boolean)}
                                     />
-                                    <label htmlFor="stpatrick" className="text-sm font-medium">St Patrick's Day</label>
+                                    <label htmlFor="stpatrick" className="text-sm font-medium">St Patrick</label>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                     <Checkbox
@@ -570,7 +573,7 @@ const EmailSettings = () => {
                                         checked={watch('december')}
                                         onCheckedChange={(checked) => setValue('december', checked as boolean)}
                                     />
-                                    <label htmlFor="december" className="text-sm font-medium">December Holidays</label>
+                                    <label htmlFor="december" className="text-sm font-medium">December</label>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                     <Checkbox
@@ -578,7 +581,7 @@ const EmailSettings = () => {
                                         checked={watch('fall')}
                                         onCheckedChange={(checked) => setValue('fall', checked as boolean)}
                                     />
-                                    <label htmlFor="fall" className="text-sm font-medium">Fall Holidays</label>
+                                    <label htmlFor="fall" className="text-sm font-medium">Fall</label>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                     <Checkbox
@@ -586,7 +589,7 @@ const EmailSettings = () => {
                                         checked={watch('valentine')}
                                         onCheckedChange={(checked) => setValue('valentine', checked as boolean)}
                                     />
-                                    <label htmlFor="valentine" className="text-sm font-medium">Valentine's Day</label>
+                                    <label htmlFor="valentine" className="text-sm font-medium">Valentine</label>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                     <Checkbox
@@ -594,12 +597,12 @@ const EmailSettings = () => {
                                         checked={watch('july4')}
                                         onCheckedChange={(checked) => setValue('july4', checked as boolean)}
                                     />
-                                    <label htmlFor="july4" className="text-sm font-medium">July 4th</label>
+                                    <label htmlFor="july4" className="text-sm font-medium">July 4</label>
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                 <div className="space-y-2">
-                                    <label className="text-xs font-medium text-muted-foreground">ECard Status</label>
+                                    <label className="text-xs font-medium text-muted-foreground">E-card Status</label>
                                     <Select
                                         value={watch('ecard_status') || ''}
                                         onValueChange={(value) => setValue('ecard_status', value as 'send' | 'dont_send')}
@@ -631,9 +634,8 @@ const EmailSettings = () => {
                                 </div>
                             </div>
                             <Separator />
-                            <label className="text-sm font-medium">Newsletter Options</label>
-                            <p className="text-sm font-medium mt-4 mb-2">Contacts</p>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 ">
+                            <label className="text-sm font-medium">Newsletter Options (Primary)</label>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
                                 <div className="space-y-2">
                                     <label className="text-xs font-medium text-muted-foreground">Newsletter Status</label>
                                     <Select
@@ -693,7 +695,7 @@ const EmailSettings = () => {
                                     </div>
                                 </div>
                             </div>
-                            <p className="text-sm font-medium mt-6 mb-2">Parents</p>
+                            <label className="text-sm font-medium mt-6 block">Newsletter Options (Secondary)</label>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div className="space-y-2">
                                     <label className="text-xs font-medium text-muted-foreground">Newsletter Status</label>

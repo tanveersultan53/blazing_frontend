@@ -77,6 +77,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: Clock,
       items: [],
     },
+    {
+      title: "Digital Newsletter",
+      url: ["/coming-home"],
+      icon: Home,
+      items: [],
+    },
   ]
   const userNav: NavMainProps['items'] = [
     {

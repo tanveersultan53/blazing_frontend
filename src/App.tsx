@@ -32,6 +32,7 @@ import EmailActivity from './pages/EmailActivity';
 import CronJobs from './pages/CronJobs';
 import DailyReports from './pages/DailyReports';
 import Import from './pages/Import';
+import ComingHomeManagement from './pages/ComingHomeManagement';
 
 function App() {
   return (
@@ -73,6 +74,7 @@ function App() {
           <Route path="social-icons" element={<SocialIconsList />} />
           <Route path="social-icons/create" element={<SocialIconForm />} />
           <Route path="social-icons/edit/:id" element={<SocialIconForm />} />
+          <Route path="coming-home" element={<ComingHomeManagement />} />
           <Route path="import" element={<Import />} />
         </Route>
         <Route path="/login" element={<WithoutAuth><Login /></WithoutAuth>} />
