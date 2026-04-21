@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useBreadcrumbs } from "@/hooks/usePageTitle";
 import PageHeader from "@/components/PageHeader";
-import { Edit } from "lucide-react";
+import { Camera, Edit, ImageIcon, Upload } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -13,7 +13,7 @@ import { useSelector } from "react-redux";
 import type { User } from "@/redux/features/userSlice";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   getCallToAction,
   getEmailSettings,
@@ -21,7 +21,9 @@ import {
   getServiceSettings,
   getSocials,
   getUserDetails,
+  patchUser,
 } from "@/services/userManagementService";
+import { toast } from "sonner";
 import { queryKeys } from "@/helpers/constants";
 import type {
   ICallToAction,
@@ -157,6 +159,43 @@ const UserProfile = () => {
   const [isCallToActionEditMode, setIsCallToActionEditMode] = useState(false);
   const [isBrandingEditMode, setIsBrandingEditMode] = useState(false);
 
+  // Photo & logo upload refs
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+
+  // Mutation for updating user photo/logo
+  const uploadImageMutation = useMutation({
+    mutationFn: ({ field, file }: { field: "photo" | "logo"; file: File }) => {
+      const formData = new FormData();
+      formData.append(field, file);
+      return patchUser({ id: currentUser?.rep_id as string, data: formData });
+    },
+    onSuccess: (_data, variables) => {
+      const label = variables.field === "photo" ? "Photo" : "Logo";
+      toast.success(`${label} updated successfully!`);
+      refetchUserDetails();
+    },
+    onError: (error: any, variables) => {
+      const label = variables.field === "photo" ? "Photo" : "Logo";
+      toast.error(error.response?.data?.[variables.field]?.[0] || `Failed to update ${label.toLowerCase()}`);
+    },
+  });
+
+  const handleImageChange = (field: "photo" | "logo", file: File | null) => {
+    if (!file) return;
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast.error("File size cannot exceed 5MB.");
+      return;
+    }
+    const allowed = ["image/png", "image/jpeg", "image/jpg", "image/gif"];
+    if (!allowed.includes(file.type)) {
+      toast.error("Only PNG, JPG, and GIF files are allowed.");
+      return;
+    }
+    uploadImageMutation.mutate({ field, file });
+  };
+
   // Get initials for avatar fallback
   const initials =
     `${first_name?.charAt(0) || ""}${last_name?.charAt(0) || ""}`.toUpperCase();
@@ -214,30 +253,102 @@ const UserProfile = () => {
           {/* Profile Header Card */}
           <Card>
             <CardHeader>
-              <div className="flex items-center gap-4">
-                <Avatar className="h-20 w-20">
-                  <AvatarImage
-                    src={userDetails?.photo || ""}
-                    alt={`${first_name} ${last_name}`}
-                  />
-                  <AvatarFallback className="bg-orange-500 text-white text-xl">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <CardTitle className="text-2xl">
-                      {first_name} {last_name}
-                    </CardTitle>
-                    {is_superuser && (
-                      <Badge variant="default" className="bg-orange-500">
-                        Admin
-                      </Badge>
+              <div className="flex items-center justify-between">
+                {/* Left: Photo + Name */}
+                <div className="flex items-center gap-4">
+                  <div className="relative group">
+                    <Avatar className="h-20 w-20">
+                      <AvatarImage
+                        src={userDetails?.photo || ""}
+                        alt={`${first_name} ${last_name}`}
+                      />
+                      <AvatarFallback className="bg-orange-500 text-white text-xl">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    {uploadImageMutation.isPending && uploadImageMutation.variables?.field === "photo" && (
+                      <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                        <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      </div>
                     )}
                   </div>
-                  <CardDescription className="text-base mt-1">
-                    {email}
-                  </CardDescription>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <CardTitle className="text-2xl">
+                        {first_name} {last_name}
+                      </CardTitle>
+                      {is_superuser && (
+                        <Badge variant="default" className="bg-orange-500">
+                          Admin
+                        </Badge>
+                      )}
+                    </div>
+                    <CardDescription className="text-base mt-1">
+                      {email}
+                    </CardDescription>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-2 flex items-center gap-2"
+                      onClick={() => photoInputRef.current?.click()}
+                      disabled={uploadImageMutation.isPending}
+                    >
+                      <Camera className="h-4 w-4" />
+                      Change Photo
+                    </Button>
+                    <input
+                      ref={photoInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg,image/gif"
+                      className="hidden"
+                      onChange={(e) => {
+                        handleImageChange("photo", e.target.files?.[0] || null);
+                        e.target.value = "";
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Right: Logo + Upload Button */}
+                <div className="flex items-center gap-4">
+                  <div className="h-20 w-32 border rounded-lg flex items-center justify-center overflow-hidden bg-muted/30">
+                    {userDetails?.logo ? (
+                      <img
+                        src={userDetails.logo}
+                        alt="Company Logo"
+                        className="h-full w-full object-contain p-2"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center gap-1 text-muted-foreground">
+                        <ImageIcon className="h-6 w-6" />
+                        <span className="text-xs">No Logo</span>
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                    onClick={() => logoInputRef.current?.click()}
+                    disabled={uploadImageMutation.isPending}
+                  >
+                    {uploadImageMutation.isPending && uploadImageMutation.variables?.field === "logo" ? (
+                      <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Upload className="h-4 w-4" />
+                    )}
+                    Upload Logo
+                  </Button>
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg,image/gif"
+                    className="hidden"
+                    onChange={(e) => {
+                      handleImageChange("logo", e.target.files?.[0] || null);
+                      e.target.value = "";
+                    }}
+                  />
                 </div>
               </div>
             </CardHeader>

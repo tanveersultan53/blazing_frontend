@@ -59,6 +59,14 @@ export const updateUser = ({ id, user }: { id: string | number, user: CreateUser
     return api.put(`/accounts/auth/users/${id}`, user);
 };
 
+export const patchUser = ({ id, data }: { id: string | number, data: FormData }): Promise<AxiosResponse<CreateUserFormData>> => {
+    return api.patch(`/accounts/auth/users/${id}`, data, {
+        headers: {
+            'Content-Type': undefined,
+        },
+    });
+};
+
 export const getSocials = (id: string | number): Promise<AxiosResponse<ISocials>> =>
     api.get(`/accounts/admin/users/${id}/socials`);
 
