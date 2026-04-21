@@ -31,7 +31,7 @@ const useAddPerson = (): AddPersonHookReturn => {
       birthday: '',
       age: '',
       group: '',
-      send_status: 'send',
+      send_status: 'prospect',
       optout: 'send',
       newsletter_version: 'none',
 
@@ -128,7 +128,7 @@ const useAddPerson = (): AddPersonHookReturn => {
       birthday: cleanValue(data.birthday),
       age: data.age ? parseInt(data.age as string) : null,
       group: cleanValue(data.group),
-      send_status: data.send_status || 'send',
+      send_status: data.send_status || 'prospect',
       optout: data.optout === 'send' ? false : true,
       newsletter_version: data.newsletter_version || 'none',
       customer_type: data.customer_type,

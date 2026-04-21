@@ -387,8 +387,8 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="send">Send</SelectItem>
-                  <SelectItem value="dont_send">Don't Send</SelectItem>
+                  <SelectItem value="prospect">Prospect</SelectItem>
+                  <SelectItem value="client">Client</SelectItem>
                 </SelectContent>
               </Select>
               {errors.send_status && (

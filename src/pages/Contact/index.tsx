@@ -23,8 +23,8 @@ const CUSTOMER_TYPE_CHOICES = [
 ];
 
 const SEND_CHOICES = [
-    { value: 'send', label: 'Send' },
-    { value: 'dont_send', label: "Don't Send" },
+    { value: 'prospect', label: 'Prospect' },
+    { value: 'client', label: 'Client' },
 ];
 
 const NEWSLETTER_VERSION_CHOICES = [
@@ -336,7 +336,7 @@ const Contact = () => {
                             {renderEditableField('company', contact.company, 'Company')}
                             {renderDropdownField('customer_type', contact.customer_type, 'Customer Type', CUSTOMER_TYPE_CHOICES)}
                             {renderEditableField('group', contact.group, 'Group')}
-                            {renderDropdownField('send_status', contact.send_status, 'Send Status', SEND_CHOICES)}
+                            {renderDropdownField('send_status', contact.send_status, 'Status', SEND_CHOICES)}
                             {renderDropdownField('newsletter_version', contact.newsletter_version, 'Newsletter', NEWSLETTER_VERSION_CHOICES)}
                             {renderDropdownField('optout', contact.optout, 'Opt-out Status', BOOLEAN_CHOICES)}
                         </div>
