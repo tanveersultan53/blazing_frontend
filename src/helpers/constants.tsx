@@ -11,5 +11,7 @@ export const queryKeys = Object.freeze({
     getServiceSettings: 'getServiceSettings',
     contacts: 'contacts',
     getEmailTemplates: 'getEmailTemplates',
+    importTemplates: 'importTemplates',
+    importTemplate: 'importTemplate',
 });
 

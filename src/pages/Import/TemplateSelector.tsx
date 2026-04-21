@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Calendar } from 'lucide-react';
+import { FileText, Calendar, Loader2 } from 'lucide-react';
+import { queryKeys } from '@/helpers/constants';
+import { listTemplates } from '@/services/importService';
 import type { ImportTemplate } from './types';
 
 interface TemplateSelectorProps {
@@ -9,10 +11,20 @@ interface TemplateSelectorProps {
 }
 
 const TemplateSelector = ({ onSelect }: TemplateSelectorProps) => {
-    // TODO: Replace with actual API call
-    const [templates] = useState<ImportTemplate[]>([
-        // Mock data for now
-    ]);
+    const { data, isLoading } = useQuery({
+        queryKey: [queryKeys.importTemplates],
+        queryFn: () => listTemplates().then(res => res.data),
+    });
+
+    const templates = data || [];
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+            </div>
+        );
+    }
 
     if (templates.length === 0) {
         return (
@@ -39,10 +51,12 @@ const TemplateSelector = ({ onSelect }: TemplateSelectorProps) => {
                                 <Badge variant={template.import_type === 'contact' ? 'default' : 'secondary'}>
                                     {template.import_type === 'contact' ? 'Contacts' : 'Partners'}
                                 </Badge>
-                                <span className="text-xs text-gray-500 flex items-center gap-1">
-                                    <Calendar className="w-3 h-3" />
-                                    {template.id}
-                                </span>
+                                {(template as any).created && (
+                                    <span className="text-xs text-gray-500 flex items-center gap-1">
+                                        <Calendar className="w-3 h-3" />
+                                        {new Date((template as any).created).toLocaleDateString()}
+                                    </span>
+                                )}
                             </div>
                         </div>
                     </div>

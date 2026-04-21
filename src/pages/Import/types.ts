@@ -40,6 +40,7 @@ export interface ImportPreviewRow {
   action: ImportAction;
   data: Record<string, any>;
   has_empty_email: boolean;
+  existing_contact_id?: number | null;
   selected: boolean;
 }
 

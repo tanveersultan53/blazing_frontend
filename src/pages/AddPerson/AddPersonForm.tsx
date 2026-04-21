@@ -169,14 +169,13 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
             {/* Email */}
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
-                Email Address *
+                Email Address
               </label>
               <Input
                 id="email"
                 type="email"
                 placeholder="Enter email address"
                 {...register("email", {
-                  required: "Email is required",
                   pattern: {
                     value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                     message: "Invalid email address",
@@ -258,14 +257,13 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
             {/* Cell */}
             <div className="space-y-2">
               <label htmlFor="cell" className="text-sm font-medium">
-                Cell Phone *
+                Cell Phone
               </label>
               <Input
                 id="cell"
                 type="tel"
                 placeholder="(858) 369-5555"
                 {...register("cell", {
-                  required: "Cell phone is required",
                   pattern: {
                     value: /^\(\d{3}\) \d{3}-\d{4}$|^\d{10}$|^\+1\d{10}$/,
                     message: "Phone number must be in format: (XXX) XXX-XXXX",

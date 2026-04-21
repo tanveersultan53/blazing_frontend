@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useBreadcrumbs } from '@/hooks/usePageTitle';
 import PageHeader from '@/components/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,8 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Upload, Map, Settings, FileSpreadsheet } from 'lucide-react';
+import { ArrowLeft, Upload, Map, Settings, FileSpreadsheet, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { queryKeys } from '@/helpers/constants';
+import { parseHeaders, previewImport, executeImport, createTemplate, updateTemplate } from '@/services/importService';
 import MapFieldsModal from './MapFieldsModal';
 import ImportOptionsModal from './ImportOptionsModal';
 import PreviewTable from './PreviewTable';
@@ -20,6 +23,8 @@ interface ImportFormProps {
 }
 
 const ImportForm = ({ template, isNew, onBack }: ImportFormProps) => {
+    const queryClient = useQueryClient();
+
     const [formData, setFormData] = useState<ImportTemplate>(template || {
         template_name: '',
         import_type: 'contact',
@@ -42,8 +47,8 @@ const ImportForm = ({ template, isNew, onBack }: ImportFormProps) => {
     const [importHeaders, setImportHeaders] = useState<string[]>([]);
     const [showMapFields, setShowMapFields] = useState(false);
     const [showOptions, setShowOptions] = useState(false);
-    const [previewData] = useState<ImportPreviewRow[]>([]);
-    const [showPreview] = useState(false);
+    const [previewData, setPreviewData] = useState<ImportPreviewRow[]>([]);
+    const [showPreview, setShowPreview] = useState(false);
 
     const breadcrumbs = useMemo(() => [
         { label: 'Import Contacts', onClick: onBack },
@@ -51,6 +56,102 @@ const ImportForm = ({ template, isNew, onBack }: ImportFormProps) => {
     ], [isNew, onBack]);
 
     useBreadcrumbs(breadcrumbs);
+
+    // --- Mutations ---
+
+    const parseHeadersMutation = useMutation({
+        mutationFn: (file: File) => parseHeaders(file),
+        onSuccess: (res) => {
+            setImportHeaders(res.data.headers);
+            toast.success('File headers parsed');
+        },
+        onError: () => {
+            toast.error('Failed to parse file headers');
+        },
+    });
+
+    const previewMutation = useMutation({
+        mutationFn: () => {
+            const options: Record<string, boolean> = {
+                add_optout: formData.add_optout,
+                email_only: formData.email_only,
+                force_add: formData.force_add,
+                dont_contact: formData.dont_contact,
+                fixname1: formData.fixname1,
+                fixname2: formData.fixname2,
+                fixname3: formData.fixname3,
+                fixaddress1: formData.fixaddress1,
+                fixaddress2: formData.fixaddress2,
+                fixaddress3: formData.fixaddress3,
+            };
+            return previewImport(
+                selectedFile!,
+                formData.field_mappings || [],
+                options,
+                formData.import_type
+            );
+        },
+        onSuccess: (res) => {
+            setPreviewData(res.data.preview);
+            setShowPreview(true);
+            toast.success(`Preview generated: ${res.data.preview.length} rows`);
+        },
+        onError: () => {
+            toast.error('Failed to generate preview');
+        },
+    });
+
+    const executeMutation = useMutation({
+        mutationFn: async (selectedRows: ImportPreviewRow[]) => {
+            // Save/create template first
+            let templateId = formData.id;
+            const templatePayload = {
+                template_name: formData.template_name,
+                import_type: formData.import_type,
+                import_status: formData.import_status,
+                add_optout: formData.add_optout,
+                email_only: formData.email_only,
+                force_add: formData.force_add,
+                dont_contact: formData.dont_contact,
+                fixname1: formData.fixname1,
+                fixname2: formData.fixname2,
+                fixname3: formData.fixname3,
+                fixaddress1: formData.fixaddress1,
+                fixaddress2: formData.fixaddress2,
+                fixaddress3: formData.fixaddress3,
+                field_mappings: formData.field_mappings?.map(m => ({
+                    import_field: m.import_field,
+                    blazing_field: m.blazing_field,
+                })),
+            };
+
+            if (templateId) {
+                await updateTemplate(templateId, templatePayload);
+            } else {
+                const res = await createTemplate(templatePayload);
+                templateId = res.data.id;
+                setFormData(prev => ({ ...prev, id: templateId }));
+            }
+
+            return executeImport(
+                templateId!,
+                selectedRows,
+                formData.import_type,
+                formData.import_status
+            );
+        },
+        onSuccess: (res) => {
+            const { added, updated, skipped } = res.data;
+            toast.success(`Import complete: ${added} added, ${updated} updated, ${skipped} skipped`);
+            queryClient.invalidateQueries({ queryKey: [queryKeys.contacts] });
+            queryClient.invalidateQueries({ queryKey: [queryKeys.importTemplates] });
+            setShowPreview(false);
+            setPreviewData([]);
+        },
+        onError: () => {
+            toast.error('Import failed');
+        },
+    });
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -68,15 +169,12 @@ const ImportForm = ({ template, isNew, onBack }: ImportFormProps) => {
         }
 
         setSelectedFile(file);
-
-        // TODO: Parse file to get headers
-        // For now, mock headers
-        setImportHeaders(['First Name', 'Last Name', 'Email', 'Phone', 'Company']);
-
-        toast.success('File uploaded successfully');
+        setShowPreview(false);
+        setPreviewData([]);
+        parseHeadersMutation.mutate(file);
     };
 
-    const canImport = () => {
+    const canPreview = () => {
         return (
             formData.template_name.trim() !== '' &&
             selectedFile !== null &&
@@ -84,15 +182,19 @@ const ImportForm = ({ template, isNew, onBack }: ImportFormProps) => {
         );
     };
 
-    const handleImport = () => {
-        if (!canImport()) {
+    const handlePreview = () => {
+        if (!canPreview()) {
             toast.error('Please complete all required fields');
             return;
         }
-
-        // TODO: Process import
-        toast.success('Import started...');
+        previewMutation.mutate();
     };
+
+    const handleExecuteImport = (selectedRows: ImportPreviewRow[]) => {
+        executeMutation.mutate(selectedRows);
+    };
+
+    const isLoading = parseHeadersMutation.isPending || previewMutation.isPending || executeMutation.isPending;
 
     return (
         <PageHeader
@@ -186,7 +288,11 @@ const ImportForm = ({ template, isNew, onBack }: ImportFormProps) => {
                                     htmlFor="file-upload"
                                     className="cursor-pointer flex flex-col items-center"
                                 >
-                                    <Upload className="w-12 h-12 text-gray-400 mb-4" />
+                                    {parseHeadersMutation.isPending ? (
+                                        <Loader2 className="w-12 h-12 text-gray-400 mb-4 animate-spin" />
+                                    ) : (
+                                        <Upload className="w-12 h-12 text-gray-400 mb-4" />
+                                    )}
                                     <p className="text-sm font-medium mb-2">
                                         {selectedFile ? selectedFile.name : 'Click to upload CSV or Excel file'}
                                     </p>
@@ -200,6 +306,11 @@ const ImportForm = ({ template, isNew, onBack }: ImportFormProps) => {
                                 <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                                     <FileSpreadsheet className="w-5 h-5 text-green-600" />
                                     <span className="text-sm text-green-900">{selectedFile.name}</span>
+                                    {importHeaders.length > 0 && (
+                                        <span className="text-xs text-green-600 ml-auto">
+                                            {importHeaders.length} columns detected
+                                        </span>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -207,7 +318,7 @@ const ImportForm = ({ template, isNew, onBack }: ImportFormProps) => {
                 </Card>
 
                 {/* Field Mapping & Options */}
-                {selectedFile && (
+                {selectedFile && importHeaders.length > 0 && (
                     <Card>
                         <CardHeader>
                             <CardTitle>Configuration</CardTitle>
@@ -241,16 +352,23 @@ const ImportForm = ({ template, isNew, onBack }: ImportFormProps) => {
                     </Card>
                 )}
 
-                {/* Import Button */}
+                {/* Preview / Import Buttons */}
                 <div className="flex justify-end gap-4">
                     <Button variant="outline" onClick={onBack}>
                         Cancel
                     </Button>
                     <Button
-                        onClick={handleImport}
-                        disabled={!canImport()}
+                        onClick={handlePreview}
+                        disabled={!canPreview() || isLoading}
                     >
-                        Start Import
+                        {previewMutation.isPending ? (
+                            <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Generating Preview...
+                            </>
+                        ) : (
+                            'Preview Import'
+                        )}
                     </Button>
                 </div>
 
@@ -258,7 +376,7 @@ const ImportForm = ({ template, isNew, onBack }: ImportFormProps) => {
                 {showPreview && previewData.length > 0 && (
                     <PreviewTable
                         data={previewData}
-                        onImport={() => {}}
+                        onImport={handleExecuteImport}
                     />
                 )}
             </div>
