@@ -74,7 +74,7 @@ const UserProfile = () => {
     is_superuser,
     is_active,
     date_joined,
-    rep_id,
+    rep_id: _rep_id,
     rep_name,
     company,
     company_id,
@@ -89,7 +89,7 @@ const UserProfile = () => {
     title,
     mid,
     website,
-    branch_id,
+    branch_id: _branch_id,
     industry_type,
     socials,
   } = userDetails || {};

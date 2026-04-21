@@ -24,7 +24,7 @@ import type { IComingHomeUser } from "./interface";
 
 const ComingHomeManagement = () => {
     useBreadcrumbs([
-        { label: "Digital Newsletter", href: "/coming-home" },
+        { label: "Digital Newsletter", path: "/coming-home" },
     ]);
 
     const {
