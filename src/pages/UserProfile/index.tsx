@@ -15,10 +15,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
-  getCallToAction,
-  getEmailSettings,
-  getNewsletter,
-  getServiceSettings,
   getSocials,
   getUserDetails,
   patchUser,
@@ -26,10 +22,6 @@ import {
 import { toast } from "sonner";
 import { queryKeys } from "@/helpers/constants";
 import type {
-  ICallToAction,
-  IEmailSettings,
-  INewsletterInfo,
-  IServiceSettings,
   ISocials,
   IUserDetails,
 } from "@/pages/UserDetails/interface";
@@ -38,13 +30,7 @@ import Loading from "@/components/Loading";
 import UpdateUserProfile from "./UpdateUserProfile";
 import { Button } from "@/components/ui/button";
 import UpdateUserSocialLinks from "./UpdateUserSocialLinks";
-import UpdateUserAccountDetails from "./UpdateUserAccountDetails";
-import UpdateUserNewsletterInfo from "./UpdateUserNewsletterInfo";
 import UpdateUserPersonalInfo from "./UpdateUserPersonalInfo";
-import UpdateUserServiceSettings from "./UpdateUserServiceSettings";
-import UpdateUserEmailSettings from "./UpdateUserEmailSettings";
-import UpdateUserCallToAction from "./UpdateUserCallToAction";
-import UpdateUserBranding from "./UpdateUserBranding";
 
 const UserProfile = () => {
   const currentUser = useSelector(
@@ -61,17 +47,6 @@ const UserProfile = () => {
     enabled: !!currentUser?.rep_id,
   });
 
-  // Fetch newsletter information
-  const {
-    data: newsletterData,
-    isLoading: isNewsletterLoading,
-    refetch: refetchNewsletter,
-  } = useQuery<AxiosResponse<INewsletterInfo>>({
-    queryKey: [queryKeys.getNewsletter, currentUser?.rep_id],
-    queryFn: () => getNewsletter(currentUser?.rep_id as string | number),
-    enabled: !!currentUser?.rep_id,
-  });
-
   // Fetch socials information
   const {
     data: socialsData,
@@ -80,36 +55,6 @@ const UserProfile = () => {
   } = useQuery<AxiosResponse<ISocials>>({
     queryKey: [queryKeys.getSocials, currentUser?.rep_id],
     queryFn: () => getSocials(currentUser?.rep_id as string | number),
-    enabled: !!currentUser?.rep_id,
-  });
-
-  const {
-    data: serviceSettingsData,
-    isLoading: isServicesLoading,
-    refetch: refetchServiceSettings,
-  } = useQuery<AxiosResponse<IServiceSettings>>({
-    queryKey: [queryKeys.getServiceSettings, currentUser?.rep_id],
-    queryFn: () => getServiceSettings(currentUser?.rep_id as string | number),
-    enabled: !!currentUser?.rep_id,
-  });
-
-  const {
-    data: emailSettingsData,
-    isLoading: isEmailSettingsLoading,
-    refetch: refetchEmailSettings,
-  } = useQuery<AxiosResponse<IEmailSettings>>({
-    queryKey: [queryKeys.getEmailSettings, currentUser?.rep_id],
-    queryFn: () => getEmailSettings(currentUser?.rep_id as string | number),
-    enabled: !!currentUser?.rep_id,
-  });
-
-  const {
-    data: callToActionData,
-    isLoading: isCallToActionLoading,
-    refetch: refetchCallToAction,
-  } = useQuery<AxiosResponse<ICallToAction>>({
-    queryKey: [queryKeys.getCallToAction, currentUser?.rep_id],
-    queryFn: () => getCallToAction(currentUser?.rep_id as string | number),
     enabled: !!currentUser?.rep_id,
   });
 
@@ -151,13 +96,7 @@ const UserProfile = () => {
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [isPersonalEditMode, setIsPersonalEditMode] = useState(false);
-  const [isAccountEditMode, setIsAccountEditMode] = useState(false);
-  const [isNewsletterEditMode, setIsNewsletterEditMode] = useState(false);
   const [isSocialEditMode, setIsSocialEditMode] = useState(false);
-  const [isServicesEditMode, setIsServicesEditMode] = useState(false);
-  const [isEmailSettingsEditMode, setIsEmailSettingsEditMode] = useState(false);
-  const [isCallToActionEditMode, setIsCallToActionEditMode] = useState(false);
-  const [isBrandingEditMode, setIsBrandingEditMode] = useState(false);
 
   // Photo & logo upload refs
   const photoInputRef = useRef<HTMLInputElement>(null);
@@ -237,7 +176,7 @@ const UserProfile = () => {
   return (
     <PageHeader
       title="Profile"
-      description="View and manage your profile information"
+      description=""
       actions={[
         {
           label: "Edit Profile",
@@ -359,10 +298,6 @@ const UserProfile = () => {
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div>
                 <CardTitle>Personal Information</CardTitle>
-                <CardDescription>
-                  You can also update personal information here by clicking the
-                  update button.
-                </CardDescription>
               </div>
               {!isPersonalEditMode && (
                 <Button
@@ -442,37 +377,62 @@ const UserProfile = () => {
                     </div>
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
-                        Branch License
-                      </label>
-                      <p className="text-base mt-1">
-                        {displayValue(branch_id)}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
                         Date Joined
                       </label>
                       <p className="text-base mt-1">
                         {formatDate(date_joined ?? "")}
                       </p>
                     </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Superuser
-                      </label>
-                      <div className="mt-1">
-                        <Badge
-                          variant="outline"
-                          className={
-                            is_superuser
-                              ? "bg-green-100 text-green-800 border-green-300"
-                              : "bg-gray-100 text-gray-800 border-gray-300"
-                          }
-                        >
-                          {is_superuser ? "Yes" : "No"}
-                        </Badge>
-                      </div>
-                    </div>
+                    {currentUser?.is_superuser && (
+                      <>
+                        <div>
+                          <label className="text-sm font-medium text-muted-foreground">
+                            Representative Name
+                          </label>
+                          <p className="text-base mt-1">{displayValue(rep_name)}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-muted-foreground">
+                            Company ID
+                          </label>
+                          <p className="text-base mt-1">{displayValue(company_id)}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-muted-foreground">
+                            Active
+                          </label>
+                          <div className="mt-1">
+                            <Badge
+                              variant="outline"
+                              className={
+                                is_active
+                                  ? "bg-green-100 text-green-800 border-green-300"
+                                  : "bg-red-100 text-red-800 border-red-300"
+                              }
+                            >
+                              {is_active ? "Active" : "Inactive"}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-muted-foreground">
+                            Superuser
+                          </label>
+                          <div className="mt-1">
+                            <Badge
+                              variant="outline"
+                              className={
+                                is_superuser
+                                  ? "bg-green-100 text-green-800 border-green-300"
+                                  : "bg-gray-100 text-gray-800 border-gray-300"
+                              }
+                            >
+                              {is_superuser ? "Yes" : "No"}
+                            </Badge>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   {/* Middle Column */}
@@ -507,35 +467,6 @@ const UserProfile = () => {
                       </label>
                       <p className="text-base mt-1">{displayValue(title)}</p>
                     </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Representative Name
-                      </label>
-                      <p className="text-base mt-1">{displayValue(rep_name)}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Personal License
-                      </label>
-                      <p className="text-base mt-1">{displayValue("")}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Active
-                      </label>
-                      <div className="mt-1">
-                        <Badge
-                          variant="outline"
-                          className={
-                            is_active
-                              ? "bg-orange-100 text-orange-800 border-orange-300"
-                              : "bg-red-100 text-red-800 border-red-300"
-                          }
-                        >
-                          {is_active ? "Active" : "Inactive"}
-                        </Badge>
-                      </div>
-                    </div>
                   </div>
 
                   {/* Right Column */}
@@ -568,90 +499,6 @@ const UserProfile = () => {
                       </label>
                       <p className="text-base mt-1">{displayValue(state)}</p>
                     </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Company ID
-                      </label>
-                      <p className="text-base mt-1">
-                        {displayValue(company_id)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Account Details Card */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div>
-                <CardTitle>Account Details</CardTitle>
-                <CardDescription>
-                  Your account type and permissions
-                </CardDescription>
-              </div>
-              {!isAccountEditMode && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-2"
-                  onClick={() => setIsAccountEditMode(true)}
-                  disabled={isUserDetailsLoading}
-                >
-                  <Edit className="w-4 h-4" />
-                  Edit Account
-                </Button>
-              )}
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {isAccountEditMode ? (
-                <UpdateUserAccountDetails
-                  user={userDetails}
-                  userId={userDetails?.rep_id}
-                  setIsEditMode={setIsAccountEditMode}
-                  refetch={refetchUserDetails}
-                />
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Account Type
-                    </label>
-                    <p className="text-base mt-1">
-                      {is_superuser ? "Administrator" : "User"}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Status
-                    </label>
-                    <div className="mt-1">
-                      <Badge
-                        variant="outline"
-                        className={
-                          is_active
-                            ? "text-green-600 border-green-600"
-                            : "text-red-600 border-red-600"
-                        }
-                      >
-                        {is_active ? "Active" : "Inactive"}
-                      </Badge>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Representative ID
-                    </label>
-                    <p className="text-base mt-1">{displayValue(rep_id)}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">
-                      User ID
-                    </label>
-                    <p className="text-base mt-1">
-                      {displayValue(userDetails?.id ?? currentUser?.id)}
-                    </p>
                   </div>
                 </div>
               )}
@@ -810,311 +657,12 @@ const UserProfile = () => {
             </CardContent>
           </Card>
 
-          {/* Newsletter Information Card */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div>
-                <CardTitle>Newsletter Information</CardTitle>
-                <CardDescription>
-                  Following are the newsletter information for the user.
-                </CardDescription>
-              </div>
-              {!isNewsletterEditMode && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-2"
-                  onClick={() => setIsNewsletterEditMode(true)}
-                  disabled={isNewsletterLoading}
-                >
-                  <Edit className="w-4 h-4" />
-                  Edit Newsletter
-                </Button>
-              )}
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {isNewsletterLoading ? (
-                <Loading />
-              ) : isNewsletterEditMode ? (
-                <UpdateUserNewsletterInfo
-                  newsletter={newsletterData?.data}
-                  userId={userDetails?.rep_id}
-                  setIsEditMode={setIsNewsletterEditMode}
-                  refetch={refetchNewsletter}
-                  companyName={userDetails?.company}
-                />
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Column 1 */}
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Company
-                      </label>
-                      <p className="text-base mt-1">
-                        {displayValue(userDetails?.company)}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        MFDIC
-                      </label>
-                      <p className="text-base mt-1">
-                        {newsletterData?.data?.fdic ? "Yes" : "No"}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        BBB
-                      </label>
-                      <p className="text-base mt-1">
-                        {newsletterData?.data?.bbb ? "Yes" : "No"}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        BBB-A
-                      </label>
-                      <p className="text-base mt-1">
-                        {newsletterData?.data?.bbba ? "Yes" : "No"}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Column 2 */}
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Discloure
-                      </label>
-                      <p className="text-base mt-1">
-                        {displayValue(newsletterData?.data?.discloure)}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        EHO
-                      </label>
-                      <p className="text-base mt-1">
-                        {newsletterData?.data?.EHO ? "Yes" : "No"}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        HUD
-                      </label>
-                      <p className="text-base mt-1">
-                        {newsletterData?.data?.hud ? "Yes" : "No"}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        No Rate Post
-                      </label>
-                      <p className="text-base mt-1">
-                        {newsletterData?.data?.no_rate_post ? "Yes" : "No"}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Column 3 */}
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        EHL
-                      </label>
-                      <p className="text-base mt-1">
-                        {newsletterData?.data?.EHL ? "Yes" : "No"}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        NCUA
-                      </label>
-                      <p className="text-base mt-1">
-                        {newsletterData?.data?.ncua ? "Yes" : "No"}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Realtor Symbol
-                      </label>
-                      <p className="text-base mt-1">
-                        {newsletterData?.data?.realtor ? "Yes" : "No"}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Custom Symbol
-                      </label>
-                      <p className="text-base mt-1">
-                        {newsletterData?.data?.custom ? "Yes" : "No"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Services Settings Card */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div>
-                <CardTitle>Services Settings</CardTitle>
-                <CardDescription>
-                  Manage active services and billing preferences.
-                </CardDescription>
-              </div>
-              {!isServicesEditMode && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-2"
-                  onClick={() => setIsServicesEditMode(true)}
-                  disabled={isServicesLoading}
-                >
-                  <Edit className="w-4 h-4" />
-                  Edit Services
-                </Button>
-              )}
-            </CardHeader>
-            <CardContent>
-              {isServicesLoading ? (
-                <Loading />
-              ) : isServicesEditMode ? (
-                <UpdateUserServiceSettings
-                  userId={userDetails?.rep_id}
-                  serviceSettings={serviceSettingsData?.data}
-                  setIsEditMode={setIsServicesEditMode}
-                  refetch={refetchServiceSettings}
-                />
-              ) : (
-                <ServiceSettingsSummary
-                  serviceSettings={serviceSettingsData?.data}
-                />
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Email Settings Card */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div>
-                <CardTitle>Email Settings</CardTitle>
-                <CardDescription>
-                  Configure email automation preferences.
-                </CardDescription>
-              </div>
-              {!isEmailSettingsEditMode && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-2"
-                  onClick={() => setIsEmailSettingsEditMode(true)}
-                  disabled={isEmailSettingsLoading}
-                >
-                  <Edit className="w-4 h-4" />
-                  Edit Email Settings
-                </Button>
-              )}
-            </CardHeader>
-            <CardContent>
-              {isEmailSettingsLoading ? (
-                <Loading />
-              ) : isEmailSettingsEditMode ? (
-                <UpdateUserEmailSettings
-                  userId={userDetails?.rep_id}
-                  emailSettings={emailSettingsData?.data}
-                  setIsEditMode={setIsEmailSettingsEditMode}
-                  refetch={refetchEmailSettings}
-                />
-              ) : (
-                <EmailSettingsSummary emailSettings={emailSettingsData?.data} />
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Call to Action Card */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div>
-                <CardTitle>Call To Action</CardTitle>
-                <CardDescription>
-                  Customize CTA buttons shown on marketing assets.
-                </CardDescription>
-              </div>
-              {!isCallToActionEditMode && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-2"
-                  onClick={() => setIsCallToActionEditMode(true)}
-                  disabled={isCallToActionLoading}
-                >
-                  <Edit className="w-4 h-4" />
-                  Edit Call To Action
-                </Button>
-              )}
-            </CardHeader>
-            <CardContent>
-              {isCallToActionLoading ? (
-                <Loading />
-              ) : isCallToActionEditMode ? (
-                <UpdateUserCallToAction
-                  userId={userDetails?.rep_id}
-                  callToAction={callToActionData?.data}
-                  setIsEditMode={setIsCallToActionEditMode}
-                  refetch={refetchCallToAction}
-                />
-              ) : (
-                <CallToActionSummary callToAction={callToActionData?.data} />
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Branding Card */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div>
-                <CardTitle>Branding Assets</CardTitle>
-                <CardDescription>
-                  Manage your company branding assets and content
-                </CardDescription>
-              </div>
-              {!isBrandingEditMode && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-2"
-                  onClick={() => setIsBrandingEditMode(true)}
-                >
-                  <Edit className="w-4 h-4" />
-                  Edit Branding
-                </Button>
-              )}
-            </CardHeader>
-            <CardContent>
-              {isBrandingEditMode ? (
-                <UpdateUserBranding
-                  userId={currentUser?.rep_id}
-                  setIsEditMode={setIsBrandingEditMode}
-                  refetch={refetchUserDetails}
-                />
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  Click "Edit Branding" to manage your branding assets, logos,
-                  and content.
-                </p>
-              )}
-            </CardContent>
-          </Card>
         </div>
       )}
       {isEditMode && (
         <UpdateUserProfile
           user={userDetails as unknown as IUserDetails}
-          refetch={refetchNewsletter}
+          refetch={refetchUserDetails}
           setIsEditMode={setIsEditMode}
         />
       )}
@@ -1123,128 +671,3 @@ const UserProfile = () => {
 };
 
 export default UserProfile;
-
-const renderBoolean = (value?: boolean) => (value ? "Yes" : "No");
-
-const ServiceSettingsSummary = ({
-  serviceSettings,
-}: {
-  serviceSettings?: IServiceSettings;
-}) => {
-  if (!serviceSettings) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        No service settings available.
-      </p>
-    );
-  }
-
-  const items = [
-    { label: "Email Service", value: serviceSettings.email_service },
-    { label: "Blazing Social Service", value: serviceSettings.bs_service },
-    { label: "Send Post Service", value: serviceSettings.send_post_service },
-    { label: "Send Newsletter", value: serviceSettings.send_newsletter },
-    { label: "Send Coming Home", value: serviceSettings.send_cominghome },
-    { label: "No Branding", value: serviceSettings.no_branding },
-  ];
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {items.map((item) => (
-        <div key={item.label} className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground">
-            {item.label}
-          </label>
-          <p className="text-base mt-1">{renderBoolean(item.value)}</p>
-        </div>
-      ))}
-      {serviceSettings.send_cominghome && (
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground">
-            Coming Home Newsletter
-          </label>
-          <p className="text-base mt-1">{serviceSettings.coming_home_file || 'None'}</p>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const EmailSettingsSummary = ({
-  emailSettings,
-}: {
-  emailSettings?: IEmailSettings;
-}) => {
-  if (!emailSettings) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        No email settings configured.
-      </p>
-    );
-  }
-
-  const items = [
-    { label: "Birthday Emails", value: emailSettings.birthday },
-    { label: "Spouse Birthday Emails", value: emailSettings.spouse_birthday },
-    {
-      label: "Newsletter Status",
-      value: emailSettings.newsletter_status === "send",
-    },
-    { label: "Newsletter Frequency", text: emailSettings.frequency ?? "—" },
-    { label: "E-card Status", value: emailSettings.ecard_status === "send" },
-  ];
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {items.map((item) => (
-        <div key={item.label} className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground">
-            {item.label}
-          </label>
-          {"text" in item ? (
-            <p className="text-base mt-1">{item.text}</p>
-          ) : (
-            <p className="text-base mt-1">{renderBoolean(item.value)}</p>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-};
-
-const CallToActionSummary = ({
-  callToAction,
-}: {
-  callToAction?: ICallToAction;
-}) => {
-  if (!callToAction) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        No call to action configured.
-      </p>
-    );
-  }
-
-  const items = [
-    { label: "CTA Label 1", text: callToAction.cta_label1 },
-    { label: "CTA URL 1", text: callToAction.cta_url1 },
-    { label: "CTA Label 2", text: callToAction.cta_label2 },
-    { label: "CTA URL 2", text: callToAction.cta_url2 },
-    { label: "Reverse Label", text: callToAction.reverse_label },
-    { label: "CTA URL 3", text: callToAction.cta_url3 },
-    { label: "Hashtags", text: callToAction.hashtags },
-  ];
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {items.map((item) => (
-        <div key={item.label} className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground">
-            {item.label}
-          </label>
-          <p className="text-base mt-1">{item.text || "—"}</p>
-        </div>
-      ))}
-    </div>
-  );
-};

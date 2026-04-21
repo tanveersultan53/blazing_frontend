@@ -464,17 +464,6 @@ const UpdateUserPersonalInfo = ({
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="title" className="text-sm font-medium">
-            Title
-          </label>
-          <Input
-            id="title"
-            placeholder="Enter job title"
-            {...register("title")}
-          />
-        </div>
-
-        <div className="space-y-2">
           <label htmlFor="company" className="text-sm font-medium">
             Company Name
           </label>
@@ -521,36 +510,8 @@ const UpdateUserPersonalInfo = ({
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="rep_name" className="text-sm font-medium">
-            Representative Name
-          </label>
-          <Input
-            id="rep_name"
-            placeholder="Enter representative name"
-            {...register("rep_name")}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label htmlFor="company_id" className="text-sm font-medium">
-            Company ID *
-          </label>
-          <Input
-            id="company_id"
-            placeholder="Enter company ID"
-            {...register("company_id", {
-              required: "Company ID is required",
-            })}
-            className={errors.company_id ? "border-red-500" : ""}
-          />
-          {errors.company_id && (
-            <p className="text-sm text-red-500">{errors.company_id.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
           <label htmlFor="branch_id" className="text-sm font-medium">
-            Branch ID
+            Branch License
           </label>
           <Input
             id="branch_id"
@@ -559,16 +520,6 @@ const UpdateUserPersonalInfo = ({
           />
         </div>
 
-        <div className="space-y-2">
-          <label htmlFor="personal_license" className="text-sm font-medium">
-            Personal License
-          </label>
-          <Input
-            id="personal_license"
-            placeholder="Enter personal license"
-            {...register("personal_license")}
-          />
-        </div>
       </div>
 
       <Separator className="my-6" />

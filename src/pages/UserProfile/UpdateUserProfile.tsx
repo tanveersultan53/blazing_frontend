@@ -1,4 +1,4 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { IUserDetails } from "../UserDetails/interface";
 import { CheckIcon, XIcon } from "lucide-react";
@@ -9,15 +9,13 @@ import { Input } from "@/components/ui/input";
 import { useMutation } from "@tanstack/react-query";
 import { updateUser } from "@/services/userManagementService";
 import { toast } from "sonner";
-import type { ISocials, INewsletterInfo  } from "../UserDetails/interface";
+import type { ISocials } from "../UserDetails/interface";
 import type { AxiosResponse } from "axios";
 import { formatCellPhone, autoFormatPhoneNumber, cleanPhoneNumber } from "@/lib/phoneFormatter";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { urlValidation } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
 
 const UpdateUserProfile = ({ user, refetch, setIsEditMode }:
     { user: IUserDetails | undefined, refetch: () => void, setIsEditMode: (isEditMode: boolean) => void }) => {
@@ -59,21 +57,10 @@ const UpdateUserProfile = ({ user, refetch, setIsEditMode }:
         socialapp: user?.socials?.socialapp || '',
         customapp: user?.socials?.customapp || '',
 
-        bbb: user?.compliance?.bbb || false,
-        bbba: user?.compliance?.bbba || false,
-        EHL: user?.compliance?.EHL || false,
-        EHO: user?.compliance?.EHO || false,
-        fdic: user?.compliance?.fdic || false,
-        ncua: user?.compliance?.ncua || false,
-        realtor: user?.compliance?.realtor || false,
-        hud: user?.compliance?.hud || false,
-        no_rate_post: user?.compliance?.no_rate_post || false,
-        custom: user?.compliance?.custom || false,
-        discloure: user?.branding?.disclosure || '',
     }
 
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const form = useForm<CreateUserFormData & ISocials & INewsletterInfo>({
+    const form = useForm<CreateUserFormData & ISocials>({
         defaultValues: initialValues,
         mode: 'onChange'
     });
@@ -105,7 +92,7 @@ const UpdateUserProfile = ({ user, refetch, setIsEditMode }:
                 const fieldErrors = errorData[fieldName];
                 if (fieldErrors && fieldErrors.length > 0) {
                     // Set the first error message for each field
-                    form.setError(fieldName as keyof CreateUserFormData & ISocials & INewsletterInfo, {
+                    form.setError(fieldName as keyof CreateUserFormData & ISocials, {
                         type: 'server',
                         message: fieldErrors[0]
                     });
@@ -119,7 +106,7 @@ const UpdateUserProfile = ({ user, refetch, setIsEditMode }:
         }
     }
 
-    const onSubmit = (data: CreateUserFormData & ISocials & INewsletterInfo) => {
+    const onSubmit = (data: CreateUserFormData & ISocials) => {
         // Validate industry_type field
         if (!data.industry_type) {
             form.setError('industry_type', {
@@ -142,14 +129,10 @@ const UpdateUserProfile = ({ user, refetch, setIsEditMode }:
             city: data.city,
             state: data.state,
             zip_code: data.zip_code,
-            title: data.title,
             company: data.company,
-            rep_name: data.rep_name,
             mid: data.mid,
             website: data.website,
-            company_id: data.company_id,
             branch_id: data.branch_id,
-            personal_license: data.personal_license,
             industry_type: data.industry_type,
             password: data.password,
 
@@ -167,23 +150,6 @@ const UpdateUserProfile = ({ user, refetch, setIsEditMode }:
                 socialapp: data.socialapp,
                 customapp: data.customapp,
             },
-
-            compliance: {
-                bbb: data.bbb,
-                bbba: data.bbba,
-                EHL: data.EHL,
-                EHO: data.EHO,
-                fdic: data.fdic,
-                ncua: data.ncua,
-                realtor: data.realtor,
-                hud: data.hud,
-                no_rate_post: data.no_rate_post,
-                custom: data.custom,
-            },
-
-            branding: {
-                disclosure: data.discloure,
-            },
         }
         delete postData.email;
         updateUserMutation({ id: id as string | number, user: postData });
@@ -200,7 +166,6 @@ const UpdateUserProfile = ({ user, refetch, setIsEditMode }:
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <div>
                         <CardTitle>Personal Information</CardTitle>
-                        <CardDescription>You can also update personal information here by clicking the update button. </CardDescription>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -454,17 +419,6 @@ const UpdateUserProfile = ({ user, refetch, setIsEditMode }:
                             </div>
 
                             <div className="space-y-2">
-                                <label htmlFor="title" className="text-sm font-medium">
-                                    Title
-                                </label>
-                                <Input
-                                    id="title"
-                                    placeholder="Enter job title"
-                                    {...register('title')}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
                                 <label htmlFor="company" className="text-sm font-medium">
                                     Company Name
                                 </label>
@@ -508,41 +462,8 @@ const UpdateUserProfile = ({ user, refetch, setIsEditMode }:
                             </div>
 
                             <div className="space-y-2">
-                                <label htmlFor="rep_name" className="text-sm font-medium">
-                                    Representative Name
-                                </label>
-                                <Input
-                                    id="rep_name"
-                                    placeholder="Enter representative name"
-                                    {...register('rep_name')}
-                                    className={errors.rep_name ? 'border-red-500' : ''}
-                                />
-                                {errors.rep_name && (
-                                    <p className="text-sm text-red-500">{errors.rep_name.message}</p>
-                                )}
-                            </div>
-
-                            <div className="space-y-2">
-                                <label htmlFor="company_id" className="text-sm font-medium">
-                                    Company ID *
-                                </label>
-                                <Input
-                                    id="company_id"
-                                    type="text"
-                                    placeholder="Enter company ID"
-                                    {...register('company_id', {
-                                        required: 'Company ID is required',
-                                    })}
-                                    className={errors.company_id ? 'border-red-500' : ''}
-                                />
-                                {errors.company_id && (
-                                    <p className="text-sm text-red-500">{errors.company_id.message}</p>
-                                )}
-                            </div>
-
-                            <div className="space-y-2">
                                 <label htmlFor="branch_id" className="text-sm font-medium">
-                                    Branch ID
+                                    Branch License
                                 </label>
                                 <Input
                                     id="branch_id"
@@ -709,107 +630,6 @@ const UpdateUserProfile = ({ user, refetch, setIsEditMode }:
                                 {errors.customapp && (
                                     <p className="text-sm text-red-500">{errors.customapp.message as string}</p>
                                 )}
-                            </div>
-                        </div>
-                        <Separator />
-                        <p className="text-md font-medium">Newsletter Information</p>
-                        <div className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id="bbb"
-                                        checked={watch('bbb')}
-                                        onCheckedChange={(checked) => setValue('bbb', checked as boolean)}
-                                    />
-                                    <label htmlFor="bbb" className="text-sm font-medium">BBB</label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id="bbba"
-                                        checked={watch('bbba')}
-                                        onCheckedChange={(checked) => setValue('bbba', checked as boolean)}
-                                    />
-                                    <label htmlFor="bbba" className="text-sm font-medium">BBB-A</label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id="EHL"
-                                        checked={watch('EHL')}
-                                        onCheckedChange={(checked) => setValue('EHL', checked as boolean)}
-                                    />
-                                    <label htmlFor="EHL" className="text-sm font-medium">EHL</label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id="EHO"
-                                        checked={watch('EHO')}
-                                        onCheckedChange={(checked) => setValue('EHO', checked as boolean)}
-                                    />
-                                    <label htmlFor="EHO" className="text-sm font-medium">EHO</label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id="fdic"
-                                        checked={watch('fdic')}
-                                        onCheckedChange={(checked) => setValue('fdic', checked as boolean)}
-                                    />
-                                    <label htmlFor="fdic" className="text-sm font-medium">FDIC</label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id="ncua"
-                                        checked={watch('ncua')}
-                                        onCheckedChange={(checked) => setValue('ncua', checked as boolean)}
-                                    />
-                                    <label htmlFor="ncua" className="text-sm font-medium">NCUA</label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id="realtor"
-                                        checked={watch('realtor')}
-                                        onCheckedChange={(checked) => setValue('realtor', checked as boolean)}
-                                    />
-                                    <label htmlFor="realtor" className="text-sm font-medium">Realtor</label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id="hud"
-                                        checked={watch('hud')}
-                                        onCheckedChange={(checked) => setValue('hud', checked as boolean)}
-                                    />
-                                    <label htmlFor="hud" className="text-sm font-medium">HUD</label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id="no_rate_post"
-                                        checked={watch('no_rate_post')}
-                                        onCheckedChange={(checked) => setValue('no_rate_post', checked as boolean)}
-                                    />
-                                    <label htmlFor="no_rate_post" className="text-sm font-medium">No Rate Post</label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id="custom"
-                                        checked={watch('custom')}
-                                        onCheckedChange={(checked) => setValue('custom', checked as boolean)}
-                                    />
-                                    <label htmlFor="custom" className="text-sm font-medium">Custom</label>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="space-y-2">
-                                    <label htmlFor="discloure" className="text-xs font-medium text-muted-foreground">Discloure</label>
-                                    <Textarea
-                                        id="discloure"
-                                        placeholder="Enter discloure"
-                                        {...register('discloure')}
-                                        className={errors.discloure ? 'border-red-500' : ''}
-                                        rows={3}
-                                    />
-                                    {errors.discloure && (
-                                        <p className="text-sm text-red-500">{errors.discloure.message as string}</p>
-                                    )}
-                                </div>
                             </div>
                         </div>
                     </div>

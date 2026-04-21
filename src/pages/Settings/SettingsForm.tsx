@@ -5,7 +5,7 @@ import Loading from "@/components/Loading";
 import type { AxiosResponse } from "axios";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/helpers/constants";
-import { getEmailSettings, updateEmailSettings, getSocials, updateSocials } from "@/services/userManagementService";
+import { getEmailSettings, updateEmailSettings, getSocials, updateSocials, getNewsletter } from "@/services/userManagementService";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { CheckIcon, PencilIcon, XIcon } from "lucide-react";
@@ -14,7 +14,8 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { format } from "date-fns";
-import type { IEmailSettings, ISocials } from "../UserDetails/interface";
+import type { IEmailSettings, INewsletterInfo, ISocials } from "../UserDetails/interface";
+import UpdateUserNewsletterInfo from "../UserProfile/UpdateUserNewsletterInfo";
 import { Input } from "@/components/ui/input";
 
 const SettingsForm = ({ userId }: { userId: string }) => {
@@ -23,6 +24,7 @@ const SettingsForm = ({ userId }: { userId: string }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSocialEditMode, setIsSocialEditMode] = useState(false);
     const [isSocialSubmitting, setIsSocialSubmitting] = useState(false);
+    const [isNewsletterEditMode, setIsNewsletterEditMode] = useState(false);
 
     const { data, isLoading, refetch } = useQuery<AxiosResponse<IEmailSettings>>({
         queryKey: [queryKeys.getEmailSettings, userId],
@@ -33,6 +35,13 @@ const SettingsForm = ({ userId }: { userId: string }) => {
         queryKey: [queryKeys.getSocials, userId],
         queryFn: () => getSocials(userId as string | number),
     });
+
+    const { data: newsletterData, isLoading: isNewsletterLoading, refetch: refetchNewsletter } = useQuery<AxiosResponse<INewsletterInfo>>({
+        queryKey: [queryKeys.getNewsletter, userId],
+        queryFn: () => getNewsletter(userId as string | number),
+    });
+
+    const newsletter = newsletterData?.data;
 
     const initialValues = {
         birthday: data?.data?.birthday || false,
@@ -279,7 +288,7 @@ const SettingsForm = ({ userId }: { userId: string }) => {
     };
 
 
-    return (isLoading || isSocialsLoading) ? <Loading /> : (
+    return (isLoading || isSocialsLoading || isNewsletterLoading) ? <Loading /> : (
         <>
         <form onSubmit={form.handleSubmit(onSubmit)}> <Card className="mb-12">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -1005,6 +1014,86 @@ const SettingsForm = ({ userId }: { userId: string }) => {
                 </CardContent>
             </Card>
         </form>
+
+        {/* Newsletter Information Card */}
+        <Card className="mb-12">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div>
+                    <CardTitle>Newsletter Information</CardTitle>
+                    <CardDescription>Compliance and disclosure settings for newsletters.</CardDescription>
+                </div>
+                {!isNewsletterEditMode &&
+                    <Button variant="outline" size="sm" className="flex items-center gap-2" onClick={() => setIsNewsletterEditMode(true)}>
+                        <PencilIcon className="w-4 h-4" />
+                        Update Newsletter Info
+                    </Button>
+                }
+            </CardHeader>
+            <CardContent>
+                {isNewsletterEditMode ? (
+                    <UpdateUserNewsletterInfo
+                        newsletter={newsletter}
+                        userId={userId}
+                        setIsEditMode={setIsNewsletterEditMode}
+                        refetch={refetchNewsletter}
+                        companyName={newsletter?.company}
+                    />
+                ) : (
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-medium text-muted-foreground">Company</label>
+                                <p className="text-sm font-semibold">{newsletter?.company || '-'}</p>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-medium text-muted-foreground">FDIC</label>
+                                <p className="text-sm font-semibold">{newsletter?.fdic ? 'Yes' : 'No'}</p>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-medium text-muted-foreground">BBB</label>
+                                <p className="text-sm font-semibold">{newsletter?.bbb ? 'Yes' : 'No'}</p>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-medium text-muted-foreground">BBB-A</label>
+                                <p className="text-sm font-semibold">{newsletter?.bbba ? 'Yes' : 'No'}</p>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-medium text-muted-foreground">EHO</label>
+                                <p className="text-sm font-semibold">{newsletter?.EHO ? 'Yes' : 'No'}</p>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-medium text-muted-foreground">HUD</label>
+                                <p className="text-sm font-semibold">{newsletter?.hud ? 'Yes' : 'No'}</p>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-medium text-muted-foreground">No Rate Post</label>
+                                <p className="text-sm font-semibold">{newsletter?.no_rate_post ? 'Yes' : 'No'}</p>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-medium text-muted-foreground">EHL</label>
+                                <p className="text-sm font-semibold">{newsletter?.EHL ? 'Yes' : 'No'}</p>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-medium text-muted-foreground">NCUA</label>
+                                <p className="text-sm font-semibold">{newsletter?.ncua ? 'Yes' : 'No'}</p>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-medium text-muted-foreground">Realtor</label>
+                                <p className="text-sm font-semibold">{newsletter?.realtor ? 'Yes' : 'No'}</p>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-medium text-muted-foreground">Custom</label>
+                                <p className="text-sm font-semibold">{newsletter?.custom ? 'Yes' : 'No'}</p>
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-medium text-muted-foreground">Disclosure</label>
+                            <p className="text-sm font-semibold">{newsletter?.discloure || '-'}</p>
+                        </div>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
         </>
     )
 }
