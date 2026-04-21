@@ -13,7 +13,7 @@ interface TemplateSelectorProps {
 const TemplateSelector = ({ onSelect }: TemplateSelectorProps) => {
     const { data, isLoading } = useQuery({
         queryKey: [queryKeys.importTemplates],
-        queryFn: () => listTemplates().then(res => res.data),
+        queryFn: () => listTemplates().then(res => res.data?.results ?? res.data),
     });
 
     const templates = data || [];
