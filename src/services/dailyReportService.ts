@@ -21,7 +21,10 @@ export interface DailyEmailReport {
     newsletter_count: number;
     newsletter_monthly_count: number;
     newsletter_html_count: number;
+    coming_home_count: number;
     total_emails_sent: number;
+    next_due_contacts: string | null;
+    next_due_partners: string | null;
     todays_birthdays: BirthdayEntry[];
     email_sent_successfully: boolean;
     report_html?: string;
@@ -56,4 +59,10 @@ export const generateDailyReports = (
     return api.post("/email/daily-reports/generate", {
         cron_job_id: cronJobId,
     });
+};
+
+export const purgeDailyReports = (
+    days: number = 30
+): Promise<AxiosResponse<{ status: string; deleted_count: number; cutoff_date: string }>> => {
+    return api.post("/email/daily-reports/purge", { days });
 };

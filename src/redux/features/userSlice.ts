@@ -23,6 +23,7 @@ export interface User {
   state:            string;
   zip_code:         string;
   email:            string;
+  reply_email:      string;
   work_phone:       string;
   work_ext:         string;
   cellphone:        string;

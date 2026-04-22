@@ -32,6 +32,7 @@ export interface SystemEmailTemplate {
     created_at: string;
     updated_at: string;
     customer?: number;
+    source?: 'default_email';  // present when template comes from DefaultEmail model
 }
 
 // Email Attachment Interface

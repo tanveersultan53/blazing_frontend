@@ -1,6 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
-import { Badge } from "@/components/ui/badge";
 import type { IDailyReport, DailyReportFilters } from "./interface";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { format } from "date-fns";
@@ -55,7 +54,7 @@ const useDailyReports = () => {
       {
         accessorKey: "rep_name",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Rep Name" />
+          <DataTableColumnHeader column={column} title="User" />
         ),
         cell: ({ row }) => (
           <div className="font-medium">{row.getValue("rep_name") || "N/A"}</div>
@@ -65,7 +64,7 @@ const useDailyReports = () => {
       {
         accessorKey: "report_date",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Report Date" />
+          <DataTableColumnHeader column={column} title="Date" />
         ),
         cell: ({ row }) => {
           const date = row.getValue("report_date") as string;
@@ -80,19 +79,9 @@ const useDailyReports = () => {
         enableColumnFilter: false,
       },
       {
-        accessorKey: "birthday_ecards_count",
-        header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Birthday" />
-        ),
-        cell: ({ row }) => (
-          <div className="text-center">{row.getValue("birthday_ecards_count")}</div>
-        ),
-        enableColumnFilter: false,
-      },
-      {
         accessorKey: "holiday_ecards_count",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Holiday" />
+          <DataTableColumnHeader column={column} title="Holidays" />
         ),
         cell: ({ row }) => (
           <div className="text-center">{row.getValue("holiday_ecards_count")}</div>
@@ -100,9 +89,19 @@ const useDailyReports = () => {
         enableColumnFilter: false,
       },
       {
+        accessorKey: "birthday_ecards_count",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Birthdays" />
+        ),
+        cell: ({ row }) => (
+          <div className="text-center">{row.getValue("birthday_ecards_count")}</div>
+        ),
+        enableColumnFilter: false,
+      },
+      {
         accessorKey: "newsletter_count",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Newsletter" />
+          <DataTableColumnHeader column={column} title="Weekly Newsletters" />
         ),
         cell: ({ row }) => (
           <div className="text-center">{row.getValue("newsletter_count")}</div>
@@ -110,42 +109,45 @@ const useDailyReports = () => {
         enableColumnFilter: false,
       },
       {
-        accessorKey: "newsletter_monthly_count",
+        accessorKey: "coming_home_count",
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title="Coming Home" />
         ),
         cell: ({ row }) => (
-          <div className="text-center">
-            {row.getValue("newsletter_monthly_count")}
-          </div>
+          <div className="text-center">{row.getValue("coming_home_count")}</div>
         ),
         enableColumnFilter: false,
       },
       {
-        accessorKey: "total_emails_sent",
+        accessorKey: "next_due_contacts",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Total" />
-        ),
-        cell: ({ row }) => (
-          <div className="text-center font-bold">
-            {row.getValue("total_emails_sent")}
-          </div>
-        ),
-        enableColumnFilter: false,
-      },
-      {
-        accessorKey: "email_sent_successfully",
-        header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Email Sent" />
+          <DataTableColumnHeader column={column} title="Next Due - C" />
         ),
         cell: ({ row }) => {
-          const sent = row.getValue("email_sent_successfully") as boolean;
-          return sent ? (
-            <Badge className="bg-green-100 text-green-800 border-green-200" variant="outline">
-              Sent
-            </Badge>
+          const date = row.getValue("next_due_contacts") as string | null;
+          return date ? (
+            <div className="text-sm text-center">
+              {format(new Date(date + "T00:00:00"), "MMM dd, yyyy")}
+            </div>
           ) : (
-            <Badge variant="destructive">Failed</Badge>
+            <div className="text-sm text-center text-gray-400">-</div>
+          );
+        },
+        enableColumnFilter: false,
+      },
+      {
+        accessorKey: "next_due_partners",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Next Due - R" />
+        ),
+        cell: ({ row }) => {
+          const date = row.getValue("next_due_partners") as string | null;
+          return date ? (
+            <div className="text-sm text-center">
+              {format(new Date(date + "T00:00:00"), "MMM dd, yyyy")}
+            </div>
+          ) : (
+            <div className="text-sm text-center text-gray-400">-</div>
           );
         },
         enableColumnFilter: false,

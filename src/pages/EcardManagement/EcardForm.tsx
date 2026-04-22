@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSelector } from "react-redux";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -69,6 +70,7 @@ export default function EcardForm() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const currentUser = useSelector((state: { user: { currentUser: { id: number | string } } }) => state.user.currentUser);
   const isEditMode = !!id;
 
   const [formData, setFormData] = useState<IEcard>({
@@ -356,17 +358,10 @@ export default function EcardForm() {
 
     setIsLoadingPreview(true);
     try {
-      // Call backend API to get filled HTML preview
-      console.log("🔍 Calling preview API: /email/ecard-preview/1");
-      console.log("📤 Request payload:", {
-        email_html_length: formData.email_html?.length,
-        ecard_text: formData.ecard_text?.substring(0, 50) + "...",
-        email_preheader: formData.email_preheader,
-        greeting: formData.greeting,
-        ecard_image: ecardImagePreview,
-      });
+      // Call backend API to get filled HTML preview using logged-in user's data
+      const previewUserId = Number(currentUser?.id) || 1;
 
-      const response = await previewEcardHtml(1, {
+      const response = await previewEcardHtml(previewUserId, {
         email_html: formData.email_html,
         ecard_text: formData.ecard_text || "",
         email_preheader: formData.email_preheader || "",

@@ -3,14 +3,15 @@ import PageHeader from "@/components/PageHeader";
 import useDailyReports from "./useDailyReports";
 import Loading from "@/components/Loading";
 import { useBreadcrumbs } from "@/hooks/usePageTitle";
-import { Eye, RefreshCw } from "lucide-react";
+import { Eye, RefreshCw, Trash2 } from "lucide-react";
 import type { IDailyReport } from "./interface";
 import { useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import type { User } from "@/redux/features/userSlice";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { getDailyReportById } from "@/services/dailyReportService";
+import { getDailyReportById, purgeDailyReports } from "@/services/dailyReportService";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -41,12 +42,27 @@ const DailyReports = () => {
   const [selectedReportHtml, setSelectedReportHtml] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loadingReport, setLoadingReport] = useState(false);
+  const [isPurging, setIsPurging] = useState(false);
 
   const breadcrumbs = useMemo(() => [{ label: "Daily Reports" }], []);
   useBreadcrumbs(breadcrumbs);
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ["daily-reports"] });
+  };
+
+  const handlePurge = async () => {
+    if (!confirm("Delete all reports older than 30 days? This cannot be undone.")) return;
+    setIsPurging(true);
+    try {
+      const res = await purgeDailyReports(30);
+      toast.success(`Purged ${res.data.deleted_count} report(s) older than ${res.data.cutoff_date}`);
+      queryClient.invalidateQueries({ queryKey: ["daily-reports"] });
+    } catch {
+      toast.error("Failed to purge reports");
+    } finally {
+      setIsPurging(false);
+    }
   };
 
   const handleViewReport = async (row: IDailyReport) => {
@@ -79,6 +95,13 @@ const DailyReports = () => {
         title="Daily Reports"
         description="View daily email report summaries for each representative."
         actions={[
+          {
+            label: isPurging ? "Purging..." : "Purge 30+ Days",
+            onClick: handlePurge,
+            variant: "destructive" as const,
+            icon: Trash2,
+            disabled: isPurging,
+          },
           {
             label: "Refresh",
             onClick: handleRefresh,

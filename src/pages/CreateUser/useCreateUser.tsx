@@ -19,6 +19,7 @@ export interface CreateUserFormData {
     state: string;
     zip_code: string;
     email?: string;
+    reply_email?: string;
     work_phone: string;
     work_ext: string;
     cellphone: string;
@@ -52,6 +53,7 @@ const useCreateUser = () => {
             state: '',
             zip_code: '',
             email: '',
+            reply_email: '',
             work_phone: '',
             work_ext: '',
             cellphone: '',

@@ -520,6 +520,17 @@ const UpdateUserPersonalInfo = ({
           />
         </div>
 
+        <div className="space-y-2">
+          <label htmlFor="personal_license" className="text-sm font-medium">
+            Personal License
+          </label>
+          <Input
+            id="personal_license"
+            placeholder="Enter personal license"
+            {...register("personal_license")}
+          />
+        </div>
+
       </div>
 
       <Separator className="my-6" />

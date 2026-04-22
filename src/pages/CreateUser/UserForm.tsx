@@ -70,14 +70,14 @@ const UserForm = () => {
             </div>
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
-                Email Address *
+                User ID *
               </label>
               <Input
                 id="email"
                 type="email"
-                placeholder="Enter email address"
+                placeholder="Enter user ID (email used for login)"
                 {...register('email', {
-                  required: 'Email is required',
+                  required: 'User ID is required',
                   pattern: {
                     value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                     message: 'Invalid email address'
@@ -87,6 +87,26 @@ const UserForm = () => {
               />
               {errors.email && (
                 <p className="text-sm text-red-500">{errors.email.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="reply_email" className="text-sm font-medium">
+                Email Address
+              </label>
+              <Input
+                id="reply_email"
+                type="email"
+                placeholder="Reply-to email address (optional)"
+                {...register('reply_email', {
+                  pattern: {
+                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                    message: 'Invalid email address'
+                  }
+                })}
+                className={errors.reply_email ? 'border-red-500' : ''}
+              />
+              {errors.reply_email && (
+                <p className="text-sm text-red-500">{errors.reply_email.message}</p>
               )}
             </div>
 

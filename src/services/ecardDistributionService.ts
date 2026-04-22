@@ -86,5 +86,14 @@ export const updateEcardDistribution = (id: number, data: UpdateEcardDistributio
 export const deleteEcardDistribution = (id: number): Promise<AxiosResponse<void>> =>
   api.delete(`/email/ecard-distributions/${id}`);
 
+// Manually trigger processing of a pending/failed distribution
+export const processEcardDistribution = (id: number): Promise<AxiosResponse<{
+  message: string;
+  distribution_id: number;
+  users_count: number;
+  status: string;
+}>> =>
+  api.post(`/email/ecard-distributions/${id}/process`);
+
 // Note: To cancel a distribution, use updateEcardDistribution with { status: 'cancelled' }
 // Note: To mark as completed, use updateEcardDistribution with { status: 'completed' }
