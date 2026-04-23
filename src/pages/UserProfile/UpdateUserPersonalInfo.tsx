@@ -288,12 +288,12 @@ const UpdateUserPersonalInfo = ({
 
         <div className="space-y-2">
           <label htmlFor="email" className="text-sm font-medium">
-            Email Address
+            User ID
           </label>
           <Input
             id="email"
             type="email"
-            placeholder="Enter email address"
+            placeholder="Enter user ID (email used for login)"
             disabled
             {...register("email")}
           />

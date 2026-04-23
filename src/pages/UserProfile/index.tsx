@@ -340,7 +340,7 @@ const UserProfile = () => {
                     </div>
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
-                        Email
+                        User ID
                       </label>
                       <p className="text-base mt-1">{displayValue(email)}</p>
                     </div>
@@ -447,7 +447,7 @@ const UserProfile = () => {
                       <label className="text-sm font-medium text-muted-foreground">
                         Password
                       </label>
-                      <p className="text-base mt-1">{displayValue("")}</p>
+                      <p className="text-base mt-1">••••••••</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
