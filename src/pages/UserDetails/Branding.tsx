@@ -24,6 +24,9 @@ interface IBranding {
   photo?: File | string | null;
   logo?: File | string | null;
   qrcode?: File | string | null;
+  social_logo_inverted?: File | string | null;
+  social_photo_inverted?: File | string | null;
+  social_branding_inverted?: File | string | null;
   personaltext?: string;
   disclosure?: string;
   hlogo?: number;
@@ -49,6 +52,9 @@ export default function Branding() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [qrcodePreview, setQrcodePreview] = useState<string | null>(null);
+  const [socialLogoInvertedPreview, setSocialLogoInvertedPreview] = useState<string | null>(null);
+  const [socialPhotoInvertedPreview, setSocialPhotoInvertedPreview] = useState<string | null>(null);
+  const [socialBrandingInvertedPreview, setSocialBrandingInvertedPreview] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<IBranding>({
     personaltext: "",
@@ -86,6 +92,15 @@ export default function Branding() {
       }
       if (data.qrcode && typeof data.qrcode === 'string') {
         setQrcodePreview(data.qrcode);
+      }
+      if (data.social_logo_inverted && typeof data.social_logo_inverted === 'string') {
+        setSocialLogoInvertedPreview(data.social_logo_inverted);
+      }
+      if (data.social_photo_inverted && typeof data.social_photo_inverted === 'string') {
+        setSocialPhotoInvertedPreview(data.social_photo_inverted);
+      }
+      if (data.social_branding_inverted && typeof data.social_branding_inverted === 'string') {
+        setSocialBrandingInvertedPreview(data.social_branding_inverted);
       }
     }
   }, [brandingData]);
@@ -319,6 +334,90 @@ export default function Branding() {
                 <Label htmlFor="custom" className="cursor-pointer">
                   Enable Custom Symbol
                 </Label>
+              </div>
+
+              {/* Inverted Logo */}
+              <div className="space-y-2">
+                <Label htmlFor="social_logo_inverted">Inverted Logo</Label>
+                <p className="text-xs text-muted-foreground">Used as the inverted logo for social media posts.</p>
+                <Input
+                  id="social_logo_inverted"
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/gif"
+                  onChange={(e) =>
+                    handleImageUpload(
+                      e.target.files?.[0] || null,
+                      "social_logo_inverted",
+                      setSocialLogoInvertedPreview,
+                      "logo"
+                    )
+                  }
+                />
+                {socialLogoInvertedPreview && (
+                  <div className="mt-2 p-4 border rounded-lg">
+                    <img
+                      src={socialLogoInvertedPreview}
+                      alt="Inverted Logo Preview"
+                      className="h-24 object-contain"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Inverted Photo */}
+              <div className="space-y-2">
+                <Label htmlFor="social_photo_inverted">Inverted Photo</Label>
+                <p className="text-xs text-muted-foreground">Used as the inverted photo for social media posts.</p>
+                <Input
+                  id="social_photo_inverted"
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/gif"
+                  onChange={(e) =>
+                    handleImageUpload(
+                      e.target.files?.[0] || null,
+                      "social_photo_inverted",
+                      setSocialPhotoInvertedPreview,
+                      "other"
+                    )
+                  }
+                />
+                {socialPhotoInvertedPreview && (
+                  <div className="mt-2 p-4 border rounded-lg">
+                    <img
+                      src={socialPhotoInvertedPreview}
+                      alt="Inverted Photo Preview"
+                      className="h-24 object-cover"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Inverted Branding */}
+              <div className="space-y-2">
+                <Label htmlFor="social_branding_inverted">Inverted Branding</Label>
+                <p className="text-xs text-muted-foreground">Used as the inverted branding image for social media posts.</p>
+                <Input
+                  id="social_branding_inverted"
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/gif"
+                  onChange={(e) =>
+                    handleImageUpload(
+                      e.target.files?.[0] || null,
+                      "social_branding_inverted",
+                      setSocialBrandingInvertedPreview,
+                      "logo"
+                    )
+                  }
+                />
+                {socialBrandingInvertedPreview && (
+                  <div className="mt-2 p-4 border rounded-lg">
+                    <img
+                      src={socialBrandingInvertedPreview}
+                      alt="Inverted Branding Preview"
+                      className="h-24 object-contain"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>

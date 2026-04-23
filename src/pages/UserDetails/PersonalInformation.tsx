@@ -125,6 +125,7 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
         Object.keys(data).forEach((key) => {
             const value = data[key as keyof CreateUserFormData];
             if (key === 'email' || key === 'photo' || key === 'logo') return; // Skip - handled separately
+            if (key === 'password' && (!value || (value as string).trim() === '')) return; // Skip empty password
             // Handle regular fields - include all values except undefined
             if (value !== undefined) {
                 if (key === 'cellphone' || key === 'work_phone') {
@@ -412,10 +413,11 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                 </label>
                                 <PasswordInput
                                     id="password"
-                                    placeholder="Enter password"
+                                    placeholder="Leave blank to keep current password"
                                     {...register('password')}
                                     error={!!errors.password}
                                 />
+                                <p className="text-xs text-muted-foreground">Only fill in to change the password.</p>
                                 {errors.password && (
                                     <p className="text-sm text-red-500">{errors.password.message}</p>
                                 )}
