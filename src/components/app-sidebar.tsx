@@ -66,8 +66,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       items: [],
     },
     {
-      title: "Email History",
-      url: ["/email-sent-history"],
+      title: "Daily Email Reports",
+      url: ["/daily-email-reports"],
       icon: History,
       items: [],
     },

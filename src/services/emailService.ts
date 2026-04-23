@@ -93,7 +93,7 @@ export const getSystemTemplateById = (id: number): Promise<AxiosResponse<SystemE
 
 export interface UnifiedEmailTemplate {
     id: number;
-    source: 'customer' | 'library';
+    source: 'customer' | 'library' | 'standard';
     email_name: string;
     email_subject: string;
     type: string;

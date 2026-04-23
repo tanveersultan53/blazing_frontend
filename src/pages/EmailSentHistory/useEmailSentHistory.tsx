@@ -1,11 +1,38 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
-import { Badge } from "@/components/ui/badge";
 import type { IEmailSentHistory, EmailSentHistoryFilters } from "./interface";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { format } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
-import { getSentEmails } from "@/services/emailService";
+import { getDailyReports } from "@/services/dailyReportService";
+import { Info } from "lucide-react";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
+
+const ColumnHeaderWithInfo = ({
+  column,
+  title,
+  info,
+}: {
+  column: any;
+  title: string;
+  info: string;
+}) => (
+  <div className="flex items-center gap-1">
+    <DataTableColumnHeader column={column} title={title} />
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help shrink-0" />
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-xs">
+        <p>{info}</p>
+      </TooltipContent>
+    </Tooltip>
+  </div>
+);
 
 const useEmailSentHistory = () => {
   const [filters, setFilters] = useState<EmailSentHistoryFilters>({});
@@ -15,31 +42,25 @@ const useEmailSentHistory = () => {
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const globalSearchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Fetch sent email history from API
   const { data, isLoading, isFetching } = useQuery({
-    queryKey: ['sent-emails', debouncedGlobalSearch],
-    queryFn: () => getSentEmails({ search: debouncedGlobalSearch }),
+    queryKey: ["daily-reports", debouncedGlobalSearch],
+    queryFn: () => getDailyReports({ search: debouncedGlobalSearch }),
   });
 
-  // Handle both array response and paginated response formats
-  const sentEmails = Array.isArray(data?.data)
+  const reports = Array.isArray(data?.data)
     ? data.data
     : (data?.data?.results || []);
 
-  // Debounce filters to prevent too many API calls
+  // Debounce filters
   useEffect(() => {
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
     }
-
     debounceTimeoutRef.current = setTimeout(() => {
       setDebouncedFilters(filters);
     }, 500);
-
     return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
+      if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
     };
   }, [filters]);
 
@@ -48,146 +69,179 @@ const useEmailSentHistory = () => {
     if (globalSearchTimeoutRef.current) {
       clearTimeout(globalSearchTimeoutRef.current);
     }
-
     globalSearchTimeoutRef.current = setTimeout(() => {
       setDebouncedGlobalSearch(globalSearch);
     }, 500);
-
     return () => {
-      if (globalSearchTimeoutRef.current) {
-        clearTimeout(globalSearchTimeoutRef.current);
-      }
+      if (globalSearchTimeoutRef.current) clearTimeout(globalSearchTimeoutRef.current);
     };
   }, [globalSearch]);
 
-  const columns: ColumnDef<IEmailSentHistory>[] = useMemo(() => [
-    {
-      accessorKey: "contact_name",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Contact Name" />
-      ),
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("contact_name") || "N/A"}</div>
-      ),
-      enableColumnFilter: true,
-    },
-    {
-      accessorKey: "email",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Recipient Email" />
-      ),
-      cell: ({ row }) => (
-        <div className="text-blue-600">{row.getValue("email")}</div>
-      ),
-      enableColumnFilter: true,
-    },
-    {
-      accessorKey: "template_name",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Template Name" />
-      ),
-      cell: ({ row }) => (
-        <div className="text-sm">{row.getValue("template_name") || "N/A"}</div>
-      ),
-      enableColumnFilter: true,
-    },
-    {
-      accessorKey: "rep_name",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Sent By" />
-      ),
-      cell: ({ row }) => (
-        <div className="text-sm text-gray-600">{row.getValue("rep_name") || "N/A"}</div>
-      ),
-      enableColumnFilter: true,
-    },
-    {
-      accessorKey: "date_sent",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Date Sent" />
-      ),
-      cell: ({ row }) => {
-        const date = row.getValue("date_sent") as string;
-        return date ? (
-          <div className="text-sm">
-            {format(new Date(date), "MMM dd, yyyy hh:mm a")}
-          </div>
-        ) : (
-          <div className="text-sm text-gray-400">N/A</div>
-        );
+  const columns: ColumnDef<IEmailSentHistory>[] = useMemo(
+    () => [
+      {
+        accessorKey: "rep_name",
+        header: ({ column }) => (
+          <ColumnHeaderWithInfo
+            column={column}
+            title="User"
+            info="The representative's name who sent the emails."
+          />
+        ),
+        cell: ({ row }) => (
+          <div className="font-medium">{row.getValue("rep_name") || "N/A"}</div>
+        ),
+        enableColumnFilter: true,
       },
-      enableColumnFilter: false,
-    },
-    {
-      accessorKey: "status",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Status" />
-      ),
-      cell: ({ row }) => {
-        const status = row.getValue("status") as string | undefined;
-        return status ? (
-          <Badge
-            variant={
-              status === "sent"
-                ? "default"
-                : status === "failed"
-                ? "destructive"
-                : "secondary"
-            }
-          >
-            {status.charAt(0).toUpperCase() + status.slice(1)}
-          </Badge>
-        ) : (
-          <Badge variant="default">Sent</Badge>
-        );
+      {
+        accessorKey: "report_date",
+        header: ({ column }) => (
+          <ColumnHeaderWithInfo
+            column={column}
+            title="Date"
+            info="The date the emails were sent by the cron job."
+          />
+        ),
+        cell: ({ row }) => {
+          const date = row.getValue("report_date") as string;
+          return date ? (
+            <div className="text-sm">
+              {format(new Date(date + "T00:00:00"), "MMM dd, yyyy")}
+            </div>
+          ) : (
+            <div className="text-sm text-gray-400">N/A</div>
+          );
+        },
+        enableColumnFilter: false,
       },
-      enableColumnFilter: false,
-    },
-    {
-      accessorKey: "is_test",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Type" />
-      ),
-      cell: ({ row }) => {
-        const isTest = row.original.is_test;
-        return isTest ? (
-          <Badge className="bg-orange-100 text-orange-800 border-orange-200" variant="outline">TEST</Badge>
-        ) : (
-          <Badge className="bg-green-100 text-green-800 border-green-200" variant="outline">Live</Badge>
-        );
+      {
+        accessorKey: "holiday_ecards_count",
+        header: ({ column }) => (
+          <ColumnHeaderWithInfo
+            column={column}
+            title="Holidays"
+            info="Number of holiday ecards sent to contacts and partners."
+          />
+        ),
+        cell: ({ row }) => (
+          <div className="text-center">{row.getValue("holiday_ecards_count")}</div>
+        ),
+        enableColumnFilter: false,
       },
-      enableColumnFilter: false,
-    },
-  ], []);
+      {
+        accessorKey: "birthday_ecards_count",
+        header: ({ column }) => (
+          <ColumnHeaderWithInfo
+            column={column}
+            title="Birthdays"
+            info="Number of birthday ecards sent to contacts and partners."
+          />
+        ),
+        cell: ({ row }) => (
+          <div className="text-center">{row.getValue("birthday_ecards_count")}</div>
+        ),
+        enableColumnFilter: false,
+      },
+      {
+        accessorKey: "newsletter_count",
+        header: ({ column }) => (
+          <ColumnHeaderWithInfo
+            column={column}
+            title="Weekly Newsletters"
+            info="Number of weekly newsletters sent to contacts and partners."
+          />
+        ),
+        cell: ({ row }) => (
+          <div className="text-center">{row.getValue("newsletter_count")}</div>
+        ),
+        enableColumnFilter: false,
+      },
+      {
+        accessorKey: "coming_home_count",
+        header: ({ column }) => (
+          <ColumnHeaderWithInfo
+            column={column}
+            title="Coming Home"
+            info="Number of Coming Home digital newsletters sent."
+          />
+        ),
+        cell: ({ row }) => (
+          <div className="text-center">{row.getValue("coming_home_count")}</div>
+        ),
+        enableColumnFilter: false,
+      },
+      {
+        accessorKey: "next_due_contacts",
+        header: ({ column }) => (
+          <ColumnHeaderWithInfo
+            column={column}
+            title="Next Due - C"
+            info="Next scheduled date for the weekly newsletter for Contacts (from autooptions.newsletter_date)."
+          />
+        ),
+        cell: ({ row }) => {
+          const date = row.getValue("next_due_contacts") as string | null;
+          return date ? (
+            <div className="text-sm text-center">
+              {format(new Date(date + "T00:00:00"), "MMM dd, yyyy")}
+            </div>
+          ) : (
+            <div className="text-sm text-center text-gray-400">-</div>
+          );
+        },
+        enableColumnFilter: false,
+      },
+      {
+        accessorKey: "next_due_partners",
+        header: ({ column }) => (
+          <ColumnHeaderWithInfo
+            column={column}
+            title="Next Due - R"
+            info="Next scheduled date for the weekly newsletter for Referral Partners (from autooptions.newsletter_date2)."
+          />
+        ),
+        cell: ({ row }) => {
+          const date = row.getValue("next_due_partners") as string | null;
+          return date ? (
+            <div className="text-sm text-center">
+              {format(new Date(date + "T00:00:00"), "MMM dd, yyyy")}
+            </div>
+          ) : (
+            <div className="text-sm text-center text-gray-400">-</div>
+          );
+        },
+        enableColumnFilter: false,
+      },
+    ],
+    []
+  );
 
-  // Filter data based on debounced filters (client-side filtering)
+  // Client-side filtering
   const filteredData = useMemo(() => {
-    return sentEmails.filter((item) => {
-      // Apply column-specific filters
-      const matchesFilters = Object.entries(debouncedFilters).every(([key, value]) => {
+    return reports.filter((item: IEmailSentHistory) => {
+      return Object.entries(debouncedFilters).every(([key, value]) => {
         if (!value) return true;
-        const itemValue = item[key as keyof IEmailSentHistory]?.toString().toLowerCase() || "";
+        const itemValue =
+          item[key as keyof IEmailSentHistory]?.toString().toLowerCase() || "";
         return itemValue.includes(value.toLowerCase());
       });
-
-      return matchesFilters;
     });
-  }, [sentEmails, debouncedFilters]);
+  }, [reports, debouncedFilters]);
 
-  // Filter update function
-  const updateFilter = useCallback((key: keyof EmailSentHistoryFilters, value: string) => {
-    setFilters((prev) => {
-      const newFilters = { ...prev };
-
-      if (value && value.trim() !== "") {
-        newFilters[key] = value;
-      } else {
-        delete newFilters[key];
-      }
-
-      return newFilters;
-    });
-  }, []);
+  const updateFilter = useCallback(
+    (key: keyof EmailSentHistoryFilters, value: string) => {
+      setFilters((prev) => {
+        const newFilters = { ...prev };
+        if (value && value.trim() !== "") {
+          newFilters[key] = value;
+        } else {
+          delete newFilters[key];
+        }
+        return newFilters;
+      });
+    },
+    []
+  );
 
   const clearFilter = (key: keyof EmailSentHistoryFilters) => {
     setFilters((prev) => {
@@ -202,7 +256,6 @@ const useEmailSentHistory = () => {
     setGlobalSearch("");
   };
 
-  // Global search functions
   const updateGlobalSearch = useCallback((value: string) => {
     setGlobalSearch(value);
   }, []);

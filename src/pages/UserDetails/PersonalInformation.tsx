@@ -219,7 +219,7 @@ const PersonalInformation = ({ user, refetch }: { user: IUserDetails | undefined
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="password" className="text-xs font-medium text-muted-foreground">Password</label>
-                                    <p className="text-sm font-semibold">{user?.password ? '••••••••' : '-'}</p>
+                                    <p className="text-sm font-semibold">••••••••</p>
                                 </div>
 
                                 {/* Contact Information */}

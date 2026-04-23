@@ -3,13 +3,22 @@ import PageHeader from "@/components/PageHeader";
 import useEmailSentHistory from "./useEmailSentHistory";
 import Loading from "@/components/Loading";
 import { useBreadcrumbs } from "@/hooks/usePageTitle";
-import { Mail, FileDown, RefreshCw } from "lucide-react";
+import { Eye, RefreshCw, Trash2 } from "lucide-react";
 import type { IEmailSentHistory } from "./interface";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import type { User } from "@/redux/features/userSlice";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import { getDailyReportById, purgeDailyReports } from "@/services/dailyReportService";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
 
 const EmailSentHistory = () => {
   const {
@@ -31,31 +40,49 @@ const EmailSentHistory = () => {
     (state: { user: { currentUser: User } }) => state.user.currentUser
   );
 
-  // Memoize breadcrumbs to prevent infinite loops
-  const breadcrumbs = useMemo(() => [{ label: "Email Sent History" }], []);
+  const [selectedReportHtml, setSelectedReportHtml] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [loadingReport, setLoadingReport] = useState(false);
+  const [isPurging, setIsPurging] = useState(false);
 
+  const breadcrumbs = useMemo(() => [{ label: "Daily Email Reports" }], []);
   useBreadcrumbs(breadcrumbs);
 
-  // Handle export functionality
-  const handleExport = () => {
-    console.log("Export email history clicked");
-    // TODO: Implement export logic
-  };
-
-  // Handle refresh functionality
   const handleRefresh = () => {
-    queryClient.invalidateQueries({ queryKey: ['sent-emails'] });
+    queryClient.invalidateQueries({ queryKey: ["daily-reports"] });
   };
 
-  // Column titles mapping for filter placeholders
+  const handlePurge = async () => {
+    if (!confirm("Delete all reports older than 30 days? This cannot be undone.")) return;
+    setIsPurging(true);
+    try {
+      const res = await purgeDailyReports(30);
+      toast.success(`Purged ${res.data.deleted_count} report(s) older than ${res.data.cutoff_date}`);
+      queryClient.invalidateQueries({ queryKey: ["daily-reports"] });
+    } catch {
+      toast.error("Failed to purge reports");
+    } finally {
+      setIsPurging(false);
+    }
+  };
+
+  const handleViewReport = async (row: IEmailSentHistory) => {
+    setLoadingReport(true);
+    setDialogOpen(true);
+    try {
+      const response = await getDailyReportById(row.id);
+      setSelectedReportHtml(response.data.report_html || "<p>No report HTML available.</p>");
+    } catch {
+      setSelectedReportHtml("<p>Error loading report.</p>");
+    } finally {
+      setLoadingReport(false);
+    }
+  };
+
   const columnTitles = {
-    contact_name: "Contact Name",
-    email: "Recipient Email",
-    template_name: "Template Name",
-    rep_name: "Sent By",
+    rep_name: "Rep Name",
   };
 
-  // Redirect non-admin users
   if (!currentUser?.is_superuser) {
     navigate("/user-dashboard");
     return <></>;
@@ -66,38 +93,35 @@ const EmailSentHistory = () => {
   ) : (
     <>
       <PageHeader
-        title="Email Sent History"
-        description="View and manage the history of all sent emails including recipients, subjects, and delivery status."
+        title="Daily Email Reports"
+        description="Summary of emails sent daily by each representative after cron jobs run."
         actions={[
+          {
+            label: isPurging ? "Purging..." : "Purge 30+ Days",
+            onClick: handlePurge,
+            variant: "destructive" as const,
+            icon: Trash2,
+            disabled: isPurging,
+          },
           {
             label: "Refresh",
             onClick: handleRefresh,
             variant: "outline",
             icon: RefreshCw,
           },
-          {
-            label: "Export History",
-            onClick: handleExport,
-            variant: "outline",
-            icon: FileDown,
-          },
         ]}
       >
         <DataTable
           columns={columns}
           data={data}
-          searchColumns={["contact_name", "email", "template_name", "rep_name"]}
+          searchColumns={["rep_name"]}
           showActionsColumn
-          onViewDetails={(row: IEmailSentHistory) =>
-            console.log("View email details:", row.id)
-          }
           actionItems={[
             {
-              label: "View Details",
-              icon: Mail,
+              label: "View Report",
+              icon: Eye,
               className: "text-blue-600",
-              onClick: (row: IEmailSentHistory) =>
-                console.log("View details:", row.id),
+              onClick: (row: IEmailSentHistory) => handleViewReport(row),
             },
           ]}
           filters={filters as Record<string, string | undefined>}
@@ -116,6 +140,26 @@ const EmailSentHistory = () => {
           enableRowSelection={false}
         />
       </PageHeader>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Daily Email Report</DialogTitle>
+          </DialogHeader>
+          {loadingReport ? (
+            <div className="flex items-center justify-center py-12">
+              <Loading />
+            </div>
+          ) : (
+            <div
+              className="mt-4"
+              dangerouslySetInnerHTML={{
+                __html: selectedReportHtml || "",
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

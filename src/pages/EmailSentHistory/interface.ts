@@ -1,30 +1,34 @@
+export interface IBirthdayEntry {
+    first_name: string;
+    last_name: string;
+    age: number | null;
+    birthday: string;
+}
+
 export interface IEmailSentHistory {
-  id: number;
-  rep: number;
-  rep_username: string;
-  rep_name: string;
-  contact: number;
-  contact_name: string;
-  email: string;
-  filename: string;
-  email_type: number;
-  template_id: number;
-  template_name: string;
-  date_sent: string;
-  status?: 'sent' | 'failed' | 'pending';
-  is_test?: boolean;
+    id: number;
+    rep: number;
+    rep_name: string;
+    rep_email: string;
+    report_date: string;
+    cron_job: number | null;
+    cron_job_name: string | null;
+    birthday_ecards_count: number;
+    holiday_ecards_count: number;
+    newsletter_count: number;
+    newsletter_monthly_count: number;
+    newsletter_html_count: number;
+    coming_home_count: number;
+    total_emails_sent: number;
+    next_due_contacts: string | null;
+    next_due_partners: string | null;
+    todays_birthdays: IBirthdayEntry[];
+    email_sent_successfully: boolean;
+    report_html?: string;
+    created: string;
+    modified: string;
 }
 
 export interface EmailSentHistoryFilters {
-  contact_name?: string;
-  email?: string;
-  template_name?: string;
-  rep_name?: string;
-}
-
-export interface SentEmailResponse {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: IEmailSentHistory[];
+    rep_name?: string;
 }
