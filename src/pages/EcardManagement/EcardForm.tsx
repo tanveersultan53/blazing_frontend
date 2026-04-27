@@ -4,10 +4,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
   Card,
@@ -35,7 +36,6 @@ import {
   Loader2,
   ArrowLeft,
   FileImage,
-  FileCode,
   Send,
   Mail,
 } from "lucide-react";
@@ -130,11 +130,30 @@ export default function EcardForm() {
   useEffect(() => {
     if (ecardData?.data) {
       const data = ecardData.data;
-      console.log("Loading ecard data:", data);
       setFormData(data);
 
       if (data.ecard_image && typeof data.ecard_image === "string") {
         setEcardImagePreview(data.ecard_image);
+      }
+
+      // Auto-load preview when editing an existing ecard
+      if (data.email_html || data.ecard_text) {
+        const previewUserId = Number(currentUser?.id) || 1;
+        previewEcardHtml(previewUserId, {
+          email_html: data.email_html || "",
+          ecard_text: data.ecard_text || "",
+          email_preheader: data.email_preheader || "",
+          greeting: data.greeting || "",
+          ecard_image: typeof data.ecard_image === "string" ? data.ecard_image : "",
+          first_name: "John",
+          last_name: "Doe",
+        }).then((response) => {
+          if (response.data.success && response.data.html_content) {
+            setPreviewHtml(response.data.html_content);
+          }
+        }).catch(() => {
+          // Silently fail - user can click Preview manually
+        });
       }
     }
   }, [ecardData]);
@@ -189,23 +208,26 @@ export default function EcardForm() {
     }
   };
 
-  const handleHtmlFileUpload = async (file: File | null) => {
-    if (file) {
-      // Read HTML file content - keep it raw, no replacements
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result as string;
-        setFormData((prev) => ({ ...prev, email_html: content }));
-      };
-      reader.readAsText(file);
-    } else {
-      setFormData((prev) => ({ ...prev, email_html: "" }));
-    }
-    // Reset preview when HTML file changes
-    if (previewHtml) {
-      setPreviewHtml(null);
-    }
+  const quillModules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline'],
+      [{ 'color': [] }, { 'background': [] }],
+      [{ 'align': [] }],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      ['link'],
+      ['clean'],
+    ],
   };
+
+  const quillFormats = [
+    'header',
+    'bold', 'italic', 'underline',
+    'color', 'background',
+    'align',
+    'list', 'bullet',
+    'link',
+  ];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -350,19 +372,17 @@ export default function EcardForm() {
   };
 
   const handlePreview = async () => {
-    // Validate that there's HTML content to preview
-    if (!formData.email_html) {
-      toast.error("Please upload an email HTML template first");
+    if (!formData.email_html && !formData.ecard_text) {
+      toast.error("Please enter ecard text or save the ecard first");
       return;
     }
 
     setIsLoadingPreview(true);
     try {
-      // Call backend API to get filled HTML preview using logged-in user's data
       const previewUserId = Number(currentUser?.id) || 1;
 
       const response = await previewEcardHtml(previewUserId, {
-        email_html: formData.email_html,
+        email_html: formData.email_html || "",
         ecard_text: formData.ecard_text || "",
         email_preheader: formData.email_preheader || "",
         greeting: formData.greeting || "",
@@ -371,27 +391,17 @@ export default function EcardForm() {
         last_name: "Doe",
       });
 
-      console.log("✅ Preview response received:", response.data);
-
       if (response.data.success && response.data.html_content) {
         setPreviewHtml(response.data.html_content);
-        toast.success("Preview updated with filled placeholders");
       } else {
         toast.error("Failed to generate preview");
       }
     } catch (error: any) {
-      console.error("❌ Preview error details:", {
-        message: error.message,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        url: error.config?.url,
-        baseURL: error.config?.baseURL,
-      });
+      console.error("Preview error:", error);
       toast.error(
         error.response?.data?.error ||
         error.response?.data?.message ||
-        `API Error: ${error.response?.status || 'Network Error'}`
+        `Preview failed: ${error.response?.status || 'Network Error'}`
       );
     } finally {
       setIsLoadingPreview(false);
@@ -494,16 +504,11 @@ export default function EcardForm() {
       return;
     }
 
-    if (!formData.email_html) {
-      toast.error("Please upload an email HTML template first");
-      return;
-    }
-
     // Generate preview with selected user's data
     setIsLoadingPreview(true);
     try {
       const response = await previewEcardHtml(selectedUserId, {
-        email_html: formData.email_html,
+        email_html: formData.email_html || "",
         ecard_text: formData.ecard_text || "",
         email_preheader: formData.email_preheader || "",
         greeting: formData.greeting || "",
@@ -782,22 +787,23 @@ export default function EcardForm() {
                     </div>
                   )}
 
-                {/* Ecard Text - Only for creating ecards */}
+                {/* Ecard Text - Rich text editor */}
                 {formData.email_type === "ecard" && (
                   <div className="space-y-2">
-                    <Label htmlFor="ecard_text">Ecard Text</Label>
-                    <Textarea
-                      id="ecard_text"
-                      placeholder="Happy 4th of July! We honor the enduring spirit of liberty and unity that defines our nation.<BR>Please let me know if I can help you or anyone you know with my services.<BR> Thank You."
-                      value={formData.ecard_text}
-                      onChange={(e) =>
-                        handleInputChange("ecard_text", e.target.value)
-                      }
-                      rows={6}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Use HTML codes like &lt;BR&gt; for line breaks
-                    </p>
+                    <Label>Ecard Text</Label>
+                    <div className="border rounded-md">
+                      <ReactQuill
+                        theme="snow"
+                        value={formData.ecard_text || ""}
+                        onChange={(content) =>
+                          handleInputChange("ecard_text", content)
+                        }
+                        modules={quillModules}
+                        formats={quillFormats}
+                        placeholder="Enter the ecard message text..."
+                        style={{ minHeight: '200px' }}
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -826,28 +832,9 @@ export default function EcardForm() {
                     </div>
                   )}
                 </div>
-
-                {/* Upload Email HTML */}
-                <div className="space-y-2">
-                  <Label htmlFor="upload_email">
-                    <FileCode className="inline h-4 w-4 mr-2" />
-                    Upload Email HTML
-                  </Label>
-                  <Input
-                    id="upload_email"
-                    type="file"
-                    accept=".html,.htm"
-                    onChange={(e) =>
-                      handleHtmlFileUpload(e.target.files?.[0] || null)
-                    }
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Upload a complete HTML email file (optional)
-                  </p>
-                </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email_name">
+                <Label>
                   Email Preview
                   {isLoadingPreview && (
                     <span className="ml-2 text-xs text-muted-foreground">
@@ -856,29 +843,21 @@ export default function EcardForm() {
                   )}
                   {previewHtml && !isLoadingPreview && (
                     <span className="ml-2 text-xs text-green-600">
-                      (Filled from backend)
+                      (With user data)
                     </span>
                   )}
                 </Label>
                 <div className="bg-accent h-full w-full rounded-2xl">
-                  {/* Show filled preview from backend if available, otherwise show raw HTML */}
                   {previewHtml ? (
                     <iframe
                       srcDoc={previewHtml}
                       className="w-full h-full bg-white"
-                      title="Email Preview (Filled)"
-                      sandbox="allow-same-origin"
-                    />
-                  ) : formData.email_html ? (
-                    <iframe
-                      srcDoc={formData.email_html}
-                      className="w-full h-full bg-white"
-                      title="Email Preview (Raw)"
+                      title="Email Preview"
                       sandbox="allow-same-origin"
                     />
                   ) : (
-                    <div className="h-full flex justify-center items-center">
-                      No Preview available
+                    <div className="h-full flex justify-center items-center text-muted-foreground">
+                      Click "Preview" to see the email with user data
                     </div>
                   )}
                 </div>

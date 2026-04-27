@@ -34,7 +34,7 @@ export const deleteDefaultEmail = (id: number): Promise<AxiosResponse<void>> =>
   api.delete(`/email/default-email/${id}`);
 
 // Distribute ecard to all users
-export const distributeEcard = (id: number): Promise<AxiosResponse<{ message: string; users_count: number }>> =>
+export const distributeEcard = (id: number): Promise<AxiosResponse<{ message: string; users_count: number; skipped_count: number }>> =>
   api.post(`/email/default-email/${id}/distribute`);
 
 // Preview ecard

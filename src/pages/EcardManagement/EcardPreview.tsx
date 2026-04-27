@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
@@ -9,6 +10,7 @@ import { useState, useEffect } from 'react';
 export default function EcardPreview() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const currentUser = useSelector((state: { user: { currentUser: { id: number | string } } }) => state.user.currentUser);
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
 
   // Fetch ecard data
@@ -23,10 +25,11 @@ export default function EcardPreview() {
   // Fetch filled preview HTML when ecard data is loaded
   useEffect(() => {
     const fetchPreview = async () => {
-      if (ecard && ecard.email_html) {
+      if (ecard && (ecard.email_html || ecard.ecard_text)) {
         try {
-          const response = await previewEcardHtml(1, {
-            email_html: ecard.email_html,
+          const previewUserId = Number(currentUser?.id) || 1;
+          const response = await previewEcardHtml(previewUserId, {
+            email_html: ecard.email_html || '',
             ecard_text: ecard.ecard_text || '',
             email_preheader: ecard.email_preheader || '',
             greeting: ecard.greeting || '',
@@ -40,8 +43,6 @@ export default function EcardPreview() {
           }
         } catch (error) {
           console.error('Failed to fetch preview:', error);
-          // Fallback to raw HTML if preview fails
-          setPreviewHtml(ecard.email_html);
         }
       }
     };
@@ -101,58 +102,31 @@ export default function EcardPreview() {
           <CardTitle>Email Preview</CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Show filled HTML preview if available */}
           {previewHtml ? (
             <div className="border rounded-lg overflow-hidden">
               <iframe
                 srcDoc={previewHtml}
                 className="w-full h-[600px] bg-white"
-                title="Email Preview (Filled with User Data)"
+                title="Email Preview"
                 sandbox="allow-same-origin"
               />
               <p className="text-xs text-muted-foreground mt-2">
-                Preview with filled placeholders (user data, social icons, etc.)
+                Preview with user data merged in
               </p>
             </div>
-          ) : ecard.email_html ? (
+          ) : ecard.ecard_image && typeof ecard.ecard_image === 'string' ? (
             <div className="border rounded-lg overflow-hidden">
-              <iframe
-                srcDoc={ecard.email_html}
-                className="w-full h-[600px] bg-white"
-                title="Email Preview (Raw HTML)"
-                sandbox="allow-same-origin"
+              <img
+                src={ecard.ecard_image}
+                alt={ecard.email_name}
+                className="w-full h-auto"
               />
-              <p className="text-xs text-muted-foreground mt-2">
-                Loading filled preview...
-              </p>
             </div>
           ) : (
-            /* Show image if available */
-            ecard.ecard_image && typeof ecard.ecard_image === 'string' ? (
-              <div className="border rounded-lg overflow-hidden">
-                <img
-                  src={ecard.ecard_image}
-                  alt={ecard.email_name}
-                  className="w-full h-auto"
-                />
-              </div>
-            ) : (
-              /* Show text content */
-              <div className="p-6 border rounded-lg bg-muted/30">
-                <h3 className="text-lg font-semibold mb-4">{ecard.email_subject}</h3>
-                {ecard.email_preheader && (
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {ecard.email_preheader}
-                  </p>
-                )}
-                {ecard.ecard_text && (
-                  <div
-                    className="prose prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{ __html: ecard.ecard_text.replace(/<BR>/gi, '<br>') }}
-                  />
-                )}
-              </div>
-            )
+            <div className="flex items-center justify-center py-12 text-muted-foreground">
+              <Loader2 className="h-6 w-6 animate-spin mr-2" />
+              Loading preview...
+            </div>
           )}
 
           {/* Email Details */}
@@ -160,10 +134,6 @@ export default function EcardPreview() {
             <div>
               <span className="font-semibold">Email Type:</span>{' '}
               <span className="capitalize">{ecard.email_type}</span>
-            </div>
-            <div>
-              <span className="font-semibold">Custom Email:</span>{' '}
-              {ecard.custom_email ? 'Yes' : 'No'}
             </div>
             {ecard.ecard_date && (
               <div>
@@ -175,12 +145,6 @@ export default function EcardPreview() {
               <div>
                 <span className="font-semibold">Greeting:</span>{' '}
                 {ecard.greeting}
-              </div>
-            )}
-            {ecard.single_user_email && (
-              <div>
-                <span className="font-semibold">Single User Email:</span>{' '}
-                {ecard.single_user_email}
               </div>
             )}
           </div>
