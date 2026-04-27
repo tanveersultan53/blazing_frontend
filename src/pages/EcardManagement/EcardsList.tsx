@@ -28,8 +28,9 @@ export default function EcardsList() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [distributeId, setDistributeId] = useState<number | null>(null);
 
-  // Fetch default emails/ecards
+  // Fetch default emails/ecards (backend now filters to only template ecards)
   const { data, isLoading } = useQuery({
     queryKey: ['default-emails'],
     queryFn: () => getDefaultEmails(),
@@ -57,11 +58,18 @@ export default function EcardsList() {
     mutationFn: (id: number) => distributeEcard(id),
     onSuccess: (response) => {
       const count = response.data?.users_count || 0;
-      toast.success(`Ecard distributed to ${count} users successfully!`);
+      const skipped = response.data?.skipped_count || 0;
+      if (count > 0) {
+        toast.success(`Ecard distributed to ${count} new users!${skipped > 0 ? ` (${skipped} already had it)` : ''}`);
+      } else {
+        toast.info('All users already have this ecard.');
+      }
+      setDistributeId(null);
     },
     onError: (error: any) => {
       console.error('Distribute ecard error:', error);
       toast.error(error.response?.data?.error || 'Failed to distribute ecard');
+      setDistributeId(null);
     },
   });
 
@@ -150,8 +158,12 @@ export default function EcardsList() {
   };
 
   const handleDistribute = (row: IEcard) => {
-    if (row.id) {
-      distributeMutation.mutate(row.id);
+    setDistributeId(row.id!);
+  };
+
+  const handleConfirmDistribute = () => {
+    if (distributeId) {
+      distributeMutation.mutate(distributeId);
     }
   };
 
@@ -219,6 +231,28 @@ export default function EcardsList() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmDelete} className="bg-red-600 hover:bg-red-700">
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Distribute Confirmation Dialog */}
+      <AlertDialog open={distributeId !== null} onOpenChange={() => setDistributeId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Distribute Ecard</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will distribute the ecard to all active users who don't already have it.
+              Are you sure you want to continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDistribute}
+              disabled={distributeMutation.isPending}
+            >
+              {distributeMutation.isPending ? 'Distributing...' : 'Distribute'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
