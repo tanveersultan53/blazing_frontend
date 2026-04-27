@@ -146,7 +146,7 @@ export default function MyEmailTemplates() {
               ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300'
               : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
           }>
-            {source === 'library' ? 'Library' : 'My Template'}
+            {source === 'library' ? 'Library Template' : 'My Email'}
           </Badge>
         );
       },

@@ -89,8 +89,7 @@ export default function BrowseTemplates() {
     setCopyingTemplateId(selectedTemplate.id);
 
     const payload: CustomerEmailTemplate = {
-      // Only set template FK for EmailTemplate-sourced records, not DefaultEmail ones
-      ...(selectedTemplate.source !== 'default_email' && { template: selectedTemplate.id }),
+      template: selectedTemplate.id,
       email_name: templateName,
       email_subject: emailSubject,
       email_type: emailType,

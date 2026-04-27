@@ -21,7 +21,7 @@ export interface CustomerEmailTemplate {
     attachments?: EmailAttachment[];
 }
 
-// System Email Template Interface
+// System Email Template Interface (admin-created templates from Email Library)
 export interface SystemEmailTemplate {
     id: number;
     name: string;
@@ -32,7 +32,6 @@ export interface SystemEmailTemplate {
     created_at: string;
     updated_at: string;
     customer?: number;
-    source?: 'default_email';  // present when template comes from DefaultEmail model
 }
 
 // Email Attachment Interface
@@ -93,7 +92,7 @@ export const getSystemTemplateById = (id: number): Promise<AxiosResponse<SystemE
 
 export interface UnifiedEmailTemplate {
     id: number;
-    source: 'customer' | 'library' | 'standard';
+    source: 'customer' | 'library';
     email_name: string;
     email_subject: string;
     type: string;
