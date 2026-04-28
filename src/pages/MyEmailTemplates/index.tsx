@@ -2,9 +2,13 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import {
   getMyLibrary,
   deleteCustomerEmailTemplate,
+  updateCustomerEmailTemplate,
+  previewCustomerTemplate,
   type UnifiedEmailTemplate,
 } from '@/services/emailService';
 import PageHeader from '@/components/PageHeader';
@@ -18,7 +22,9 @@ import {
   Send,
   FileText,
   Info,
-  Eye
+  Eye,
+  Edit,
+  Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -32,6 +38,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function MyEmailTemplates() {
   const navigate = useNavigate();
@@ -41,6 +49,14 @@ export default function MyEmailTemplates() {
   const [templateToDelete, setTemplateToDelete] = useState<UnifiedEmailTemplate | null>(null);
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState<UnifiedEmailTemplate | null>(null);
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+
+  // Edit state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editTemplate, setEditTemplate] = useState<UnifiedEmailTemplate | null>(null);
+  const [editSubject, setEditSubject] = useState('');
+  const [editHtmlContent, setEditHtmlContent] = useState('');
 
   // Fetch unified email library (both CustomerEmailTemplate + EmailTemplate)
   const { data, isLoading } = useQuery({
@@ -64,6 +80,21 @@ export default function MyEmailTemplates() {
     },
   });
 
+  // Update mutation for editing
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: { email_subject?: string; html_content?: string } }) =>
+      updateCustomerEmailTemplate(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-email-library'] });
+      toast.success('Email updated successfully');
+      setEditDialogOpen(false);
+      setEditTemplate(null);
+    },
+    onError: () => {
+      toast.error('Failed to update email');
+    },
+  });
+
   const handleDelete = (template: UnifiedEmailTemplate) => {
     if (template.source !== 'customer') {
       toast.error('Standard library templates cannot be deleted');
@@ -79,10 +110,76 @@ export default function MyEmailTemplates() {
     }
   };
 
-  const handlePreview = (template: UnifiedEmailTemplate) => {
+  const handlePreview = async (template: UnifiedEmailTemplate) => {
     setPreviewTemplate(template);
+    setPreviewHtml(null);
     setPreviewDialogOpen(true);
+
+    // Fetch merged preview from backend
+    if (template.source === 'customer') {
+      setIsLoadingPreview(true);
+      try {
+        const response = await previewCustomerTemplate(template.id);
+        if (response.data.success && response.data.html_content) {
+          setPreviewHtml(response.data.html_content);
+        } else {
+          // Fallback to raw HTML
+          setPreviewHtml(template.html_content || null);
+        }
+      } catch {
+        // Fallback to raw HTML if preview endpoint fails
+        setPreviewHtml(template.html_content || null);
+      } finally {
+        setIsLoadingPreview(false);
+      }
+    } else {
+      // Library templates don't have user-specific merge codes
+      setPreviewHtml(template.html_content || null);
+    }
   };
+
+  const handleEdit = (template: UnifiedEmailTemplate) => {
+    if (template.source !== 'customer') {
+      toast.error('Standard library templates cannot be edited. Create a copy first.');
+      return;
+    }
+    setEditTemplate(template);
+    setEditSubject(template.email_subject || '');
+    setEditHtmlContent(template.html_content || '');
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editTemplate) return;
+    updateMutation.mutate({
+      id: editTemplate.id,
+      data: {
+        email_subject: editSubject,
+        html_content: editHtmlContent,
+      },
+    });
+  };
+
+  const quillModules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline'],
+      [{ 'color': [] }, { 'background': [] }],
+      [{ 'align': [] }],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      ['link'],
+      ['clean'],
+    ],
+  };
+
+  const quillFormats = [
+    'header',
+    'bold', 'italic', 'underline',
+    'color', 'background',
+    'align',
+    'list', 'bullet',
+    'link',
+  ];
 
   // Type badge color helper
   const getTypeBadgeClass = (type: string) => {
@@ -184,6 +281,12 @@ export default function MyEmailTemplates() {
       onClick: (row: UnifiedEmailTemplate) => handlePreview(row),
     },
     {
+      label: 'Edit',
+      icon: Edit,
+      onClick: (row: UnifiedEmailTemplate) => handleEdit(row),
+      disabled: (row: UnifiedEmailTemplate) => row.source !== 'customer',
+    },
+    {
       label: 'Send Email',
       icon: Send,
       onClick: (row: UnifiedEmailTemplate) => {
@@ -199,6 +302,7 @@ export default function MyEmailTemplates() {
       icon: Trash2,
       className: 'text-red-600',
       onClick: (row: UnifiedEmailTemplate) => handleDelete(row),
+      disabled: (row: UnifiedEmailTemplate) => row.source !== 'customer',
     },
   ];
 
@@ -228,7 +332,7 @@ export default function MyEmailTemplates() {
         <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
           <Info className="h-4 w-4 text-blue-600" />
           <AlertDescription className="text-sm">
-            <strong>Get Started:</strong> You don't have any templates yet. Click "Create Email Template" above to select from professional templates in our library.
+            <strong>Get Started:</strong> You don't have any templates yet. Click "Create Email" above to select from professional templates in our library.
           </AlertDescription>
         </Alert>
       ) : (
@@ -257,7 +361,7 @@ export default function MyEmailTemplates() {
       </div>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={(open) => { if (!open) { setDeleteDialogOpen(false); setTemplateToDelete(null); } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
@@ -267,12 +371,13 @@ export default function MyEmailTemplates() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               className="bg-red-600 hover:bg-red-700"
+              disabled={deleteMutation.isPending}
             >
-              Delete
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -291,9 +396,14 @@ export default function MyEmailTemplates() {
             </DialogDescription>
           </DialogHeader>
           <div className="overflow-auto max-h-[70vh] rounded-lg border-2">
-            {previewTemplate?.html_content ? (
+            {isLoadingPreview ? (
+              <div className="flex items-center justify-center py-20 text-muted-foreground">
+                <Loader2 className="h-8 w-8 animate-spin mr-3" />
+                <p className="text-lg">Loading preview with your information...</p>
+              </div>
+            ) : previewHtml ? (
               <iframe
-                srcDoc={previewTemplate.html_content}
+                srcDoc={previewHtml}
                 className="w-full h-[65vh] bg-white"
                 title="Template Preview"
                 sandbox="allow-same-origin"
@@ -309,6 +419,70 @@ export default function MyEmailTemplates() {
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setPreviewDialogOpen(false)} size="lg">
               Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={(open) => {
+        if (!open) {
+          setEditDialogOpen(false);
+          setEditTemplate(null);
+        }
+      }}>
+        <DialogContent className="max-w-4xl max-h-[95vh]">
+          <DialogHeader>
+            <DialogTitle>Edit Email</DialogTitle>
+            <DialogDescription>
+              Edit the subject and content of your email template.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 overflow-y-auto max-h-[65vh] pr-2">
+            <div className="space-y-2">
+              <Label htmlFor="edit-subject">Email Subject</Label>
+              <Input
+                id="edit-subject"
+                value={editSubject}
+                onChange={(e) => setEditSubject(e.target.value)}
+                placeholder="Enter email subject..."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Email Content</Label>
+              <div className="border rounded-md">
+                <ReactQuill
+                  theme="snow"
+                  value={editHtmlContent}
+                  onChange={setEditHtmlContent}
+                  modules={quillModules}
+                  formats={quillFormats}
+                  placeholder="Enter the email content..."
+                  style={{ minHeight: '300px' }}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => { setEditDialogOpen(false); setEditTemplate(null); }}
+              disabled={updateMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveEdit}
+              disabled={updateMutation.isPending}
+            >
+              {updateMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

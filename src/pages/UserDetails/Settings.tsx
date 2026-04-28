@@ -157,14 +157,6 @@ const Settings = () => {
                                     <p className="text-sm font-semibold">{data?.data?.sendgrid_password || '-'}</p>
                                 </div>
                                 <div className="space-y-2">
-                                    <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">No Rate Plan</label>
-                                    <p className="text-sm font-semibold">{data?.data?.no_rate_post ? 'Yes' : 'No'}</p>
-                                </div>
-                                <div className="space-y-2">
-                                    <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">Changeable Phone Label</label>
-                                    <p className="text-sm font-semibold">{data?.data?.change_phone_label ? 'Yes' : 'No'}</p>
-                                </div>
-                                <div className="space-y-2">
                                     <label htmlFor="first_name" className="text-xs font-medium text-muted-foreground">First Name In Subject</label>
                                     <p className="text-sm font-semibold">{data?.data?.use_first_name ? 'Yes' : 'No'}</p>
                                 </div>
@@ -209,26 +201,6 @@ const Settings = () => {
 
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-                                <div className="space-y-2">
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox
-                                            id="isNoRatePlan"
-                                            checked={watch('isNoRatePlan')}
-                                            onCheckedChange={(checked) => setValue('isNoRatePlan', checked as boolean)}
-                                        />
-                                        <label htmlFor="isNoRatePlan" className="text-sm font-medium">No Rate Plan</label>
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox
-                                            id="isChangeablePhoneLabel"
-                                            checked={watch('isChangeablePhoneLabel')}
-                                            onCheckedChange={(checked) => setValue('isChangeablePhoneLabel', checked as boolean)}
-                                        />
-                                        <label htmlFor="isChangeablePhoneLabel" className="text-sm font-medium">Changeable Phone Label</label>
-                                    </div>
-                                </div>
                                 <div className="space-y-2">
                                     <div className="flex items-center space-x-2">
                                         <Checkbox

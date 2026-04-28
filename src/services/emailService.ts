@@ -162,6 +162,15 @@ export const copySystemTemplate = (data: {
 }): Promise<AxiosResponse<CustomerEmailTemplate>> =>
     api.post('/email/templates/available-templates/copy-template', data);
 
+// ==================== CUSTOMER EMAIL TEMPLATE PREVIEW ====================
+
+export const previewCustomerTemplate = (id: number): Promise<AxiosResponse<{
+    success: boolean;
+    html_content: string;
+    subject: string;
+}>> =>
+    api.get(`/email/customer-templates/${id}/preview`);
+
 // ==================== EMAIL ATTACHMENTS ====================
 
 export const getAttachments = (emailTemplateId: number): Promise<AxiosResponse<EmailAttachment[]>> =>

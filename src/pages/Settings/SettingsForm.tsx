@@ -444,20 +444,12 @@ const SettingsForm = ({ userId }: { userId: string }) => {
                         <label className="text-sm font-medium">Additional Settings</label>
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
                             <div className="space-y-2">
-                                <label htmlFor="no_rate_post" className="text-xs font-medium text-muted-foreground">No Rate Plan</label>
-                                <p className="text-sm font-semibold">{data?.data?.no_rate_post ? 'Yes' : 'No'}</p>
-                            </div>
-                            <div className="space-y-2">
                                 <label htmlFor="no_emal_report" className="text-xs font-medium text-muted-foreground">Email Report</label>
                                 <p className="text-sm font-semibold">{data?.data?.no_emal_report ? 'No' : 'Yes'}</p>
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="use_first_name" className="text-xs font-medium text-muted-foreground">First Name In Subject</label>
                                 <p className="text-sm font-semibold">{data?.data?.use_first_name ? 'Yes' : 'No'}</p>
-                            </div>
-                            <div className="space-y-2">
-                                <label htmlFor="change_phone_label" className="text-xs font-medium text-muted-foreground">Changeable Phone Label</label>
-                                <p className="text-sm font-semibold">{data?.data?.change_phone_label ? 'Yes' : 'No'}</p>
                             </div>
                         </div>
                     </div>
@@ -823,14 +815,6 @@ const SettingsForm = ({ userId }: { userId: string }) => {
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
                                 <div className="flex items-center space-x-2">
                                     <Checkbox
-                                        id="no_rate_post"
-                                        checked={watch('no_rate_post')}
-                                        onCheckedChange={(checked) => setValue('no_rate_post', checked as boolean)}
-                                    />
-                                    <label htmlFor="no_rate_post" className="text-sm font-medium">No Rate Plan</label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <Checkbox
                                         id="no_emal_report"
                                         checked={watch('no_emal_report')}
                                         onCheckedChange={(checked) => setValue('no_emal_report', checked as boolean)}
@@ -844,14 +828,6 @@ const SettingsForm = ({ userId }: { userId: string }) => {
                                         onCheckedChange={(checked) => setValue('use_first_name', checked as boolean)}
                                     />
                                     <label htmlFor="use_first_name" className="text-sm font-medium">First Name In Subject</label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id="change_phone_label"
-                                        checked={watch('change_phone_label')}
-                                        onCheckedChange={(checked) => setValue('change_phone_label', checked as boolean)}
-                                    />
-                                    <label htmlFor="change_phone_label" className="text-sm font-medium">Changeable Phone Label</label>
                                 </div>
                             </div>
                         </div>
