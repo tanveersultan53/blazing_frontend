@@ -49,8 +49,6 @@ const Settings = () => {
     const initialValues = {
         name: '',
         password: '',
-        isNoRatePlan: false,
-        isChangeablePhoneLabel: false,
         isNameInSubject: false,
         isEmailReport: false,
     };
@@ -67,8 +65,6 @@ const Settings = () => {
         const apiPayload = {
             name: formData.name || null,
             sendgrid_password: formData.password || null,
-            no_rate_post: formData.isNoRatePlan || null,
-            change_phone_label: formData.isChangeablePhoneLabel || null,
             use_first_name: formData.isNameInSubject || null,
             no_emal_report: formData.isEmailReport || null,
         };
@@ -91,8 +87,6 @@ const Settings = () => {
             const formData = {
                 name: data.data.name || '',
                 password: data.data.sendgrid_password || '',
-                isNoRatePlan: data.data.no_rate_post || false,
-                isChangeablePhoneLabel: data.data.change_phone_label || false,
                 isNameInSubject: data.data.use_first_name || false,
                 isEmailReport: data.data.no_emal_report || false,
             };
@@ -107,8 +101,6 @@ const Settings = () => {
             const formData = {
                 name: data.data.name || '',
                 password: data.data.sendgrid_password || '',
-                isNoRatePlan: data.data.no_rate_post || false,
-                isChangeablePhoneLabel: data.data.change_phone_label || false,
                 isNameInSubject: data.data.use_first_name || false,
                 isEmailReport: data.data.no_emal_report || false,
             };

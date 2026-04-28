@@ -222,6 +222,19 @@ export const useUserDashboard = () => {
     // Add remaining columns
     baseColumns.push(
       {
+        header: 'Optout',
+        accessorKey: 'optout',
+        cell: ({ row }) => {
+          const optout = row.getValue("optout") as boolean;
+          return (
+            <Badge variant={optout ? "destructive" : "default"}>
+              {optout ? "Yes" : "No"}
+            </Badge>
+          );
+        },
+        enableColumnFilter: true,
+      },
+      {
         header: 'Status',
         accessorKey: 'send_status',
         cell: ({ row }) => {

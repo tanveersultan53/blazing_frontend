@@ -75,7 +75,6 @@ const SettingsForm = ({ userId }: { userId: string }) => {
         active_deactive_all_settings: data?.data?.active_deactive_all_settings || false,
         no_emal_report: data?.data?.no_emal_report || false,
         use_first_name: data?.data?.use_first_name || false,
-        change_phone_label: data?.data?.change_phone_label || false,
     }
 
     const form = useForm<IEmailSettings>({

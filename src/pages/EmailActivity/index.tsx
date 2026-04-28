@@ -23,63 +23,7 @@ const EmailActivity = () => {
 
     useBreadcrumbs(breadcrumbs);
 
-    // Sample email activity data - replace with actual API data later
-    const emailActivities: EmailActivity[] = [
-        {
-            id: 1,
-            subject: "Welcome Email",
-            recipient: "john.doe@example.com",
-            status: "delivered",
-            sentDate: "2024-01-20",
-            opens: 3,
-            clicks: 1,
-        },
-        {
-            id: 2,
-            subject: "Monthly Newsletter",
-            recipient: "jane.smith@example.com",
-            status: "opened",
-            sentDate: "2024-01-19",
-            opens: 5,
-            clicks: 2,
-        },
-        {
-            id: 3,
-            subject: "Product Update",
-            recipient: "bob.johnson@example.com",
-            status: "sent",
-            sentDate: "2024-01-18",
-            opens: 0,
-            clicks: 0,
-        },
-        {
-            id: 4,
-            subject: "Special Offer",
-            recipient: "alice.williams@example.com",
-            status: "failed",
-            sentDate: "2024-01-17",
-            opens: 0,
-            clicks: 0,
-        },
-        {
-            id: 5,
-            subject: "Password Reset",
-            recipient: "mike.davis@example.com",
-            status: "delivered",
-            sentDate: "2024-01-16",
-            opens: 1,
-            clicks: 1,
-        },
-        {
-            id: 6,
-            subject: "Account Verification",
-            recipient: "sarah.wilson@example.com",
-            status: "opened",
-            sentDate: "2024-01-15",
-            opens: 2,
-            clicks: 0,
-        },
-    ];
+    const emailActivities: EmailActivity[] = [];
 
     // Calculate statistics
     const stats = useMemo(() => {
