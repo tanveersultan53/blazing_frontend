@@ -128,7 +128,7 @@ const AddPersonForm = ({ type }: { type: string | null }) => {
               )}
             </div>
 
-            {type === "partner" && (
+            {(type === "partner" || type === "referal_partner") && (
               <>
                 <div className="space-y-2">
                   <label htmlFor="title" className="text-sm font-medium">

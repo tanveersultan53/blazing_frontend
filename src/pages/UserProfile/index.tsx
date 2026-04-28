@@ -15,21 +15,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
-  getSocials,
   getUserDetails,
   patchUser,
 } from "@/services/userManagementService";
 import { toast } from "sonner";
 import { queryKeys } from "@/helpers/constants";
 import type {
-  ISocials,
   IUserDetails,
 } from "@/pages/UserDetails/interface";
 import type { AxiosResponse } from "axios";
 import Loading from "@/components/Loading";
 import UpdateUserProfile from "./UpdateUserProfile";
 import { Button } from "@/components/ui/button";
-import UpdateUserSocialLinks from "./UpdateUserSocialLinks";
 import UpdateUserPersonalInfo from "./UpdateUserPersonalInfo";
 
 const UserProfile = () => {
@@ -47,16 +44,6 @@ const UserProfile = () => {
     enabled: !!currentUser?.rep_id,
   });
 
-  // Fetch socials information
-  const {
-    data: socialsData,
-    isLoading: isSocialsLoading,
-    refetch: refetchSocials,
-  } = useQuery<AxiosResponse<ISocials>>({
-    queryKey: [queryKeys.getSocials, currentUser?.rep_id],
-    queryFn: () => getSocials(currentUser?.rep_id as string | number),
-    enabled: !!currentUser?.rep_id,
-  });
 
   // Memoize breadcrumbs to prevent infinite loops
   const breadcrumbs = useMemo(() => [{ label: "Profile" }], []);
@@ -91,7 +78,6 @@ const UserProfile = () => {
     website,
     branch_id: _branch_id,
     industry_type,
-    socials,
   } = userDetails || {};
 
   const [isEditMode, setIsEditMode] = useState(false);
