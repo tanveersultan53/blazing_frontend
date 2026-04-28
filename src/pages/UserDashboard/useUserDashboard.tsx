@@ -225,7 +225,7 @@ export const useUserDashboard = () => {
         header: 'Optout',
         accessorKey: 'optout',
         cell: ({ row }) => {
-          const optout = row.getValue("optout") as boolean;
+          const optout = row.original.optout;
           return (
             <Badge variant={optout ? "destructive" : "default"}>
               {optout ? "Yes" : "No"}
@@ -238,12 +238,12 @@ export const useUserDashboard = () => {
         header: 'Status',
         accessorKey: 'send_status',
         cell: ({ row }) => {
+          const optout = row.original.optout;
           const sendStatus = row.getValue("send_status") as string;
-          const variant = sendStatus === "send" ? "default" : "destructive";
-          const displayText = sendStatus === "send" ? "Send" : "Don't Send";
+          const isDontSend = optout || sendStatus === "dont_send";
           return (
-            <Badge variant={variant}>
-              {displayText}
+            <Badge variant={isDontSend ? "destructive" : "default"}>
+              {isDontSend ? "Don't Send" : sendStatus === "prospect" ? "Prospect" : sendStatus === "client" ? "Client" : "Send"}
             </Badge>
           );
         },
