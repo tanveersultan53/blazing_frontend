@@ -73,7 +73,6 @@ const SettingsForm = ({ userId }: { userId: string }) => {
         newsletter_date2: data?.data?.newsletter_date2 || format(new Date(), 'yyyy-MM-dd'),
         autooptionscol: data?.data?.autooptionscol,
         active_deactive_all_settings: data?.data?.active_deactive_all_settings || false,
-        no_rate_post: data?.data?.no_rate_post || false,
         no_emal_report: data?.data?.no_emal_report || false,
         use_first_name: data?.data?.use_first_name || false,
         change_phone_label: data?.data?.change_phone_label || false,
@@ -995,8 +994,8 @@ const SettingsForm = ({ userId }: { userId: string }) => {
         <Card className="mb-12">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <div>
-                    <CardTitle>Newsletter Information</CardTitle>
-                    <CardDescription>Compliance and disclosure settings for newsletters.</CardDescription>
+                    <CardTitle>Compliance Information</CardTitle>
+                    <CardDescription>Compliance information for emails.</CardDescription>
                 </div>
                 {!isNewsletterEditMode &&
                     <Button variant="outline" size="sm" className="flex items-center gap-2" onClick={() => setIsNewsletterEditMode(true)}>
@@ -1040,10 +1039,6 @@ const SettingsForm = ({ userId }: { userId: string }) => {
                             <div className="space-y-2">
                                 <label className="text-xs font-medium text-muted-foreground">HUD</label>
                                 <p className="text-sm font-semibold">{newsletter?.hud ? 'Yes' : 'No'}</p>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-xs font-medium text-muted-foreground">No Rate Post</label>
-                                <p className="text-sm font-semibold">{newsletter?.no_rate_post ? 'Yes' : 'No'}</p>
                             </div>
                             <div className="space-y-2">
                                 <label className="text-xs font-medium text-muted-foreground">EHL</label>

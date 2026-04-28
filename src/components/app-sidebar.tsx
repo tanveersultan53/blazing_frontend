@@ -110,7 +110,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       items: [],
     },
     {
-      title: "Settings",
+      title: "Email Settings",
       url: ["/settings"],
       icon: Settings,
       items: [],
@@ -132,7 +132,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const adminNavSecondary = [
     {
-      title: "Settings",
+      title: "Email Settings",
       url: ["/settings"],
       icon: IconSettings,
     },

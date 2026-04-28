@@ -24,7 +24,6 @@ import type {
   IUserDetails,
 } from "@/pages/UserDetails/interface";
 import type { AxiosResponse } from "axios";
-import Loading from "@/components/Loading";
 import UpdateUserProfile from "./UpdateUserProfile";
 import { Button } from "@/components/ui/button";
 import UpdateUserPersonalInfo from "./UpdateUserPersonalInfo";
@@ -82,7 +81,6 @@ const UserProfile = () => {
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [isPersonalEditMode, setIsPersonalEditMode] = useState(false);
-  const [isSocialEditMode, setIsSocialEditMode] = useState(false);
 
   // Photo & logo upload refs
   const photoInputRef = useRef<HTMLInputElement>(null);
@@ -491,157 +489,6 @@ const UserProfile = () => {
             </CardContent>
           </Card>
 
-          {/* Social Accounts Information Card */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div>
-                <CardTitle>Social Accounts Information</CardTitle>
-                <CardDescription>
-                  Following are the social accounts information for the user.
-                </CardDescription>
-              </div>
-              {!isSocialEditMode && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-2"
-                  onClick={() => setIsSocialEditMode(true)}
-                  disabled={isSocialsLoading}
-                >
-                  <Edit className="w-4 h-4" />
-                  Edit Social Links
-                </Button>
-              )}
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {isSocialsLoading ? (
-                <Loading />
-              ) : isSocialEditMode ? (
-                <UpdateUserSocialLinks
-                  socials={socialsData?.data ?? socials}
-                  userId={currentUser?.rep_id}
-                  setIsEditMode={setIsSocialEditMode}
-                  refetch={refetchSocials}
-                />
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Column 1 */}
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Facebook url
-                      </label>
-                      <p className="text-base mt-1">
-                        {displayValue((socialsData?.data ?? socials)?.facebook)}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Instagram url
-                      </label>
-                      <p className="text-base mt-1">
-                        {displayValue(
-                          (socialsData?.data ?? socials)?.instagram,
-                        )}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Google url
-                      </label>
-                      <p className="text-base mt-1">
-                        {displayValue((socialsData?.data ?? socials)?.google)}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Moneyapp label
-                      </label>
-                      <p className="text-base mt-1">
-                        {displayValue(
-                          (socialsData?.data ?? socials)?.moneyapplabel,
-                        )}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Column 2 */}
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Linkedin url
-                      </label>
-                      <p className="text-base mt-1">
-                        {displayValue((socialsData?.data ?? socials)?.linkedin)}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Youtube url
-                      </label>
-                      <p className="text-base mt-1">
-                        {displayValue((socialsData?.data ?? socials)?.youtube)}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Yelp url
-                      </label>
-                      <p className="text-base mt-1">
-                        {displayValue((socialsData?.data ?? socials)?.yelp)}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Moneyapp url
-                      </label>
-                      <p className="text-base mt-1">
-                        {displayValue((socialsData?.data ?? socials)?.moneyapp)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Column 3 */}
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Twitter url
-                      </label>
-                      <p className="text-base mt-1">
-                        {displayValue((socialsData?.data ?? socials)?.twitter)}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Blogger url
-                      </label>
-                      <p className="text-base mt-1">
-                        {displayValue((socialsData?.data ?? socials)?.blogr)}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Vimeo url
-                      </label>
-                      <p className="text-base mt-1">
-                        {displayValue((socialsData?.data ?? socials)?.vimeo)}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Calendar url
-                      </label>
-                      <p className="text-base mt-1">
-                        {displayValue(
-                          (socialsData?.data ?? socials)?.socialapp,
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
         </div>
       )}
